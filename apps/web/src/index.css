@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold:        #c8a96e;
+  --gold-dim:    rgba(200, 169, 110, 0.27);
+  --gold-glow:   rgba(200, 169, 110, 0.5);
+  --cream:       #f0e4c4;
+  --tile-bg:     #1a1108;
+  --tile-text:   #d4b896;
+  --empty-bg:    #0d0b07;
+}
+
+html, body, #root {
+  min-height: 100vh;
+}
+
+body {
+  background: radial-gradient(ellipse 120% 60% at 50% 0%, #1c1208 0%, #0a0806 60%);
+  background-color: #0a0806;
+  font-family: 'Crimson Text', Georgia, serif;
+  color: var(--cream);
+}
+
+@layer components {
+  .tile {
+    @apply flex h-16 w-16 items-center justify-center rounded transition-all select-none text-lg font-semibold;
+    font-family: 'Cinzel', serif;
+    background-color: var(--tile-bg);
+    color: var(--tile-text);
+    border: 1px solid var(--gold-dim);
+  }
+
+  .tile-movable {
+    border-color: rgba(200, 169, 110, 0.45);
+    cursor: pointer;
+  }
+
+  .tile-movable:hover {
+    border-color: rgba(200, 169, 110, 0.65);
+    box-shadow: 0 0 6px rgba(200, 169, 110, 0.15);
+    background-color: #1e1509;
+  }
+
+  .tile-movable:active {
+    border-color: #e8c97e;
+    box-shadow: 0 0 14px 3px rgba(200, 169, 110, 0.6);
+    transform: scale(0.94);
+    background-color: #2a1e08;
+  }
+
+  .tile-pressed {
+    border-color: #e8c97e;
+    box-shadow: 0 0 14px 3px rgba(200, 169, 110, 0.6);
+    transform: scale(0.94);
+    background-color: #2a1e08;
+  }
+
+  .tile-empty {
+    background-color: #111009;
+    border-color: rgba(200, 169, 110, 0.12);
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+    cursor: default;
+  }
+}

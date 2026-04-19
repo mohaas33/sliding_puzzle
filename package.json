@@ -1,0 +1,22 @@
+{
+  "name": "sliding-puzzle",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w apps/web\" \"npm run dev -w apps/api\"",
+    "build": "npm run build -w packages/game-logic && npm run build -w apps/web && npm run build -w apps/api",
+    "lint": "eslint \"packages/*/src/**/*.ts\" \"apps/*/src/**/*.{ts,tsx}\"",
+    "test": "npm test -w packages/game-logic",
+    "typecheck": "tsc -b packages/game-logic apps/web apps/api"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}
