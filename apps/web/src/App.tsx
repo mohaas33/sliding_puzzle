@@ -4,8 +4,36 @@ import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/ga
 const N = 5;
 const EMPTY = N * N - 1;
 const PUZZLE_IMAGE = "/eye_Ra.jpg";
+const SAVE_KEY = "shards_of_time_v1";
 
 type WinPhase = "none" | "reveal" | "lore";
+
+interface SaveState {
+  tiles: number[];
+  moves: number;
+  elapsed: number;
+}
+
+function loadSave(): SaveState | null {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as SaveState;
+    if (!Array.isArray(data.tiles) || data.tiles.length !== N * N) return null;
+    if (typeof data.moves !== "number" || typeof data.elapsed !== "number") return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function writeSave(state: SaveState) {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+}
+
+function clearSave() {
+  localStorage.removeItem(SAVE_KEY);
+}
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -14,11 +42,13 @@ function formatTime(seconds: number): string {
 }
 
 export function App() {
-  const [tiles, setTiles] = useState<number[]>(() => shuffle(N));
+  const saved = useRef(loadSave());
+
+  const [tiles, setTiles] = useState<number[]>(() => saved.current?.tiles ?? shuffle(N));
+  const [moves, setMoves] = useState(() => saved.current?.moves ?? 0);
+  const [elapsed, setElapsed] = useState(() => saved.current?.elapsed ?? 0);
+  const [timerActive, setTimerActive] = useState(() => (saved.current?.moves ?? 0) > 0);
   const [pressedIdx, setPressedIdx] = useState<number | null>(null);
-  const [moves, setMoves] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
-  const [timerActive, setTimerActive] = useState(false);
   const [winPhase, setWinPhase] = useState<WinPhase>("none");
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -48,21 +78,31 @@ export function App() {
 
   function handlePointerUp(idx: number) {
     if (pressedIdx === idx && movable.has(idx)) {
-      setTiles(moveTile(tiles, idx, emptyIdx).tiles);
-      setMoves((m) => m + 1);
+      const newTiles = moveTile(tiles, idx, emptyIdx).tiles;
+      const newMoves = moves + 1;
+      setTiles(newTiles);
+      setMoves(newMoves);
       setTimerActive(true);
+      writeSave({ tiles: newTiles, moves: newMoves, elapsed });
     }
     setPressedIdx(null);
   }
 
   function handleNewGame() {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-    setTiles(shuffle(N));
+    const newTiles = shuffle(N);
+    setTiles(newTiles);
     setMoves(0);
     setElapsed(0);
     setTimerActive(false);
     setPressedIdx(null);
     setWinPhase("none");
+    clearSave();
+  }
+
+  function handleClearSave() {
+    clearSave();
+    handleNewGame();
   }
 
   return (
@@ -187,20 +227,35 @@ export function App() {
         )}
       </div>
 
-      {/* New Game button */}
-      <button
-        onClick={handleNewGame}
-        className="mt-1 px-6 py-2 text-sm tracking-widest uppercase transition-all hover:opacity-100 opacity-70"
-        style={{
-          fontFamily: "'Cinzel', serif",
-          color: "#c8a96e",
-          border: "1px solid #c8a96e",
-          background: "transparent",
-          borderRadius: "4px",
-        }}
-      >
-        New Game
-      </button>
+      {/* New Game + Clear save */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleNewGame}
+          className="px-6 py-2 text-sm tracking-widest uppercase transition-all hover:opacity-100 opacity-70"
+          style={{
+            fontFamily: "'Cinzel', serif",
+            color: "#c8a96e",
+            border: "1px solid #c8a96e",
+            background: "transparent",
+            borderRadius: "4px",
+          }}
+        >
+          New Game
+        </button>
+        <button
+          onClick={handleClearSave}
+          className="text-xs tracking-wider uppercase transition-all hover:opacity-70 opacity-40"
+          style={{
+            fontFamily: "'Cinzel', serif",
+            color: "#c8a96e",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          Clear save
+        </button>
+      </div>
 
       {/* Lore */}
       <p

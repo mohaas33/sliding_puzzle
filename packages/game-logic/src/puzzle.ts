@@ -75,8 +75,7 @@ export function shuffle(n: number): number[] {
       [tiles[first], tiles[second]] = [tiles[second] as number, tiles[first] as number];
     }
 
-    if (!isSolved(tiles)) return tiles;
-    // Probability of landing on solved is 1/(n*n)! — retry in the
-    // astronomically unlikely event it happens.
+    // Reject solved state and empty-in-top-left (looks unshuffled to players)
+    if (!isSolved(tiles) && tiles.indexOf(emptyVal) !== 0) return tiles;
   }
 }
