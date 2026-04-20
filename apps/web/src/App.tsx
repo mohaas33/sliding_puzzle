@@ -3,7 +3,7 @@ import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/ga
 
 const N = 5;
 const EMPTY = N * N - 1;
-const PUZZLE_IMAGE = "/eye_Ra.jpg";
+const PUZZLE_IMAGE = `${import.meta.env.BASE_URL}eye_Ra.jpg`;
 const SAVE_KEY = "shards_of_time_v1";
 
 type WinPhase = "none" | "reveal" | "lore";
