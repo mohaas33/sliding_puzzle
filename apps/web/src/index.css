@@ -34,38 +34,36 @@ body {
     font-family: 'Cinzel', serif;
     background-color: var(--tile-bg);
     color: var(--tile-text);
-    border: 1px solid var(--gold-dim);
+    border: 1px solid #c8a96e44;
   }
 
   .tile-movable {
-    border-color: rgba(200, 169, 110, 0.45);
+    border-color: #c8a96e44;
     cursor: pointer;
   }
 
   .tile-movable:hover {
-    border-color: rgba(200, 169, 110, 0.65);
-    box-shadow: 0 0 6px rgba(200, 169, 110, 0.15);
-    background-color: #1e1509;
+    border-color: rgba(200, 169, 110, 0.7);
+    box-shadow: 0 0 10px 2px rgba(200, 169, 110, 0.35), inset 0 0 0 1px rgba(200, 169, 110, 0.25);
   }
 
   .tile-movable:active {
     border-color: #e8c97e;
     box-shadow: 0 0 14px 3px rgba(200, 169, 110, 0.6);
     transform: scale(0.94);
-    background-color: #2a1e08;
   }
 
   .tile-pressed {
     border-color: #e8c97e;
     box-shadow: 0 0 14px 3px rgba(200, 169, 110, 0.6);
     transform: scale(0.94);
-    background-color: #2a1e08;
   }
 
   .tile-empty {
-    background-color: #111009;
-    border-color: rgba(200, 169, 110, 0.12);
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+    background: #0a0806;
+    background-image: none;
+    border-color: rgba(200, 169, 110, 0.1);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.8);
     cursor: default;
   }
 }

@@ -142,34 +142,15 @@ export function App() {
                         backgroundImage: `url(${PUZZLE_IMAGE})`,
                         backgroundSize: `calc(100% * ${N}) calc(100% * ${N})`,
                         backgroundPosition: `calc(${col} * -100%) calc(${row} * -100%)`,
-                        position: "relative",
                       }
                 }
-              >
-                {!isEmpty && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      bottom: 2,
-                      right: 4,
-                      fontSize: 10,
-                      opacity: 0.45,
-                      fontFamily: "'Cinzel', serif",
-                      color: "#f0e4c4",
-                      lineHeight: 1,
-                      pointerEvents: "none",
-                    }}
-                  >
-                    {tile + 1}
-                  </span>
-                )}
-              </button>
+              />
             );
           })}
         </div>
 
-        {/* Complete image reveal (2 s after solving) */}
-        {winPhase === "reveal" && (
+        {/* Win reveal: full image + lore text overlay */}
+        {(winPhase === "reveal" || winPhase === "lore") && (
           <div
             style={{
               position: "absolute",
@@ -180,19 +161,31 @@ export function App() {
               borderRadius: 4,
               animation: "fadeIn 0.4s ease",
             }}
-          />
+          >
+            {winPhase === "lore" && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(10, 8, 6, 0.55)",
+                  borderRadius: 4,
+                  animation: "fadeIn 0.6s ease",
+                }}
+              >
+                <p
+                  className="text-base tracking-wide text-center px-4"
+                  style={{ fontFamily: "'Cinzel', serif", color: "#f0e4c4", textShadow: "0 1px 8px #000" }}
+                >
+                  ✦ The Eye of Ra is restored ✦
+                </p>
+              </div>
+            )}
+          </div>
         )}
       </div>
-
-      {/* Win overlay — shown after reveal */}
-      {winPhase === "lore" && (
-        <p
-          className="text-base tracking-wide"
-          style={{ fontFamily: "'Cinzel', serif", color: "#c8a96e" }}
-        >
-          ✦ The Eye of Ra is restored ✦
-        </p>
-      )}
 
       {/* New Game button */}
       <button
