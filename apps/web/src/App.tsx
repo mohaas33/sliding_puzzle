@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
 
 const N = 5;
 const EMPTY = N * N - 1;
+const PUZZLE_IMAGE = "/eye_Ra.jpg";
+
+type WinPhase = "none" | "reveal" | "lore";
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, "0");
@@ -16,6 +19,8 @@ export function App() {
   const [moves, setMoves] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
+  const [winPhase, setWinPhase] = useState<WinPhase>("none");
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const emptyIdx = tiles.indexOf(EMPTY);
   const movable = new Set(getMovableTiles(tiles, emptyIdx, N));
@@ -26,6 +31,16 @@ export function App() {
     const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
   }, [timerActive, solved]);
+
+  useEffect(() => {
+    if (solved && winPhase === "none") {
+      setWinPhase("reveal");
+      revealTimerRef.current = setTimeout(() => setWinPhase("lore"), 2000);
+    }
+    return () => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    };
+  }, [solved, winPhase]);
 
   function handlePointerDown(idx: number) {
     if (tiles[idx] !== EMPTY) setPressedIdx(idx);
@@ -41,11 +56,13 @@ export function App() {
   }
 
   function handleNewGame() {
+    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     setTiles(shuffle(N));
     setMoves(0);
     setElapsed(0);
     setTimerActive(false);
     setPressedIdx(null);
+    setWinPhase("none");
   }
 
   return (
@@ -84,8 +101,91 @@ export function App() {
         </div>
       </div>
 
-      {/* Win message */}
-      {solved && (
+      {/* Board */}
+      <div className="relative">
+        <div
+          className="grid gap-1.5"
+          style={{ gridTemplateColumns: `repeat(${N}, 4rem)` }}
+        >
+          {tiles.map((tile, idx) => {
+            const isEmpty = tile === EMPTY;
+            const isPressed = pressedIdx === idx;
+            const isMovable = movable.has(idx);
+
+            const row = Math.floor(tile / N);
+            const col = tile % N;
+
+            const tileClass = [
+              "tile",
+              isEmpty
+                ? "tile-empty"
+                : isPressed
+                ? "tile-pressed"
+                : isMovable
+                ? "tile-movable"
+                : "",
+            ]
+              .join(" ")
+              .trim();
+
+            return (
+              <button
+                key={idx}
+                onPointerDown={() => handlePointerDown(idx)}
+                onPointerUp={() => handlePointerUp(idx)}
+                disabled={isEmpty}
+                className={tileClass}
+                style={
+                  isEmpty
+                    ? undefined
+                    : {
+                        backgroundImage: `url(${PUZZLE_IMAGE})`,
+                        backgroundSize: `calc(100% * ${N}) calc(100% * ${N})`,
+                        backgroundPosition: `calc(${col} * -100%) calc(${row} * -100%)`,
+                        position: "relative",
+                      }
+                }
+              >
+                {!isEmpty && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      bottom: 2,
+                      right: 4,
+                      fontSize: 10,
+                      opacity: 0.45,
+                      fontFamily: "'Cinzel', serif",
+                      color: "#f0e4c4",
+                      lineHeight: 1,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {tile + 1}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Complete image reveal (2 s after solving) */}
+        {winPhase === "reveal" && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${PUZZLE_IMAGE})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              borderRadius: 4,
+              animation: "fadeIn 0.4s ease",
+            }}
+          />
+        )}
+      </div>
+
+      {/* Win overlay — shown after reveal */}
+      {winPhase === "lore" && (
         <p
           className="text-base tracking-wide"
           style={{ fontFamily: "'Cinzel', serif", color: "#c8a96e" }}
@@ -93,37 +193,6 @@ export function App() {
           ✦ The Eye of Ra is restored ✦
         </p>
       )}
-
-      {/* Board */}
-      <div
-        className="grid gap-1.5"
-        style={{ gridTemplateColumns: `repeat(${N}, 4rem)` }}
-      >
-        {tiles.map((tile, idx) => {
-          const isEmpty = tile === EMPTY;
-          const isPressed = pressedIdx === idx;
-          const isMovable = movable.has(idx);
-
-          const tileClass = [
-            "tile",
-            isEmpty ? "tile-empty" : isPressed ? "tile-pressed" : isMovable ? "tile-movable" : "",
-          ]
-            .join(" ")
-            .trim();
-
-          return (
-            <button
-              key={idx}
-              onPointerDown={() => handlePointerDown(idx)}
-              onPointerUp={() => handlePointerUp(idx)}
-              disabled={isEmpty}
-              className={tileClass}
-            >
-              {!isEmpty && tile + 1}
-            </button>
-          );
-        })}
-      </div>
 
       {/* New Game button */}
       <button
