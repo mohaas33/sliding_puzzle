@@ -5,6 +5,10 @@ const N = 5;
 const EMPTY = N * N - 1;
 const PUZZLE_IMAGE = `${import.meta.env.BASE_URL}eye_Ra.jpg`;
 const SAVE_KEY = "shards_of_time_v1";
+const TILE_PX = 64;   // h-16 = 4rem at 16px base
+const GAP_PX = 6;     // gap-1.5 = 1.5 × 4px
+const STRIDE = TILE_PX + GAP_PX;
+const BOARD_PX = N * TILE_PX + (N - 1) * GAP_PX;
 
 type WinPhase = "none" | "reveal" | "lore";
 
@@ -142,18 +146,19 @@ export function App() {
       </div>
 
       {/* Board */}
-      <div className="relative">
-        <div
-          className="grid gap-1.5"
-          style={{ gridTemplateColumns: `repeat(${N}, 4rem)` }}
-        >
-          {tiles.map((tile, idx) => {
+      <div className="relative" style={{ width: BOARD_PX, height: BOARD_PX }}>
+        {tiles.map((tile, idx) => {
             const isEmpty = tile === EMPTY;
             const isPressed = pressedIdx === idx;
             const isMovable = movable.has(idx);
 
-            const row = Math.floor(tile / N);
-            const col = tile % N;
+            // Grid position for layout
+            const gridRow = Math.floor(idx / N);
+            const gridCol = idx % N;
+
+            // Image slice from tile VALUE (stays constant as the tile moves)
+            const imgRow = Math.floor(tile / N);
+            const imgCol = tile % N;
 
             const tileClass = [
               "tile",
@@ -170,24 +175,25 @@ export function App() {
 
             return (
               <button
-                key={idx}
+                key={tile}
                 onPointerDown={() => handlePointerDown(idx)}
                 onPointerUp={() => handlePointerUp(idx)}
                 disabled={isEmpty}
                 className={tileClass}
-                style={
-                  isEmpty
+                style={{
+                  left: gridCol * STRIDE,
+                  top: gridRow * STRIDE,
+                  ...(isEmpty
                     ? undefined
                     : {
                         backgroundImage: `url(${PUZZLE_IMAGE})`,
                         backgroundSize: `calc(100% * ${N}) calc(100% * ${N})`,
-                        backgroundPosition: `calc(${col} * -100%) calc(${row} * -100%)`,
-                      }
-                }
+                        backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
+                      }),
+                }}
               />
             );
           })}
-        </div>
 
         {/* Win reveal: full image + lore text overlay */}
         {(winPhase === "reveal" || winPhase === "lore") && (

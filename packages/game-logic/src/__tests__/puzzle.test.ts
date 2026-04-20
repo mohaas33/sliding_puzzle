@@ -1,6 +1,11 @@
 import { isSolved, isSolvable, getMovableTiles, moveTile, shuffle } from "../puzzle.js";
 
 // Convention: empty tile = n*n-1, solved = [0, 1, ..., n*n-1]
+//
+// 3×3 board index layout:
+//  0 | 1 | 2
+//  3 | 4 | 5
+//  6 | 7 | 8   (value 8 = empty in solved state)
 
 // ---------------------------------------------------------------------------
 // isSolved
@@ -20,7 +25,6 @@ describe("isSolved", () => {
   });
 
   it("returns false when empty tile is not at last position", () => {
-    // 8 (empty) is at index 0 instead of 8
     expect(isSolved([8, 1, 2, 3, 4, 5, 6, 7, 0])).toBe(false);
   });
 });
@@ -30,107 +34,157 @@ describe("isSolved", () => {
 // ---------------------------------------------------------------------------
 
 describe("isSolvable", () => {
-  // --- odd grid (n=3) ---
-
   it("recognises solved 3×3 as solvable (0 inversions)", () => {
     expect(isSolvable([0, 1, 2, 3, 4, 5, 6, 7, 8], 3)).toBe(true);
   });
 
   it("recognises a known-solvable 3×3 (even inversions)", () => {
-    // Swap tiles 0 and 1 twice to keep even parity: [1,0,2,3,4,5,6,7,8] → 1 inv,
-    // swap again back to get 2 inversions: [1,2,0,3,4,5,6,7,8]
     // 1>0, 2>0 → 2 inversions → even → solvable
     expect(isSolvable([1, 2, 0, 3, 4, 5, 6, 7, 8], 3)).toBe(true);
   });
 
   it("recognises a known-unsolvable 3×3 (odd inversions)", () => {
-    // Swap tiles 6 and 7 in solved board → 1 inversion → odd → not solvable
+    // Swap tiles 6 and 7 → 1 inversion → odd → not solvable
     expect(isSolvable([0, 1, 2, 3, 4, 5, 7, 6, 8], 3)).toBe(false);
   });
 
-  // --- even grid (n=4) ---
-
   it("recognises solved 4×4 as solvable", () => {
-    // inversions=0 (even), emptyRowFromBottom = 4-floor(15/4) = 4-3 = 1 (odd)
-    // (0+1) % 2 = 1 → solvable
     expect(
       isSolvable([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 4)
     ).toBe(true);
   });
 
   it("recognises a known-unsolvable 4×4", () => {
-    // Swap tiles 0 and 1 in solved 4×4 → 1 inversion (odd),
-    // emptyRowFromBottom = 1 (odd) → (1+1) % 2 = 0 → not solvable
     expect(
       isSolvable([1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 4)
     ).toBe(false);
   });
 
   it("empty tile is excluded from inversion count", () => {
-    // Verify the empty (8) does not affect the 3×3 inversion count
-    // [0,1,2,3,4,5,6,7,8] and [8,0,1,2,3,4,5,6,7] have different empty positions
-    // but the non-empty tile ordering in the latter is [0,1,2,3,4,5,6,7] → 0 inversions
-    // However solvability also depends on grid parity for even grids,
-    // so just verify it's consistent for odd n=3.
-    const tiles = [8, 0, 1, 2, 3, 4, 5, 6, 7]; // empty at top-left, rest in order
-    // non-empty values in order: 0,1,2,3,4,5,6,7 → 0 inversions → solvable for n=3
+    const tiles = [8, 0, 1, 2, 3, 4, 5, 6, 7];
     expect(isSolvable(tiles, 3)).toBe(true);
   });
 });
 
 // ---------------------------------------------------------------------------
-// getMovableTiles
+// getMovableTiles — now returns all tiles in same row AND column as empty
 // ---------------------------------------------------------------------------
 
 describe("getMovableTiles", () => {
-  // 3×3 board layout (indices):
-  //  0 | 1 | 2
-  //  3 | 4 | 5
-  //  6 | 7 | 8  (8 = empty in solved state)
+  // Helper: returns sorted movable indices for easy comparison.
+  function movable(tiles: number[], emptyIdx: number, n: number) {
+    return getMovableTiles(tiles, emptyIdx, n).sort((a, b) => a - b);
+  }
 
-  it("top-left corner (emptyIdx=0): right and down only", () => {
+  it("empty at top-left (0): rest of row 0 + rest of col 0", () => {
+    // row 0: [1, 2]  col 0: [3, 6]
     const tiles = [8, 1, 2, 3, 4, 5, 6, 7, 0];
-    expect(getMovableTiles(tiles, 0, 3).sort((a, b) => a - b)).toEqual([1, 3]);
+    expect(movable(tiles, 0, 3)).toEqual([1, 2, 3, 6]);
   });
 
-  it("top-right corner (emptyIdx=2): left and down only", () => {
+  it("empty at top-right (2): rest of row 0 + rest of col 2", () => {
+    // row 0: [0, 1]  col 2: [5, 8]
     const tiles = [0, 1, 8, 3, 4, 5, 6, 7, 2];
-    expect(getMovableTiles(tiles, 2, 3).sort((a, b) => a - b)).toEqual([1, 5]);
+    expect(movable(tiles, 2, 3)).toEqual([0, 1, 5, 8]);
   });
 
-  it("bottom-left corner (emptyIdx=6): right and up only", () => {
+  it("empty at bottom-left (6): rest of row 2 + rest of col 0", () => {
+    // row 2: [7, 8]  col 0: [0, 3]
     const tiles = [0, 1, 2, 3, 4, 5, 8, 7, 6];
-    expect(getMovableTiles(tiles, 6, 3).sort((a, b) => a - b)).toEqual([3, 7]);
+    expect(movable(tiles, 6, 3)).toEqual([0, 3, 7, 8]);
   });
 
-  it("bottom-right corner (emptyIdx=8): left and up only", () => {
+  it("empty at bottom-right (8): rest of row 2 + rest of col 2", () => {
+    // row 2: [6, 7]  col 2: [2, 5]
     const tiles = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-    expect(getMovableTiles(tiles, 8, 3).sort((a, b) => a - b)).toEqual([5, 7]);
+    expect(movable(tiles, 8, 3)).toEqual([2, 5, 6, 7]);
   });
 
-  it("centre (emptyIdx=4): all four neighbours", () => {
+  it("empty at centre (4): rest of row 1 + rest of col 1", () => {
+    // row 1: [3, 5]  col 1: [1, 7]  → same result as the old adjacent-only test
     const tiles = [0, 1, 2, 3, 8, 5, 6, 7, 4];
-    expect(getMovableTiles(tiles, 4, 3).sort((a, b) => a - b)).toEqual([1, 3, 5, 7]);
+    expect(movable(tiles, 4, 3)).toEqual([1, 3, 5, 7]);
   });
 
-  it("top-centre edge (emptyIdx=1): left, right, down only", () => {
+  it("empty at top-centre (1): rest of row 0 + rest of col 1", () => {
+    // row 0: [0, 2]  col 1: [4, 7]
     const tiles = [0, 8, 2, 3, 4, 5, 6, 7, 1];
-    expect(getMovableTiles(tiles, 1, 3).sort((a, b) => a - b)).toEqual([0, 2, 4]);
+    expect(movable(tiles, 1, 3)).toEqual([0, 2, 4, 7]);
   });
 });
 
 // ---------------------------------------------------------------------------
-// moveTile
+// moveTile — shifts the entire chain between tileIdx and emptyIdx
 // ---------------------------------------------------------------------------
 
 describe("moveTile", () => {
-  it("swaps the tile and empty cell, returns new emptyIdx", () => {
-    // 3×3, empty at centre (4), move the tile at index 1 (above empty)
+  // ── single-step moves (adjacent tile, behaviour unchanged) ──────────────
+
+  it("adjacent tile above empty slides down one step", () => {
+    // empty at centre (4), click index 1 (above)
     const tiles = [0, 1, 2, 3, 8, 5, 6, 7, 4];
     const result = moveTile(tiles, 1, 4);
     expect(result.tiles).toEqual([0, 8, 2, 3, 1, 5, 6, 7, 4]);
     expect(result.emptyIdx).toBe(1);
   });
+
+  it("adjacent tile to the right of empty slides left one step", () => {
+    // empty at 4, click index 5 (right)
+    const tiles = [0, 1, 2, 3, 8, 5, 6, 7, 4];
+    const result = moveTile(tiles, 5, 4);
+    expect(result.tiles).toEqual([0, 1, 2, 3, 5, 8, 6, 7, 4]);
+    expect(result.emptyIdx).toBe(5);
+  });
+
+  it("adjacent tile below empty slides up one step", () => {
+    // empty at 1 (top-centre), click index 4 (below)
+    const tiles = [0, 8, 2, 3, 4, 5, 6, 7, 1];
+    const result = moveTile(tiles, 4, 1);
+    expect(result.tiles).toEqual([0, 4, 2, 3, 8, 5, 6, 7, 1]);
+    expect(result.emptyIdx).toBe(4);
+  });
+
+  // ── multi-step row slides ────────────────────────────────────────────────
+
+  it("clicking two steps right in same row slides two tiles left", () => {
+    // 3×3, row 0: [8(E), 1, 2] → click index 2
+    // expected: [1, 2, E, ...]
+    const tiles = [8, 1, 2, 3, 4, 5, 6, 7, 0];
+    const result = moveTile(tiles, 2, 0);
+    expect(result.tiles).toEqual([1, 2, 8, 3, 4, 5, 6, 7, 0]);
+    expect(result.emptyIdx).toBe(2);
+  });
+
+  it("clicking two steps left in same row slides two tiles right", () => {
+    // 3×3, row 0: [0, 1, 8(E)] → click index 0
+    // expected: [E, 0, 1, ...]
+    const tiles = [0, 1, 8, 3, 4, 5, 6, 7, 2];
+    const result = moveTile(tiles, 0, 2);
+    expect(result.tiles).toEqual([8, 0, 1, 3, 4, 5, 6, 7, 2]);
+    expect(result.emptyIdx).toBe(0);
+  });
+
+  // ── multi-step column slides ─────────────────────────────────────────────
+
+  it("clicking two steps down in same column slides two tiles up", () => {
+    // 3×3, col 0: row0=8(E), row1=3, row2=6 → click index 6
+    // expected col 0: row0=3, row1=6, row2=E
+    const tiles = [8, 1, 2, 3, 4, 5, 6, 7, 0];
+    const result = moveTile(tiles, 6, 0);
+    expect(result.tiles).toEqual([3, 1, 2, 6, 4, 5, 8, 7, 0]);
+    expect(result.emptyIdx).toBe(6);
+  });
+
+  it("clicking two steps up in same column slides two tiles down", () => {
+    // 3×3, col 0: row0=0, row1=3, row2=8(E) → click index 0
+    // expected col 0: row0=E, row1=0, row2=3
+    const tiles = [0, 1, 2, 3, 4, 5, 8, 7, 6];
+    const result = moveTile(tiles, 0, 6);
+    expect(result.tiles).toEqual([8, 1, 2, 0, 4, 5, 3, 7, 6]);
+    expect(result.emptyIdx).toBe(0);
+  });
+
+  // ── invariants ────────────────────────────────────────────────────────────
 
   it("is a pure function — does not mutate input", () => {
     const tiles = [0, 1, 2, 3, 8, 5, 6, 7, 4];
@@ -139,19 +193,11 @@ describe("moveTile", () => {
     expect(tiles).toEqual(original);
   });
 
-  it("move from right neighbour", () => {
-    // empty at 4, move tile at index 5
+  it("invalid move (not same row or column) returns tiles unchanged", () => {
+    // 3×3, empty at 4 (centre), click 0 (diagonal) — invalid
     const tiles = [0, 1, 2, 3, 8, 5, 6, 7, 4];
-    const result = moveTile(tiles, 5, 4);
-    expect(result.tiles).toEqual([0, 1, 2, 3, 5, 8, 6, 7, 4]);
-    expect(result.emptyIdx).toBe(5);
-  });
-
-  it("move from below neighbour", () => {
-    // empty at 1 (top-centre), move tile at index 4 (below)
-    const tiles = [0, 8, 2, 3, 4, 5, 6, 7, 1];
-    const result = moveTile(tiles, 4, 1);
-    expect(result.tiles).toEqual([0, 4, 2, 3, 8, 5, 6, 7, 1]);
+    const result = moveTile(tiles, 0, 4);
+    expect(result.tiles).toEqual(tiles);
     expect(result.emptyIdx).toBe(4);
   });
 });
@@ -193,7 +239,6 @@ describe("shuffle", () => {
   });
 
   it("never returns the solved state (1000 samples, 3×3)", () => {
-    // P(solved) = 1/9! ≈ 2.76e-6; P(any of 1000 solved) ≈ 0.003 %
     for (let i = 0; i < 1000; i++) {
       expect(isSolved(shuffle(3))).toBe(false);
     }

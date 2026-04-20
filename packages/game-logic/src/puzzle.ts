@@ -35,24 +35,65 @@ export function isSolvable(tiles: number[], n: number): boolean {
   }
 }
 
+/**
+ * Returns all grid positions in the same row or column as the empty cell,
+ * excluding the empty cell itself. Any of these can be clicked to trigger
+ * a group slide.
+ */
 export function getMovableTiles(tiles: number[], emptyIdx: number, n: number): number[] {
   const movable: number[] = [];
-  const row = Math.floor(emptyIdx / n);
-  const col = emptyIdx % n;
-  if (row > 0) movable.push(emptyIdx - n);
-  if (row < n - 1) movable.push(emptyIdx + n);
-  if (col > 0) movable.push(emptyIdx - 1);
-  if (col < n - 1) movable.push(emptyIdx + 1);
+  const emptyRow = Math.floor(emptyIdx / n);
+  const emptyCol = emptyIdx % n;
+
+  for (let c = 0; c < n; c++) {
+    const i = emptyRow * n + c;
+    if (i !== emptyIdx) movable.push(i);
+  }
+
+  for (let r = 0; r < n; r++) {
+    const i = r * n + emptyCol;
+    if (i !== emptyIdx) movable.push(i);
+  }
+
   return movable;
 }
 
+/**
+ * Slides all tiles between tileIdx and emptyIdx (inclusive of tileIdx,
+ * exclusive of emptyIdx) one step toward the empty cell.
+ * Pure function — does not mutate the input array.
+ */
 export function moveTile(
   tiles: number[],
   tileIdx: number,
   emptyIdx: number,
 ): { tiles: number[]; emptyIdx: number } {
+  const n = Math.round(Math.sqrt(tiles.length));
+  const tileRow = Math.floor(tileIdx / n);
+  const emptyRow = Math.floor(emptyIdx / n);
+  const tileCol = tileIdx % n;
+  const emptyCol = emptyIdx % n;
+
+  let step: number;
+  if (tileRow === emptyRow) {
+    step = tileIdx < emptyIdx ? 1 : -1;
+  } else if (tileCol === emptyCol) {
+    step = tileIdx < emptyIdx ? n : -n;
+  } else {
+    // Not in the same row or column — invalid, return unchanged.
+    return { tiles: [...tiles], emptyIdx };
+  }
+
+  // Fill the empty gap by copying tiles one step at a time from tileIdx toward emptyIdx.
   const next = [...tiles];
-  [next[tileIdx], next[emptyIdx]] = [next[emptyIdx] as number, next[tileIdx] as number];
+  let cur = emptyIdx;
+  while (cur !== tileIdx) {
+    const src = cur - step;
+    next[cur] = next[src] as number;
+    cur = src;
+  }
+  next[tileIdx] = tiles[emptyIdx] as number;
+
   return { tiles: next, emptyIdx: tileIdx };
 }
 
