@@ -35,7 +35,7 @@ body {
 
 @layer components {
   .tile {
-    @apply h-16 w-16 rounded transition-all select-none;
+    @apply rounded transition-all select-none;
     position: absolute;
     padding: 0;
     font-family: 'Cinzel', serif;
@@ -72,6 +72,43 @@ body {
     border-color: rgba(200, 169, 110, 0.1);
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.8);
     cursor: default;
+  }
+
+  .diff-selector {
+    display: flex;
+    gap: 6px;
+  }
+
+  .diff-btn {
+    padding: 6px 14px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #c8a96e;
+    background: transparent;
+    border: 1px solid rgba(200, 169, 110, 0.35);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s, opacity 0.2s;
+    opacity: 0.6;
+  }
+
+  .diff-btn:hover:not(:disabled) {
+    opacity: 1;
+    border-color: rgba(200, 169, 110, 0.7);
+  }
+
+  .diff-btn-active {
+    background: #c8a96e;
+    border-color: #c8a96e;
+    color: #0a0806;
+    opacity: 1;
+  }
+
+  .diff-btn:disabled {
+    cursor: default;
+    opacity: 0.35;
   }
 
   .win-overlay {

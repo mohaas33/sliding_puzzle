@@ -1,15 +1,32 @@
 import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
 
-const N = 5;
 const DEV_MODE = new URLSearchParams(window.location.search).get("dev") === "true";
-const SOLVED_TILES = Array.from({ length: N * N }, (_, i) => i);
-const EMPTY = N * N - 1;
-const SAVE_KEY = "shards_of_time_v1";
-const TILE_PX = 64;
+const BOARD_PX = 344; // fixed physical size for all grid sizes
 const GAP_PX = 6;
-const STRIDE = TILE_PX + GAP_PX;
-const BOARD_PX = N * TILE_PX + (N - 1) * GAP_PX;
+const DIFFICULTY_KEY = "shards_of_time_difficulty_v1";
+
+type Difficulty = 3 | 4 | 5;
+
+const DIFFICULTIES: { n: Difficulty; label: string }[] = [
+  { n: 3, label: "3×3 Easy" },
+  { n: 4, label: "4×4 Medium" },
+  { n: 5, label: "5×5 Hard" },
+];
+
+function saveKeyFor(n: Difficulty): string {
+  return `shards_of_time_${n}x${n}_v1`;
+}
+
+function loadDifficulty(): Difficulty {
+  const raw = localStorage.getItem(DIFFICULTY_KEY);
+  if (raw === "3" || raw === "4" || raw === "5") return Number(raw) as Difficulty;
+  return 5;
+}
+
+function persistDifficulty(n: Difficulty) {
+  localStorage.setItem(DIFFICULTY_KEY, String(n));
+}
 
 interface PuzzleData {
   image: string;
@@ -36,12 +53,12 @@ interface SaveState {
   elapsed: number;
 }
 
-function loadSave(): SaveState | null {
+function loadSave(n: Difficulty): SaveState | null {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
+    const raw = localStorage.getItem(saveKeyFor(n));
     if (!raw) return null;
     const data = JSON.parse(raw) as SaveState;
-    if (!Array.isArray(data.tiles) || data.tiles.length !== N * N) return null;
+    if (!Array.isArray(data.tiles) || data.tiles.length !== n * n) return null;
     if (typeof data.moves !== "number" || typeof data.elapsed !== "number") return null;
     return data;
   } catch {
@@ -49,12 +66,12 @@ function loadSave(): SaveState | null {
   }
 }
 
-function writeSave(state: SaveState) {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+function writeSave(n: Difficulty, state: SaveState) {
+  localStorage.setItem(saveKeyFor(n), JSON.stringify(state));
 }
 
-function clearSave() {
-  localStorage.removeItem(SAVE_KEY);
+function clearSave(n: Difficulty) {
+  localStorage.removeItem(saveKeyFor(n));
 }
 
 function formatTime(seconds: number): string {
@@ -70,20 +87,27 @@ function getStars(moves: number): number {
 }
 
 export function App() {
-  const saved = useRef(loadSave());
+  const initialN = useRef<Difficulty>(loadDifficulty()).current;
+  const savedRef = useRef(loadSave(initialN));
 
+  const [n, setN] = useState<Difficulty>(initialN);
   const [puzzleIdx, setPuzzleIdx] = useState(0);
-  const [tiles, setTiles] = useState<number[]>(() => saved.current?.tiles ?? shuffle(N));
-  const [moves, setMoves] = useState(() => saved.current?.moves ?? 0);
-  const [elapsed, setElapsed] = useState(() => saved.current?.elapsed ?? 0);
-  const [timerActive, setTimerActive] = useState(() => (saved.current?.moves ?? 0) > 0);
+  const [tiles, setTiles] = useState<number[]>(() => savedRef.current?.tiles ?? shuffle(initialN));
+  const [moves, setMoves] = useState(() => savedRef.current?.moves ?? 0);
+  const [elapsed, setElapsed] = useState(() => savedRef.current?.elapsed ?? 0);
+  const [timerActive, setTimerActive] = useState(() => (savedRef.current?.moves ?? 0) > 0);
   const [pressedIdx, setPressedIdx] = useState<number | null>(null);
   const [winPhase, setWinPhase] = useState<WinPhase>("none");
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Derived layout values — scale tiles to fit the fixed board size
+  const tilePx = (BOARD_PX - (n - 1) * GAP_PX) / n;
+  const stride = tilePx + GAP_PX;
+  const empty = n * n - 1;
+
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
-  const emptyIdx = tiles.indexOf(EMPTY);
-  const movable = new Set(getMovableTiles(tiles, emptyIdx, N));
+  const emptyIdx = tiles.indexOf(empty);
+  const movable = new Set(getMovableTiles(tiles, emptyIdx, n));
   const solved = isSolved(tiles);
   const frozen = winPhase !== "none";
 
@@ -111,7 +135,7 @@ export function App() {
 
   function handleDevSolve() {
     if (frozen) return;
-    setTiles(SOLVED_TILES);
+    setTiles(Array.from({ length: n * n }, (_, i) => i));
     setTimerActive(false);
   }
 
@@ -128,7 +152,7 @@ export function App() {
 
   function handlePointerDown(idx: number) {
     if (frozen) return;
-    if (tiles[idx] !== EMPTY) setPressedIdx(idx);
+    if (tiles[idx] !== empty) setPressedIdx(idx);
   }
 
   function handlePointerUp(idx: number) {
@@ -142,22 +166,29 @@ export function App() {
       setTiles(newTiles);
       setMoves(newMoves);
       setTimerActive(true);
-      writeSave({ tiles: newTiles, moves: newMoves, elapsed });
+      writeSave(n, { tiles: newTiles, moves: newMoves, elapsed });
     }
     setPressedIdx(null);
   }
 
-  function startPuzzle(idx: number) {
+  function startPuzzle(idx: number, targetN: Difficulty = n) {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-    const newTiles = shuffle(N);
-    setTiles(newTiles);
+    setTiles(shuffle(targetN));
     setMoves(0);
     setElapsed(0);
     setTimerActive(false);
     setPressedIdx(null);
     setWinPhase("none");
     setPuzzleIdx(idx);
-    clearSave();
+    setN(targetN);
+    persistDifficulty(targetN);
+    clearSave(targetN);
+  }
+
+  function handleDifficultyChange(newN: Difficulty) {
+    if (newN === n || frozen) return;
+    clearSave(n);
+    startPuzzle(puzzleIdx, newN);
   }
 
   function handlePlayAgain() {
@@ -173,7 +204,7 @@ export function App() {
   }
 
   function handleClearSave() {
-    clearSave();
+    clearSave(n);
     startPuzzle(puzzleIdx);
   }
 
@@ -215,6 +246,20 @@ export function App() {
         </div>
       </div>
 
+      {/* Difficulty selector */}
+      <div className="diff-selector">
+        {DIFFICULTIES.map(({ n: dn, label }) => (
+          <button
+            key={dn}
+            className={`diff-btn${dn === n ? " diff-btn-active" : ""}`}
+            onClick={() => handleDifficultyChange(dn)}
+            disabled={frozen}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Board */}
       <div
         className="relative"
@@ -225,14 +270,14 @@ export function App() {
         }}
       >
         {tiles.map((tile, idx) => {
-          const isEmpty = tile === EMPTY;
+          const isEmpty = tile === empty;
           const isPressed = pressedIdx === idx;
           const isMovable = !frozen && movable.has(idx);
 
-          const gridRow = Math.floor(idx / N);
-          const gridCol = idx % N;
-          const imgRow = Math.floor(tile / N);
-          const imgCol = tile % N;
+          const gridRow = Math.floor(idx / n);
+          const gridCol = idx % n;
+          const imgRow = Math.floor(tile / n);
+          const imgCol = tile % n;
 
           const tileClass = [
             "tile",
@@ -255,13 +300,15 @@ export function App() {
               disabled={isEmpty || frozen}
               className={tileClass}
               style={{
-                left: gridCol * STRIDE,
-                top: gridRow * STRIDE,
+                width: tilePx,
+                height: tilePx,
+                left: gridCol * stride,
+                top: gridRow * stride,
                 ...(isEmpty
                   ? undefined
                   : {
                       backgroundImage: `url(${puzzle.image})`,
-                      backgroundSize: `calc(100% * ${N}) calc(100% * ${N})`,
+                      backgroundSize: `calc(100% * ${n}) calc(100% * ${n})`,
                       backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
                     }),
               }}
