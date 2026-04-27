@@ -202,6 +202,7 @@ export function App() {
   const [penaltyKey, setPenaltyKey] = useState(0);
   const [lastMovedValue, setLastMovedValue] = useState<number | null>(null);
   const [moveLocked, setMoveLocked] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -213,9 +214,6 @@ export function App() {
     moveLockTimerRef.current = setTimeout(() => setMoveLocked(false), 100);
   }
 
-  // Derived layout values — scale tiles to fit the fixed board size
-  const tilePx = (BOARD_PX - (n - 1) * GAP_PX) / n;
-  const stride = tilePx + GAP_PX;
   const empty = n * n - 1;
 
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
@@ -245,6 +243,16 @@ export function App() {
       }
     };
   }, [solved, winPhase]);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = puzzle.image;
+    if (img.complete) { setImageLoaded(true); return; }
+    setImageLoaded(false);
+    img.onload = () => setImageLoaded(true);
+    img.onerror = () => setImageLoaded(true); // show board even on error
+    return () => { img.onload = null; img.onerror = null; };
+  }, [puzzle.image]);
 
   function clearHint() {
     if (hintTimerRef.current) {
@@ -447,79 +455,80 @@ export function App() {
       </div>
 
       {/* Board */}
-      <div
-        className="relative"
-        style={{
-          width: BOARD_PX,
-          height: BOARD_PX,
-          pointerEvents: frozen || moveLocked ? "none" : undefined,
-        }}
-      >
-        {tiles.map((tile, idx) => {
-          const isEmpty = tile === empty;
-          const isHint = !frozen && hintIdx === idx;
-          const isPressed = pressedIdx === idx;
-          const isMovable = !frozen && movable.has(idx);
+      {!imageLoaded ? (
+        <div className="board-shimmer" style={{ width: BOARD_PX, height: BOARD_PX }} />
+      ) : (
+        <div
+          style={{
+            position: "relative",
+            display: "grid",
+            gridTemplateColumns: `repeat(${n}, 1fr)`,
+            gap: GAP_PX,
+            width: BOARD_PX,
+            height: BOARD_PX,
+            pointerEvents: frozen || moveLocked ? "none" : undefined,
+          }}
+        >
+          {tiles.map((tile, idx) => {
+            const isEmpty = tile === empty;
+            const isHint = !frozen && hintIdx === idx;
+            const isPressed = pressedIdx === idx;
+            const isMovable = !frozen && movable.has(idx);
 
-          const gridRow = Math.floor(idx / n);
-          const gridCol = idx % n;
-          const imgRow = Math.floor(tile / n);
-          const imgCol = tile % n;
+            const imgRow = Math.floor(tile / n);
+            const imgCol = tile % n;
 
-          const tileClass = [
-            "tile",
-            isEmpty
-              ? "tile-empty"
-              : isHint
-              ? "tile-hint"
-              : isPressed
-              ? "tile-pressed"
-              : isMovable
-              ? "tile-movable"
-              : "",
-          ]
-            .join(" ")
-            .trim();
+            const tileClass = [
+              "tile",
+              isEmpty
+                ? "tile-empty"
+                : isHint
+                ? "tile-hint"
+                : isPressed
+                ? "tile-pressed"
+                : isMovable
+                ? "tile-movable"
+                : "",
+            ]
+              .join(" ")
+              .trim();
 
-          return (
-            <button
-              key={tile}
-              onPointerDown={() => handlePointerDown(idx)}
-              onPointerUp={() => handlePointerUp(idx)}
-              disabled={isEmpty || frozen}
-              className={tileClass}
+            return (
+              <button
+                key={idx}
+                onPointerDown={() => handlePointerDown(idx)}
+                onPointerUp={() => handlePointerUp(idx)}
+                disabled={isEmpty || frozen}
+                className={tileClass}
+                style={
+                  isEmpty
+                    ? undefined
+                    : {
+                        backgroundImage: `url(${puzzle.image})`,
+                        backgroundSize: `calc(100% * ${n}) calc(100% * ${n})`,
+                        backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
+                      }
+                }
+              />
+            );
+          })}
+
+          {/* Win reveal: full image fades in over 0.5s */}
+          {(winPhase === "reveal" || winPhase === "lore") && (
+            <div
               style={{
-                width: tilePx,
-                height: tilePx,
-                left: gridCol * stride,
-                top: gridRow * stride,
-                ...(isEmpty
-                  ? undefined
-                  : {
-                      backgroundImage: `url(${puzzle.image})`,
-                      backgroundSize: `calc(100% * ${n}) calc(100% * ${n})`,
-                      backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
-                    }),
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url(${puzzle.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                borderRadius: 4,
+                animation: "fadeIn 0.5s ease",
               }}
             />
-          );
-        })}
-
-        {/* Win reveal: full image fades in over 0.5s */}
-        {(winPhase === "reveal" || winPhase === "lore") && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `url(${puzzle.image})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              borderRadius: 4,
-              animation: "fadeIn 0.5s ease",
-            }}
-          />
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Bottom controls */}
       <div className="flex items-center gap-4">

@@ -100,12 +100,10 @@ export function moveTile(
 export function shuffle(n: number): number[] {
   const emptyVal = n * n - 1;
   // Depth ranges chosen to guarantee a well-mixed board while staying fast.
-  const depthMin = n <= 3 ? 10 : n === 4 ? 25 : 45;
-  const depthMax = n <= 3 ? 20 : n === 4 ? 45 : 80;
+  const depth = n <= 3 ? 15 : n === 4 ? 35 : 60;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const depth = depthMin + Math.floor(Math.random() * (depthMax - depthMin + 1));
     let tiles: number[] = Array.from({ length: n * n }, (_, i) => i);
     let emptyIdx = emptyVal; // solved state has the empty tile last
     let lastTileValue: number | null = null;
