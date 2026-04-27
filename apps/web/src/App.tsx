@@ -2,15 +2,33 @@ import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
 
 const N = 5;
+const DEV_MODE = new URLSearchParams(window.location.search).get("dev") === "true";
+const SOLVED_TILES = Array.from({ length: N * N }, (_, i) => i);
 const EMPTY = N * N - 1;
-const PUZZLE_IMAGE = `${import.meta.env.BASE_URL}eye_Ra.jpg`;
 const SAVE_KEY = "shards_of_time_v1";
-const TILE_PX = 64;   // h-16 = 4rem at 16px base
-const GAP_PX = 6;     // gap-1.5 = 1.5 × 4px
+const TILE_PX = 64;
+const GAP_PX = 6;
 const STRIDE = TILE_PX + GAP_PX;
 const BOARD_PX = N * TILE_PX + (N - 1) * GAP_PX;
 
-type WinPhase = "none" | "reveal" | "lore";
+interface PuzzleData {
+  image: string;
+  chapter: string;
+  teaser: string;
+  winLore: string;
+}
+
+const PUZZLES: PuzzleData[] = [
+  {
+    image: `${import.meta.env.BASE_URL}eye_Ra.jpg`,
+    chapter: "Chapter I · Ancient Egypt",
+    teaser: "The priests of Ra scattered the sacred tiles. Only by restoring the Eye can the sun rise again…",
+    winLore:
+      "The priests of Ra scattered the sacred tiles across the desert sands. As the last fragment clicks into place, the Eye opens — and the Nile rises once more.",
+  },
+];
+
+type WinPhase = "none" | "frozen" | "reveal" | "lore";
 
 interface SaveState {
   tiles: number[];
@@ -45,9 +63,16 @@ function formatTime(seconds: number): string {
   return `${m}:${s}`;
 }
 
+function getStars(moves: number): number {
+  if (moves < 30) return 3;
+  if (moves < 60) return 2;
+  return 1;
+}
+
 export function App() {
   const saved = useRef(loadSave());
 
+  const [puzzleIdx, setPuzzleIdx] = useState(0);
   const [tiles, setTiles] = useState<number[]>(() => saved.current?.tiles ?? shuffle(N));
   const [moves, setMoves] = useState(() => saved.current?.moves ?? 0);
   const [elapsed, setElapsed] = useState(() => saved.current?.elapsed ?? 0);
@@ -56,9 +81,11 @@ export function App() {
   const [winPhase, setWinPhase] = useState<WinPhase>("none");
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
   const emptyIdx = tiles.indexOf(EMPTY);
   const movable = new Set(getMovableTiles(tiles, emptyIdx, N));
   const solved = isSolved(tiles);
+  const frozen = winPhase !== "none";
 
   useEffect(() => {
     if (!timerActive || solved) return;
@@ -68,19 +95,47 @@ export function App() {
 
   useEffect(() => {
     if (solved && winPhase === "none") {
-      setWinPhase("reveal");
+      setWinPhase("frozen");
+    } else if (winPhase === "frozen") {
+      revealTimerRef.current = setTimeout(() => setWinPhase("reveal"), 1000);
+    } else if (winPhase === "reveal") {
       revealTimerRef.current = setTimeout(() => setWinPhase("lore"), 2000);
     }
     return () => {
-      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current);
+        revealTimerRef.current = null;
+      }
     };
   }, [solved, winPhase]);
 
+  function handleDevSolve() {
+    if (frozen) return;
+    setTiles(SOLVED_TILES);
+    setTimerActive(false);
+  }
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.ctrlKey && e.shiftKey && e.key === "W") {
+        e.preventDefault();
+        handleDevSolve();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
+
   function handlePointerDown(idx: number) {
+    if (frozen) return;
     if (tiles[idx] !== EMPTY) setPressedIdx(idx);
   }
 
   function handlePointerUp(idx: number) {
+    if (frozen) {
+      setPressedIdx(null);
+      return;
+    }
     if (pressedIdx === idx && movable.has(idx)) {
       const newTiles = moveTile(tiles, idx, emptyIdx).tiles;
       const newMoves = moves + 1;
@@ -92,7 +147,7 @@ export function App() {
     setPressedIdx(null);
   }
 
-  function handleNewGame() {
+  function startPuzzle(idx: number) {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     const newTiles = shuffle(N);
     setTiles(newTiles);
@@ -101,13 +156,28 @@ export function App() {
     setTimerActive(false);
     setPressedIdx(null);
     setWinPhase("none");
+    setPuzzleIdx(idx);
     clearSave();
+  }
+
+  function handlePlayAgain() {
+    startPuzzle(puzzleIdx);
+  }
+
+  function handleNextShard() {
+    startPuzzle((puzzleIdx + 1) % PUZZLES.length);
+  }
+
+  function handleNewGame() {
+    startPuzzle(puzzleIdx);
   }
 
   function handleClearSave() {
     clearSave();
-    handleNewGame();
+    startPuzzle(puzzleIdx);
   }
+
+  const stars = getStars(moves);
 
   return (
     <main
@@ -126,7 +196,7 @@ export function App() {
           className="mt-1 text-sm tracking-wider opacity-60"
           style={{ fontFamily: "'Crimson Text', serif", fontStyle: "italic", color: "#c8a96e" }}
         >
-          Chapter I · Ancient Egypt
+          {puzzle.chapter}
         </p>
       </div>
 
@@ -146,94 +216,76 @@ export function App() {
       </div>
 
       {/* Board */}
-      <div className="relative" style={{ width: BOARD_PX, height: BOARD_PX }}>
+      <div
+        className="relative"
+        style={{
+          width: BOARD_PX,
+          height: BOARD_PX,
+          pointerEvents: frozen ? "none" : undefined,
+        }}
+      >
         {tiles.map((tile, idx) => {
-            const isEmpty = tile === EMPTY;
-            const isPressed = pressedIdx === idx;
-            const isMovable = movable.has(idx);
+          const isEmpty = tile === EMPTY;
+          const isPressed = pressedIdx === idx;
+          const isMovable = !frozen && movable.has(idx);
 
-            // Grid position for layout
-            const gridRow = Math.floor(idx / N);
-            const gridCol = idx % N;
+          const gridRow = Math.floor(idx / N);
+          const gridCol = idx % N;
+          const imgRow = Math.floor(tile / N);
+          const imgCol = tile % N;
 
-            // Image slice from tile VALUE (stays constant as the tile moves)
-            const imgRow = Math.floor(tile / N);
-            const imgCol = tile % N;
+          const tileClass = [
+            "tile",
+            isEmpty
+              ? "tile-empty"
+              : isPressed
+              ? "tile-pressed"
+              : isMovable
+              ? "tile-movable"
+              : "",
+          ]
+            .join(" ")
+            .trim();
 
-            const tileClass = [
-              "tile",
-              isEmpty
-                ? "tile-empty"
-                : isPressed
-                ? "tile-pressed"
-                : isMovable
-                ? "tile-movable"
-                : "",
-            ]
-              .join(" ")
-              .trim();
+          return (
+            <button
+              key={tile}
+              onPointerDown={() => handlePointerDown(idx)}
+              onPointerUp={() => handlePointerUp(idx)}
+              disabled={isEmpty || frozen}
+              className={tileClass}
+              style={{
+                left: gridCol * STRIDE,
+                top: gridRow * STRIDE,
+                ...(isEmpty
+                  ? undefined
+                  : {
+                      backgroundImage: `url(${puzzle.image})`,
+                      backgroundSize: `calc(100% * ${N}) calc(100% * ${N})`,
+                      backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
+                    }),
+              }}
+            />
+          );
+        })}
 
-            return (
-              <button
-                key={tile}
-                onPointerDown={() => handlePointerDown(idx)}
-                onPointerUp={() => handlePointerUp(idx)}
-                disabled={isEmpty}
-                className={tileClass}
-                style={{
-                  left: gridCol * STRIDE,
-                  top: gridRow * STRIDE,
-                  ...(isEmpty
-                    ? undefined
-                    : {
-                        backgroundImage: `url(${PUZZLE_IMAGE})`,
-                        backgroundSize: `calc(100% * ${N}) calc(100% * ${N})`,
-                        backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
-                      }),
-                }}
-              />
-            );
-          })}
-
-        {/* Win reveal: full image + lore text overlay */}
+        {/* Win reveal: full image fades in over 0.5s */}
         {(winPhase === "reveal" || winPhase === "lore") && (
           <div
             style={{
               position: "absolute",
               inset: 0,
-              backgroundImage: `url(${PUZZLE_IMAGE})`,
+              backgroundImage: `url(${puzzle.image})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               borderRadius: 4,
-              animation: "fadeIn 0.4s ease",
+              animation: "fadeIn 0.5s ease",
             }}
-          >
-            {winPhase === "lore" && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "rgba(10, 8, 6, 0.55)",
-                  borderRadius: 4,
-                  animation: "fadeIn 0.6s ease",
-                }}
-              >
-                <p
-                  className="text-base tracking-wide text-center px-4"
-                  style={{ fontFamily: "'Cinzel', serif", color: "#f0e4c4", textShadow: "0 1px 8px #000" }}
-                >
-                  ✦ The Eye of Ra is restored ✦
-                </p>
-              </div>
-            )}
-          </div>
+          />
         )}
       </div>
 
-      {/* New Game + Clear save */}
+      {/* Bottom controls */}
       <div className="flex items-center gap-4">
         <button
           onClick={handleNewGame}
@@ -263,13 +315,126 @@ export function App() {
         </button>
       </div>
 
-      {/* Lore */}
+      {/* Teaser lore */}
       <p
         className="max-w-xs text-center text-sm leading-relaxed opacity-50"
         style={{ fontFamily: "'Crimson Text', serif", fontStyle: "italic", color: "#d4b896" }}
       >
-        The priests of Ra scattered the sacred tiles. Only by restoring the Eye can the sun rise again…
+        {puzzle.teaser}
       </p>
+
+      {/* Dev shortcut button */}
+      {DEV_MODE && (
+        <button
+          onClick={handleDevSolve}
+          style={{
+            position: "fixed",
+            bottom: 16,
+            right: 16,
+            fontFamily: "'Cinzel', serif",
+            fontSize: "0.65rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "#c8a96e",
+            background: "rgba(200, 169, 110, 0.08)",
+            border: "1px solid rgba(200, 169, 110, 0.25)",
+            borderRadius: 4,
+            padding: "6px 12px",
+            cursor: "pointer",
+            opacity: 0.5,
+            transition: "opacity 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.5")}
+        >
+          Dev: Solve
+        </button>
+      )}
+
+      {/* Win overlay */}
+      {winPhase === "lore" && (
+        <div className="win-overlay" onClick={(e) => e.stopPropagation()}>
+          <div className="win-card">
+            <div className="gold-sep" />
+
+            <h2
+              style={{
+                fontFamily: "'Cinzel', serif",
+                color: "#f0e4c4",
+                fontSize: "1.75rem",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                margin: "12px 0 4px",
+                textAlign: "center",
+              }}
+            >
+              Shard Restored
+            </h2>
+
+            <div
+              style={{
+                fontSize: "1.6rem",
+                letterSpacing: "0.2em",
+                color: "#c8a96e",
+                margin: "10px 0 12px",
+              }}
+            >
+              {Array.from({ length: 3 }, (_, i) => (
+                <span key={i} style={{ opacity: i < stars ? 1 : 0.18 }}>
+                  ★
+                </span>
+              ))}
+            </div>
+
+            <div className="gold-sep" />
+
+            <p
+              style={{
+                fontFamily: "'Crimson Text', serif",
+                fontStyle: "italic",
+                color: "#d4b896",
+                fontSize: "1.05rem",
+                lineHeight: 1.7,
+                margin: "18px 0 16px",
+                textAlign: "center",
+              }}
+            >
+              {puzzle.winLore}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 36,
+                justifyContent: "center",
+                fontFamily: "'Cinzel', serif",
+                color: "#c8a96e",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: 24,
+              }}
+            >
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "0.65rem", opacity: 0.55, marginBottom: 3 }}>Moves</div>
+                <div style={{ fontSize: "1.25rem" }}>{moves}</div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "0.65rem", opacity: 0.55, marginBottom: 3 }}>Time</div>
+                <div style={{ fontSize: "1.25rem" }}>{formatTime(elapsed)}</div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className="win-btn" onClick={handlePlayAgain}>
+                Play Again
+              </button>
+              <button className="win-btn win-btn-primary" onClick={handleNextShard}>
+                Next Shard →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
