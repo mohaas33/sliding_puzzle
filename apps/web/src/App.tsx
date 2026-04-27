@@ -5,6 +5,8 @@ const DEV_MODE = new URLSearchParams(window.location.search).get("dev") === "tru
 const BOARD_PX = 344; // fixed physical size for all grid sizes
 const GAP_PX = 6;
 const DIFFICULTY_KEY = "shards_of_time_difficulty_v1";
+const MAX_STEPS = 3;
+const STEP_PENALTY = 10;
 
 type Difficulty = 3 | 4 | 5;
 
@@ -51,16 +53,22 @@ interface SaveState {
   tiles: number[];
   moves: number;
   elapsed: number;
+  stepsLeft: number;
 }
 
 function loadSave(n: Difficulty): SaveState | null {
   try {
     const raw = localStorage.getItem(saveKeyFor(n));
     if (!raw) return null;
-    const data = JSON.parse(raw) as SaveState;
+    const data = JSON.parse(raw) as Partial<SaveState>;
     if (!Array.isArray(data.tiles) || data.tiles.length !== n * n) return null;
     if (typeof data.moves !== "number" || typeof data.elapsed !== "number") return null;
-    return data;
+    return {
+      tiles: data.tiles,
+      moves: data.moves,
+      elapsed: data.elapsed,
+      stepsLeft: typeof data.stepsLeft === "number" ? data.stepsLeft : MAX_STEPS,
+    };
   } catch {
     return null;
   }
@@ -86,6 +94,97 @@ function getStars(moves: number): number {
   return 1;
 }
 
+function totalManhattanDistance(tiles: readonly number[], n: number): number {
+  const emptyVal = n * n - 1;
+  let total = 0;
+  for (let i = 0; i < tiles.length; i++) {
+    const v = tiles[i]!;
+    if (v === emptyVal) continue;
+    total += Math.abs(Math.floor(i / n) - Math.floor(v / n)) + Math.abs((i % n) - (v % n));
+  }
+  return total;
+}
+
+// BFS: exact optimal next move for 3×3 (state space ≤ 181440).
+function bfsNextMove(tiles: readonly number[], n: number): number | null {
+  if (isSolved(tiles)) return null;
+  const emptyVal = n * n - 1;
+  const startKey = tiles.join(",");
+  type Entry = { state: number[]; emptyIdx: number; firstMove: number };
+  const visited = new Set<string>([startKey]);
+  const queue: Entry[] = [];
+
+  const startEmpty = (tiles as number[]).indexOf(emptyVal);
+  for (const tileIdx of getMovableTiles(tiles as number[], startEmpty, n)) {
+    const res = moveTile(tiles as number[], tileIdx, startEmpty);
+    if (isSolved(res.tiles)) return tileIdx;
+    const key = res.tiles.join(",");
+    if (!visited.has(key)) {
+      visited.add(key);
+      queue.push({ state: res.tiles, emptyIdx: res.emptyIdx, firstMove: tileIdx });
+    }
+  }
+
+  while (queue.length > 0) {
+    const cur = queue.shift()!;
+    for (const tileIdx of getMovableTiles(cur.state, cur.emptyIdx, n)) {
+      const res = moveTile(cur.state, tileIdx, cur.emptyIdx);
+      if (isSolved(res.tiles)) return cur.firstMove;
+      const key = res.tiles.join(",");
+      if (!visited.has(key)) {
+        visited.add(key);
+        queue.push({ state: res.tiles, emptyIdx: res.emptyIdx, firstMove: cur.firstMove });
+      }
+    }
+  }
+  return null;
+}
+
+// Greedy: pick the move that minimises total Manhattan distance of the resulting board.
+// Excludes the tile that was last moved to prevent immediate reversal.
+function greedyNextMove(
+  tiles: readonly number[],
+  n: number,
+  lastMovedValue: number | null,
+): number | null {
+  const emptyVal = n * n - 1;
+  const eIdx = (tiles as number[]).indexOf(emptyVal);
+  const candidates = getMovableTiles(tiles as number[], eIdx, n);
+  if (candidates.length === 0) return null;
+
+  let bestIdx: number | null = null;
+  let bestScore = Infinity;
+
+  for (const tileIdx of candidates) {
+    if (tiles[tileIdx] === lastMovedValue) continue; // skip reversal
+    const res = moveTile(tiles as number[], tileIdx, eIdx);
+    const score = totalManhattanDistance(res.tiles, n);
+    if (score < bestScore) { bestScore = score; bestIdx = tileIdx; }
+  }
+
+  // Fallback if every candidate was the last-moved tile (shouldn't normally happen)
+  if (bestIdx === null) {
+    for (const tileIdx of candidates) {
+      const res = moveTile(tiles as number[], tileIdx, eIdx);
+      const score = totalManhattanDistance(res.tiles, n);
+      if (score < bestScore) { bestScore = score; bestIdx = tileIdx; }
+    }
+  }
+
+  return bestIdx;
+}
+
+function nextSolverMove(
+  tiles: readonly number[],
+  n: number,
+  lastMovedValue: number | null,
+): number | null {
+  if (isSolved(tiles)) return null;
+  return n === 3
+    ? bfsNextMove(tiles, n)
+    : greedyNextMove(tiles, n, lastMovedValue);
+}
+
 export function App() {
   const initialN = useRef<Difficulty>(loadDifficulty()).current;
   const savedRef = useRef(loadSave(initialN));
@@ -98,7 +197,13 @@ export function App() {
   const [timerActive, setTimerActive] = useState(() => (savedRef.current?.moves ?? 0) > 0);
   const [pressedIdx, setPressedIdx] = useState<number | null>(null);
   const [winPhase, setWinPhase] = useState<WinPhase>("none");
+  const [hintIdx, setHintIdx] = useState<number | null>(null);
+  const [stepsLeft, setStepsLeft] = useState(() => savedRef.current?.stepsLeft ?? MAX_STEPS);
+  const [penaltyKey, setPenaltyKey] = useState(0);
+  const [lastMovedValue, setLastMovedValue] = useState<number | null>(null);
+
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Derived layout values — scale tiles to fit the fixed board size
   const tilePx = (BOARD_PX - (n - 1) * GAP_PX) / n;
@@ -133,8 +238,45 @@ export function App() {
     };
   }, [solved, winPhase]);
 
+  function clearHint() {
+    if (hintTimerRef.current) {
+      clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = null;
+    }
+    setHintIdx(null);
+  }
+
+  function handleHint() {
+    if (frozen) return;
+    clearHint();
+    const best = nextSolverMove(tiles, n, lastMovedValue);
+    setHintIdx(best);
+    if (best !== null) {
+      hintTimerRef.current = setTimeout(() => setHintIdx(null), 2000);
+    }
+  }
+
+  function handleStep() {
+    if (frozen || stepsLeft <= 0) return;
+    const best = nextSolverMove(tiles, n, lastMovedValue);
+    if (best === null) return;
+    clearHint();
+    const movedValue = tiles[best]!;
+    const newTiles = moveTile(tiles, best, emptyIdx).tiles;
+    const newMoves = moves + STEP_PENALTY;
+    const newStepsLeft = stepsLeft - 1;
+    setTiles(newTiles);
+    setMoves(newMoves);
+    setStepsLeft(newStepsLeft);
+    setLastMovedValue(movedValue);
+    setTimerActive(true);
+    setPenaltyKey((k) => k + 1);
+    writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, stepsLeft: newStepsLeft });
+  }
+
   function handleDevSolve() {
     if (frozen) return;
+    clearHint();
     setTiles(Array.from({ length: n * n }, (_, i) => i));
     setTimerActive(false);
   }
@@ -161,18 +303,22 @@ export function App() {
       return;
     }
     if (pressedIdx === idx && movable.has(idx)) {
+      clearHint();
+      const movedValue = tiles[idx]!;
       const newTiles = moveTile(tiles, idx, emptyIdx).tiles;
       const newMoves = moves + 1;
       setTiles(newTiles);
       setMoves(newMoves);
+      setLastMovedValue(movedValue);
       setTimerActive(true);
-      writeSave(n, { tiles: newTiles, moves: newMoves, elapsed });
+      writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, stepsLeft });
     }
     setPressedIdx(null);
   }
 
   function startPuzzle(idx: number, targetN: Difficulty = n) {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    clearHint();
     setTiles(shuffle(targetN));
     setMoves(0);
     setElapsed(0);
@@ -181,6 +327,9 @@ export function App() {
     setWinPhase("none");
     setPuzzleIdx(idx);
     setN(targetN);
+    setStepsLeft(MAX_STEPS);
+    setPenaltyKey(0);
+    setLastMovedValue(null);
     persistDifficulty(targetN);
     clearSave(targetN);
   }
@@ -191,22 +340,10 @@ export function App() {
     startPuzzle(puzzleIdx, newN);
   }
 
-  function handlePlayAgain() {
-    startPuzzle(puzzleIdx);
-  }
-
-  function handleNextShard() {
-    startPuzzle((puzzleIdx + 1) % PUZZLES.length);
-  }
-
-  function handleNewGame() {
-    startPuzzle(puzzleIdx);
-  }
-
-  function handleClearSave() {
-    clearSave(n);
-    startPuzzle(puzzleIdx);
-  }
+  function handlePlayAgain() { startPuzzle(puzzleIdx); }
+  function handleNextShard() { startPuzzle((puzzleIdx + 1) % PUZZLES.length); }
+  function handleNewGame() { startPuzzle(puzzleIdx); }
+  function handleClearSave() { clearSave(n); startPuzzle(puzzleIdx); }
 
   const stars = getStars(moves);
 
@@ -236,9 +373,12 @@ export function App() {
         className="flex gap-10 text-center text-sm tracking-widest uppercase opacity-70"
         style={{ fontFamily: "'Cinzel', serif", color: "#c8a96e" }}
       >
-        <div>
+        <div style={{ position: "relative" }}>
           <div className="text-xs opacity-60">Moves</div>
           <div className="text-lg">{moves}</div>
+          {penaltyKey > 0 && (
+            <span key={penaltyKey} className="penalty-pop">+{STEP_PENALTY}</span>
+          )}
         </div>
         <div>
           <div className="text-xs opacity-60">Time</div>
@@ -246,18 +386,52 @@ export function App() {
         </div>
       </div>
 
-      {/* Difficulty selector */}
-      <div className="diff-selector">
-        {DIFFICULTIES.map(({ n: dn, label }) => (
-          <button
-            key={dn}
-            className={`diff-btn${dn === n ? " diff-btn-active" : ""}`}
-            onClick={() => handleDifficultyChange(dn)}
-            disabled={frozen}
-          >
-            {label}
+      {/* Difficulty selector + hint controls */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <div className="diff-selector">
+          {DIFFICULTIES.map(({ n: dn, label }) => (
+            <button
+              key={dn}
+              className={`diff-btn${dn === n ? " diff-btn-active" : ""}`}
+              onClick={() => handleDifficultyChange(dn)}
+              disabled={frozen}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Separator */}
+        <div
+          style={{
+            width: 1,
+            height: 20,
+            background: "rgba(200,169,110,0.25)",
+            alignSelf: "center",
+          }}
+        />
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="hint-btn" onClick={handleHint} disabled={frozen}>
+            Hint
           </button>
-        ))}
+          <button
+            className={`hint-btn${stepsLeft === 0 ? " hint-btn-exhausted" : ""}`}
+            onClick={handleStep}
+            disabled={frozen || stepsLeft === 0}
+            title={stepsLeft === 0 ? "No steps remaining" : undefined}
+          >
+            Step ({stepsLeft} left)
+          </button>
+        </div>
       </div>
 
       {/* Board */}
@@ -271,6 +445,7 @@ export function App() {
       >
         {tiles.map((tile, idx) => {
           const isEmpty = tile === empty;
+          const isHint = !frozen && hintIdx === idx;
           const isPressed = pressedIdx === idx;
           const isMovable = !frozen && movable.has(idx);
 
@@ -283,6 +458,8 @@ export function App() {
             "tile",
             isEmpty
               ? "tile-empty"
+              : isHint
+              ? "tile-hint"
               : isPressed
               ? "tile-pressed"
               : isMovable
