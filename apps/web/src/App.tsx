@@ -63,6 +63,8 @@ function loadSave(n: Difficulty): SaveState | null {
     const data = JSON.parse(raw) as Partial<SaveState>;
     if (!Array.isArray(data.tiles) || data.tiles.length !== n * n) return null;
     if (typeof data.moves !== "number" || typeof data.elapsed !== "number") return null;
+    // Discard a solved save — restoring it would trigger the win screen immediately
+    if (isSolved(data.tiles)) return null;
     return {
       tiles: data.tiles,
       moves: data.moves,
@@ -203,6 +205,7 @@ export function App() {
   const [lastMovedValue, setLastMovedValue] = useState<number | null>(null);
   const [moveLocked, setMoveLocked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [hasShuffled, setHasShuffled] = useState(false);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -219,7 +222,8 @@ export function App() {
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
   const emptyIdx = tiles.indexOf(empty);
   const movable = new Set(getMovableTiles(tiles, emptyIdx, n));
-  const solved = isSolved(tiles);
+  // Guard: never evaluate win until a shuffle has been confirmed and at least 1 move made
+  const solved = hasShuffled && moves > 0 && isSolved(tiles);
   const frozen = winPhase !== "none";
 
   useEffect(() => {
@@ -253,6 +257,9 @@ export function App() {
     img.onerror = () => setImageLoaded(true); // show board even on error
     return () => { img.onload = null; img.onerror = null; };
   }, [puzzle.image]);
+
+  // Confirm the initial tiles (from save or shuffle) are in place before win checks run.
+  useEffect(() => { setHasShuffled(true); }, []);
 
   function clearHint() {
     if (hintTimerRef.current) {
