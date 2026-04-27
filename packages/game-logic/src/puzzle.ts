@@ -98,25 +98,32 @@ export function moveTile(
 }
 
 export function shuffle(n: number): number[] {
-  const size = n * n;
-  const emptyVal = size - 1;
+  const emptyVal = n * n - 1;
+  // Depth ranges chosen to guarantee a well-mixed board while staying fast.
+  const depthMin = n <= 3 ? 10 : n === 4 ? 25 : 45;
+  const depthMax = n <= 3 ? 20 : n === 4 ? 45 : 80;
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const tiles: number[] = Array.from({ length: size }, (_, i) => i);
+    const depth = depthMin + Math.floor(Math.random() * (depthMax - depthMin + 1));
+    let tiles: number[] = Array.from({ length: n * n }, (_, i) => i);
+    let emptyIdx = emptyVal; // solved state has the empty tile last
+    let lastTileValue: number | null = null;
 
-    for (let i = size - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [tiles[i], tiles[j]] = [tiles[j] as number, tiles[i] as number];
+    for (let step = 0; step < depth; step++) {
+      const movable = getMovableTiles(tiles, emptyIdx, n);
+      // Exclude the tile that just moved to avoid immediately reversing it.
+      const candidates = movable.filter((idx) => tiles[idx] !== lastTileValue);
+      const pool = candidates.length > 0 ? candidates : movable;
+      const pick = pool[Math.floor(Math.random() * pool.length)] as number;
+      lastTileValue = tiles[pick] as number;
+      const result = moveTile(tiles, pick, emptyIdx);
+      tiles = result.tiles;
+      emptyIdx = result.emptyIdx;
     }
 
-    if (!isSolvable(tiles, n)) {
-      const first = tiles.findIndex((t) => t !== emptyVal);
-      const second = tiles.findIndex((t, i) => t !== emptyVal && i > first);
-      [tiles[first], tiles[second]] = [tiles[second] as number, tiles[first] as number];
-    }
-
-    // Reject solved state and empty-in-top-left (looks unshuffled to players)
+    // Reject solved state and empty-at-top-left (looks unshuffled to players).
+    // A legal-move walk is always solvable, so no solvability check needed.
     if (!isSolved(tiles) && tiles.indexOf(emptyVal) !== 0) return tiles;
   }
 }

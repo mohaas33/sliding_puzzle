@@ -201,9 +201,17 @@ export function App() {
   const [stepsLeft, setStepsLeft] = useState(() => savedRef.current?.stepsLeft ?? MAX_STEPS);
   const [penaltyKey, setPenaltyKey] = useState(0);
   const [lastMovedValue, setLastMovedValue] = useState<number | null>(null);
+  const [moveLocked, setMoveLocked] = useState(false);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const moveLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function lockMove() {
+    setMoveLocked(true);
+    if (moveLockTimerRef.current) clearTimeout(moveLockTimerRef.current);
+    moveLockTimerRef.current = setTimeout(() => setMoveLocked(false), 100);
+  }
 
   // Derived layout values — scale tiles to fit the fixed board size
   const tilePx = (BOARD_PX - (n - 1) * GAP_PX) / n;
@@ -257,7 +265,7 @@ export function App() {
   }
 
   function handleStep() {
-    if (frozen || stepsLeft <= 0) return;
+    if (frozen || stepsLeft <= 0 || moveLocked) return;
     const best = nextSolverMove(tiles, n, lastMovedValue);
     if (best === null) return;
     clearHint();
@@ -270,6 +278,7 @@ export function App() {
     setStepsLeft(newStepsLeft);
     setLastMovedValue(movedValue);
     setTimerActive(true);
+    lockMove();
     setPenaltyKey((k) => k + 1);
     writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, stepsLeft: newStepsLeft });
   }
@@ -293,12 +302,12 @@ export function App() {
   });
 
   function handlePointerDown(idx: number) {
-    if (frozen) return;
+    if (frozen || moveLocked) return;
     if (tiles[idx] !== empty) setPressedIdx(idx);
   }
 
   function handlePointerUp(idx: number) {
-    if (frozen) {
+    if (frozen || moveLocked) {
       setPressedIdx(null);
       return;
     }
@@ -311,6 +320,7 @@ export function App() {
       setMoves(newMoves);
       setLastMovedValue(movedValue);
       setTimerActive(true);
+      lockMove();
       writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, stepsLeft });
     }
     setPressedIdx(null);
@@ -318,7 +328,9 @@ export function App() {
 
   function startPuzzle(idx: number, targetN: Difficulty = n) {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    if (moveLockTimerRef.current) clearTimeout(moveLockTimerRef.current);
     clearHint();
+    setMoveLocked(false);
     setTiles(shuffle(targetN));
     setMoves(0);
     setElapsed(0);
@@ -440,7 +452,7 @@ export function App() {
         style={{
           width: BOARD_PX,
           height: BOARD_PX,
-          pointerEvents: frozen ? "none" : undefined,
+          pointerEvents: frozen || moveLocked ? "none" : undefined,
         }}
       >
         {tiles.map((tile, idx) => {
