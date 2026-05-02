@@ -444,6 +444,15 @@ export function App() {
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winPhase]);
+
+  // Preload next puzzle's image while win screen is showing
+  useEffect(() => {
+    if (winPhase !== "lore") return;
+    const nextIdx = puzzleIdx + 1;
+    if (nextIdx >= PUZZLES.length) return;
+    const img = new Image();
+    img.src = PUZZLES[nextIdx]!.imageUrl;
+  }, [winPhase, puzzleIdx]);
   // ──────────────────────────────────────────────────────────────────────────
 
   function clearHint() {
@@ -558,10 +567,27 @@ export function App() {
   }
 
   function handlePlayAgain() { startPuzzle(puzzleIdx); }
-  function handleNextShard() {
+
+  function saveWinProgress() {
     const newProgress = { ...chapterProgress, [puzzle.id]: { stars } };
     setChapterProgress(newProgress);
     persistProgress(newProgress);
+  }
+
+  function handleNextShard() {
+    saveWinProgress();
+    stopNarration();
+    const isLast = puzzleIdx >= PUZZLES.length - 1;
+    if (isLast) {
+      setMapKey((k) => k + 1);
+      setScreen("map");
+    } else {
+      startPuzzle(puzzleIdx + 1);
+    }
+  }
+
+  function handleViewMap() {
+    saveWinProgress();
     stopNarration();
     setMapKey((k) => k + 1);
     setScreen("map");
@@ -1354,9 +1380,31 @@ export function App() {
                 Play Again
               </button>
               <button className="win-btn win-btn-primary" onClick={handleNextShard}>
-                Next Shard →
+                {puzzleIdx >= PUZZLES.length - 1 ? "View Map →" : "Next Shard →"}
               </button>
             </div>
+
+            <button
+              onClick={handleViewMap}
+              style={{
+                marginTop: 14,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "'Crimson Text', serif",
+                fontStyle: "italic",
+                fontSize: "0.82rem",
+                color: "#c8a96e",
+                opacity: 0.45,
+                letterSpacing: "0.04em",
+                transition: "opacity 0.2s",
+                padding: "2px 0",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.45")}
+            >
+              View Chapter Map
+            </button>
           </div>
         </div>
       )}
