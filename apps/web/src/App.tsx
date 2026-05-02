@@ -5,6 +5,9 @@ const DEV_MODE = new URLSearchParams(window.location.search).get("dev") === "tru
 const BOARD_PX = 344; // fixed physical size for all grid sizes
 const GAP_PX = 6;
 const DIFFICULTY_KEY = "shards_of_time_difficulty_v1";
+const INTRO_KEY = "shards_of_time_chapter1_intro_seen";
+const PROGRESS_KEY = "shards_of_time_chapter1_progress";
+const CHAPTER_LABEL = "Chapter I · Ancient Egypt";
 const MAX_STEPS = 3;
 const STEP_PENALTY = 10;
 
@@ -30,20 +33,95 @@ function persistDifficulty(n: Difficulty) {
   localStorage.setItem(DIFFICULTY_KEY, String(n));
 }
 
+type Screen = "intro" | "map" | "game";
+
+interface PuzzleProgress { stars: number; }
+type ChapterProgress = Record<number, PuzzleProgress>;
+
+function loadProgress(): ChapterProgress {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    return raw ? (JSON.parse(raw) as ChapterProgress) : {};
+  } catch { return {}; }
+}
+
+function persistProgress(p: ChapterProgress) {
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(p));
+}
+
+function getPuzzleState(
+  id: number,
+  progress: ChapterProgress,
+): "completed" | "current" | "locked" {
+  if (progress[id]) return "completed";
+  if (id === 1 || progress[id - 1]) return "current";
+  return "locked";
+}
+
 interface PuzzleData {
-  image: string;
-  chapter: string;
-  teaser: string;
-  winLore: string;
+  id: number;
+  name: string;
+  imageUrl: string;
+  lore: string;
+  win: string;
 }
 
 const PUZZLES: PuzzleData[] = [
   {
-    image: `${import.meta.env.BASE_URL}eye_Ra.jpg`,
-    chapter: "Chapter I · Ancient Egypt",
-    teaser: "The priests of Ra scattered the sacred tiles. Only by restoring the Eye can the sun rise again…",
-    winLore:
-      "The priests of Ra scattered the sacred tiles across the desert sands. As the last fragment clicks into place, the Eye opens — and the Nile rises once more.",
+    id: 1,
+    name: "The Eye of Ra",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_1.jpg`,
+    lore: "The sun god's gaze has been shattered across the temple floor. Darkness falls on Egypt — restore the Eye before Ra can no longer find his way across the sky.",
+    win: "The Eye opens. Ra sees Egypt once more and the sun climbs the sky. But something is wrong — the scales of judgment in the Hall of Two Truths lie broken. A soul cannot pass until they are restored.",
+  },
+  {
+    id: 2,
+    name: "Anubis Weighs the Heart",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_2.jpg`,
+    lore: "A soul stands before Anubis in the Hall of Two Truths. The scales of judgment lie in pieces. Without them, the dead cannot pass into the Field of Reeds.",
+    win: "The scales balance. A worthy soul crosses into the Field of Reeds. But whispers of drought are spreading — without the Nile's calendar, Egypt will starve.",
+  },
+  {
+    id: 3,
+    name: "The Nile's Gift",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_3.jpg`,
+    lore: "The flooding season approaches. Farmers stand idle — the sacred calendar that tells them when to plant has been scattered. Without it, the fields will wither.",
+    win: "The floods come at exactly the right moment. The fields turn green. But in the palace, the great pharaoh's image has been erased from his own battle monument.",
+  },
+  {
+    id: 4,
+    name: "Pharaoh's Procession",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_4.jpg`,
+    lore: "Ramses the Great rides to battle at Kadesh — but his image has been struck from the stone by jealous enemies. A pharaoh forgotten is a pharaoh unmade.",
+    win: "Ramses rides again, eternal and victorious. His name is restored. But deeper in the tomb, the sacred spells that guide the dead have been scrambled.",
+  },
+  {
+    id: 5,
+    name: "The Book of the Dead",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_5.jpg`,
+    lore: "The sacred papyrus of Hunefer — filled with spells to navigate the underworld — has been torn apart. Without it, the pharaoh wanders the darkness forever.",
+    win: "The spells are whole again. The path through the underworld is clear. Yet Osiris himself has been torn apart once more, just as he was by Set.",
+  },
+  {
+    id: 6,
+    name: "Osiris Reborn",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_6.jpg`,
+    lore: "Set has scattered the pieces of Osiris across Egypt once more. Isis weeps. The god of resurrection cannot rise until every fragment is found and restored.",
+    win: "Osiris rises again. Death and rebirth return to balance. Now only one thing remains — the sacred scarab that pushes the sun across the sky has gone still.",
+  },
+  {
+    id: 7,
+    name: "The Sacred Scarab",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_7.jpg`,
+    lore: "Khepri, the sacred scarab, rolls the sun across the sky each dawn. But the amulet has shattered and the sun hangs motionless. Dawn cannot come.",
+    win: "Khepri takes flight, pushing the golden disc from horizon to horizon. One final task awaits — the Valley of the Kings must be sealed, or the pharaohs' power will never rest.",
+  },
+  {
+    id: 8,
+    name: "Valley of the Kings",
+    imageUrl: `${import.meta.env.BASE_URL}puzzles/puzzle_8.jpg`,
+    lore: "The ceiling of Ramses IV's tomb blazes with stars and sacred texts — but the pattern has been broken. Until it is restored, the king cannot ascend to the heavens.",
+    win: "The last tomb is sealed. Egypt breathes again. But as you place the final shard, a cold wind blows from the north. Someone has been watching you — and they have begun scattering the shards of another civilization. The work is not done.",
   },
 ];
 
@@ -206,6 +284,11 @@ export function App() {
   const [moveLocked, setMoveLocked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasShuffled, setHasShuffled] = useState(false);
+  const [screen, setScreen] = useState<Screen>(() =>
+    localStorage.getItem(INTRO_KEY) ? "map" : "intro",
+  );
+  const [chapterProgress, setChapterProgress] = useState<ChapterProgress>(loadProgress);
+  const [mapKey, setMapKey] = useState(0);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -250,13 +333,13 @@ export function App() {
 
   useEffect(() => {
     const img = new Image();
-    img.src = puzzle.image;
+    img.src = puzzle.imageUrl;
     if (img.complete) { setImageLoaded(true); return; }
     setImageLoaded(false);
     img.onload = () => setImageLoaded(true);
     img.onerror = () => setImageLoaded(true); // show board even on error
     return () => { img.onload = null; img.onerror = null; };
-  }, [puzzle.image]);
+  }, [puzzle.imageUrl]);
 
   // Confirm the initial tiles (from save or shuffle) are in place before win checks run.
   useEffect(() => { setHasShuffled(true); }, []);
@@ -368,9 +451,30 @@ export function App() {
   }
 
   function handlePlayAgain() { startPuzzle(puzzleIdx); }
-  function handleNextShard() { startPuzzle((puzzleIdx + 1) % PUZZLES.length); }
+  function handleNextShard() {
+    // Mark puzzle complete, save progress, then go to map
+    const newProgress = { ...chapterProgress, [puzzle.id]: { stars } };
+    setChapterProgress(newProgress);
+    persistProgress(newProgress);
+    setMapKey((k) => k + 1);
+    setScreen("map");
+  }
   function handleNewGame() { startPuzzle(puzzleIdx); }
   function handleClearSave() { clearSave(n); startPuzzle(puzzleIdx); }
+  function handleBeginChapter() {
+    localStorage.setItem(INTRO_KEY, "1");
+    setMapKey((k) => k + 1);
+    setScreen("map");
+  }
+  function handleShowMap() {
+    setTimerActive(false);
+    setMapKey((k) => k + 1);
+    setScreen("map");
+  }
+  function handleMapSelect(idx: number) {
+    startPuzzle(idx);
+    setScreen("game");
+  }
 
   const stars = getStars(moves);
 
@@ -379,8 +483,16 @@ export function App() {
       className="flex min-h-screen flex-col items-center justify-center gap-5 px-4 py-10"
       onPointerUp={() => setPressedIdx(null)}
     >
-      {/* Title */}
-      <div className="text-center">
+      {/* Title + Map button row */}
+      <div style={{ position: "relative", width: "100%", maxWidth: 480, textAlign: "center" }}>
+        <button
+          onClick={handleShowMap}
+          className="map-nav-btn"
+          title="Chapter Map"
+          aria-label="Open chapter map"
+        >
+          ☰ Map
+        </button>
         <h1
           className="text-4xl tracking-widest uppercase"
           style={{ fontFamily: "'Cinzel', serif", color: "#f0e4c4" }}
@@ -391,7 +503,13 @@ export function App() {
           className="mt-1 text-sm tracking-wider opacity-60"
           style={{ fontFamily: "'Crimson Text', serif", fontStyle: "italic", color: "#c8a96e" }}
         >
-          {puzzle.chapter}
+          {CHAPTER_LABEL}
+        </p>
+        <p
+          className="mt-0.5 text-base tracking-wide"
+          style={{ fontFamily: "'Cinzel', serif", color: "#f0e4c4", opacity: 0.85 }}
+        >
+          {puzzle.name}
         </p>
       </div>
 
@@ -511,7 +629,7 @@ export function App() {
                   isEmpty
                     ? undefined
                     : {
-                        backgroundImage: `url(${puzzle.image})`,
+                        backgroundImage: `url(${puzzle.imageUrl})`,
                         backgroundSize: `calc(100% * ${n}) calc(100% * ${n})`,
                         backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
                       }
@@ -526,7 +644,7 @@ export function App() {
               style={{
                 position: "absolute",
                 inset: 0,
-                backgroundImage: `url(${puzzle.image})`,
+                backgroundImage: `url(${puzzle.imageUrl})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 borderRadius: 4,
@@ -572,7 +690,7 @@ export function App() {
         className="max-w-xs text-center text-sm leading-relaxed opacity-50"
         style={{ fontFamily: "'Crimson Text', serif", fontStyle: "italic", color: "#d4b896" }}
       >
-        {puzzle.teaser}
+        {puzzle.lore}
       </p>
 
       {/* Dev shortcut button */}
@@ -603,6 +721,294 @@ export function App() {
         </button>
       )}
 
+      {/* Chapter intro overlay */}
+      {screen === "intro" && (
+        <div className="intro-overlay" onClick={(e) => e.stopPropagation()}>
+          <div className="intro-card">
+            <p
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: "0.7rem",
+                letterSpacing: "0.25em",
+                textTransform: "uppercase",
+                color: "#c8a96e",
+                opacity: 0.7,
+                marginBottom: 20,
+              }}
+            >
+              {CHAPTER_LABEL}
+            </p>
+            <div className="gold-sep" style={{ marginBottom: 24 }} />
+            <p
+              style={{
+                fontFamily: "'Crimson Text', serif",
+                fontStyle: "italic",
+                color: "#d4b896",
+                fontSize: "1.15rem",
+                lineHeight: 1.8,
+                textAlign: "center",
+                maxWidth: 360,
+              }}
+            >
+              3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh.
+              In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets.
+              The gods fell silent. The Nile stopped flooding. Time itself cracked.
+            </p>
+            <p
+              style={{
+                fontFamily: "'Crimson Text', serif",
+                fontStyle: "italic",
+                color: "#f0e4c4",
+                fontSize: "1.15rem",
+                lineHeight: 1.8,
+                textAlign: "center",
+                maxWidth: 360,
+                marginTop: 16,
+              }}
+            >
+              You are the Restorer — chosen to piece history back together, one shard at a time.
+            </p>
+            <div className="gold-sep" style={{ margin: "24px 0" }} />
+            <button className="win-btn win-btn-primary" onClick={handleBeginChapter}>
+              Begin
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Chapter Map overlay */}
+      {screen === "map" && (
+        <div className="map-overlay" key={mapKey} onClick={(e) => e.stopPropagation()}>
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <h2
+              style={{
+                fontFamily: "'Cinzel', serif",
+                color: "#f0e4c4",
+                fontSize: "1.4rem",
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                margin: 0,
+              }}
+            >
+              {CHAPTER_LABEL}
+            </h2>
+            <p
+              style={{
+                fontFamily: "'Crimson Text', serif",
+                fontStyle: "italic",
+                color: "#c8a96e",
+                fontSize: "0.9rem",
+                marginTop: 5,
+                opacity: 0.85,
+              }}
+            >
+              {Object.keys(chapterProgress).length} of {PUZZLES.length} Shards Restored
+            </p>
+
+            {/* Chapter progress bar */}
+            <div style={{ width: "100%", maxWidth: 420, margin: "10px auto 0" }}>
+              <div
+                style={{
+                  height: 3,
+                  borderRadius: 2,
+                  background: "rgba(200,169,110,0.15)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${(Object.keys(chapterProgress).length / PUZZLES.length) * 100}%`,
+                    background: "linear-gradient(90deg, #a07840, #c8a96e)",
+                    borderRadius: 2,
+                    transition: "width 0.6s ease",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 4×2 puzzle grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 10,
+              width: "100%",
+              maxWidth: 480,
+            }}
+          >
+            {PUZZLES.map((p, i) => {
+              const state = getPuzzleState(p.id, chapterProgress);
+              const savedStars = chapterProgress[p.id]?.stars ?? 1;
+              const isLocked = state === "locked";
+              const isCurrent = state === "current";
+              const isCompleted = state === "completed";
+
+              return (
+                <div
+                  key={p.id}
+                  className={`map-card${isCurrent ? " map-card-current" : ""}`}
+                  style={{
+                    animationDelay: `${i * 0.055}s`,
+                    cursor: isLocked ? "default" : "pointer",
+                    opacity: isLocked ? 0.55 : 1,
+                  }}
+                  onClick={() => !isLocked && handleMapSelect(i)}
+                >
+                  {/* Background image */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundImage: `url(${p.imageUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      filter: isLocked
+                        ? "blur(3px) brightness(0.25)"
+                        : isCompleted
+                        ? "brightness(0.55)"
+                        : "brightness(0.75)",
+                    }}
+                  />
+
+                  {/* Dark overlay */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: isLocked
+                        ? "rgba(0,0,0,0.6)"
+                        : isCompleted
+                        ? "rgba(10,8,6,0.45)"
+                        : "rgba(10,8,6,0.3)",
+                    }}
+                  />
+
+                  {/* Puzzle number */}
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 5,
+                      left: 7,
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: "0.62rem",
+                      color: isLocked ? "rgba(200,169,110,0.3)" : "#c8a96e",
+                      lineHeight: 1,
+                      zIndex: 1,
+                    }}
+                  >
+                    {p.id}
+                  </span>
+
+                  {/* State icon / action */}
+                  {isLocked && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.1rem",
+                        opacity: 0.4,
+                        zIndex: 1,
+                      }}
+                    >
+                      🔒
+                    </span>
+                  )}
+
+                  {isCompleted && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "38%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        fontSize: "1.05rem",
+                        color: "#c8a96e",
+                        zIndex: 1,
+                      }}
+                    >
+                      ✓
+                    </span>
+                  )}
+
+                  {isCurrent && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "38%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: "0.48rem",
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: "#0a0806",
+                        background: "#c8a96e",
+                        padding: "3px 7px",
+                        borderRadius: 3,
+                        whiteSpace: "nowrap",
+                        zIndex: 1,
+                      }}
+                    >
+                      ▶ Play
+                    </span>
+                  )}
+
+                  {/* Bottom: name + stars for completed */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: "linear-gradient(transparent, rgba(0,0,0,0.75))",
+                      padding: "10px 4px 5px",
+                      zIndex: 1,
+                    }}
+                  >
+                    {isCompleted && (
+                      <div
+                        style={{
+                          textAlign: "center",
+                          fontSize: "0.58rem",
+                          color: "#c8a96e",
+                          lineHeight: 1,
+                          marginBottom: 2,
+                        }}
+                      >
+                        {Array.from({ length: 3 }, (_, si) => (
+                          <span key={si} style={{ opacity: si < savedStars ? 1 : 0.2 }}>
+                            ★
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <p
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: "0.42rem",
+                        letterSpacing: "0.04em",
+                        textAlign: "center",
+                        color: isLocked ? "rgba(200,169,110,0.35)" : "#c8a96e",
+                        margin: 0,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {p.name}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Win overlay */}
       {winPhase === "lore" && (
         <div className="win-overlay" onClick={(e) => e.stopPropagation()}>
@@ -622,6 +1028,43 @@ export function App() {
             >
               Shard Restored
             </h2>
+
+            <p
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: "0.65rem",
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                color: "#c8a96e",
+                opacity: 0.7,
+                marginBottom: 10,
+                textAlign: "center",
+              }}
+            >
+              {puzzle.id} of {PUZZLES.length}
+            </p>
+
+            {/* Chapter I progress bar */}
+            <div style={{ width: "100%", marginBottom: 6 }}>
+              <div
+                style={{
+                  height: 3,
+                  borderRadius: 2,
+                  background: "rgba(200,169,110,0.15)",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${(puzzle.id / PUZZLES.length) * 100}%`,
+                    background: "linear-gradient(90deg, #a07840, #c8a96e)",
+                    borderRadius: 2,
+                    transition: "width 0.6s ease",
+                  }}
+                />
+              </div>
+            </div>
 
             <div
               style={{
@@ -651,7 +1094,7 @@ export function App() {
                 textAlign: "center",
               }}
             >
-              {puzzle.winLore}
+              {puzzle.win}
             </p>
 
             <div

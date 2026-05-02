@@ -252,4 +252,104 @@ body {
     background: rgba(200, 169, 110, 0.2);
     box-shadow: 0 0 18px rgba(200, 169, 110, 0.38);
   }
+
+  .intro-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 3, 1, 0.93);
+    z-index: 60;
+    animation: fadeIn 0.8s ease;
+    padding: 24px;
+  }
+
+  .intro-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(160deg, #1c1409 0%, #0e0a05 100%);
+    border: 1px solid rgba(200, 169, 110, 0.38);
+    border-radius: 8px;
+    padding: 40px 40px 36px;
+    max-width: 480px;
+    width: 100%;
+    animation: slideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 0 80px rgba(200, 169, 110, 0.1), 0 0 0 1px rgba(200, 169, 110, 0.06);
+  }
+
+  /* Chapter Map */
+
+  @keyframes pulseGoldBorder {
+    0%, 100% { box-shadow: 0 0 10px 3px rgba(200, 169, 110, 0.5), inset 0 0 0 1px rgba(200, 169, 110, 0.3); }
+    50%       { box-shadow: 0 0 20px 7px rgba(200, 169, 110, 0.8), inset 0 0 0 2px rgba(200, 169, 110, 0.5); }
+  }
+
+  @keyframes cardStagger {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .map-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 3, 1, 0.96);
+    z-index: 55;
+    animation: fadeIn 0.35s ease;
+    padding: 24px 20px;
+    overflow-y: auto;
+    gap: 0;
+  }
+
+  .map-card {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(200, 169, 110, 0.2);
+    opacity: 0;
+    animation: cardStagger 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .map-card:not([style*="cursor: default"]):hover {
+    border-color: rgba(200, 169, 110, 0.55);
+    transform: translateY(-2px);
+  }
+
+  .map-card-current {
+    border: 2px solid #c8a96e;
+    animation: cardStagger 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+               pulseGoldBorder 2s ease-in-out 0.5s infinite;
+  }
+
+  .map-nav-btn {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #c8a96e;
+    background: transparent;
+    border: 1px solid rgba(200, 169, 110, 0.3);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    opacity: 0.65;
+    transition: opacity 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+
+  .map-nav-btn:hover {
+    opacity: 1;
+    border-color: rgba(200, 169, 110, 0.6);
+  }
 }
