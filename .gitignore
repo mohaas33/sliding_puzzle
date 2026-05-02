@@ -14,3 +14,9 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Claude Code local config
+.claude/
+
+# Stale root-level assets
+/eye_Ra.jpg
