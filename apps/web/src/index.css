@@ -328,28 +328,188 @@ body {
                pulseGoldBorder 2s ease-in-out 0.5s infinite;
   }
 
-  .map-nav-btn {
+  /* Hamburger button */
+  .hamburger-btn {
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: transparent;
+    border: 1px solid rgba(200, 169, 110, 0.3);
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .hamburger-btn:hover {
+    border-color: rgba(200, 169, 110, 0.65);
+    background: rgba(200, 169, 110, 0.06);
+  }
+
+  .hamburger-btn span {
+    display: block;
+    width: 14px;
+    height: 1.5px;
+    background: #c8a96e;
+    border-radius: 1px;
+    opacity: 0.75;
+    transition: opacity 0.2s;
+  }
+
+  .hamburger-btn:hover span {
+    opacity: 1;
+  }
+
+  /* Side drawer */
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 70;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .game-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: min(280px, 80vw);
+    background: linear-gradient(160deg, #1e1509 0%, #0d0905 100%);
+    border-right: 1px solid rgba(200, 169, 110, 0.3);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.6);
+    z-index: 71;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    flex-direction: column;
+    padding-top: 48px;
+    overflow-y: auto;
+  }
+
+  .game-drawer-open {
+    transform: translateX(0);
+  }
+
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 24px;
     font-family: 'Cinzel', serif;
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #c8a96e;
     background: transparent;
-    border: 1px solid rgba(200, 169, 110, 0.3);
-    border-radius: 4px;
-    padding: 5px 10px;
+    border: none;
     cursor: pointer;
-    opacity: 0.65;
-    transition: opacity 0.2s, border-color 0.2s;
-    white-space: nowrap;
+    text-align: left;
+    transition: background 0.15s;
   }
 
-  .map-nav-btn:hover {
-    opacity: 1;
-    border-color: rgba(200, 169, 110, 0.6);
+  .drawer-item:hover:not(:disabled) {
+    background: rgba(200, 169, 110, 0.07);
+  }
+
+  .drawer-item:disabled {
+    cursor: default;
+  }
+
+  .drawer-item-danger {
+    color: rgba(210, 90, 70, 0.75);
+  }
+
+  .drawer-item-danger:hover:not(:disabled) {
+    background: rgba(210, 90, 70, 0.07);
+    color: rgba(230, 110, 85, 0.95);
+  }
+
+  .drawer-icon {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .drawer-divider {
+    height: 1px;
+    background: rgba(200, 169, 110, 0.12);
+    margin: 6px 24px;
+  }
+
+  /* Toggle switch */
+  .drawer-toggle {
+    margin-left: auto;
+    width: 30px;
+    height: 16px;
+    border-radius: 8px;
+    background: rgba(200, 169, 110, 0.2);
+    border: 1px solid rgba(200, 169, 110, 0.3);
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .drawer-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(200, 169, 110, 0.5);
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .drawer-toggle-on {
+    background: rgba(200, 169, 110, 0.35);
+    border-color: #c8a96e;
+  }
+
+  .drawer-toggle-on::after {
+    transform: translateX(14px);
+    background: #c8a96e;
+  }
+
+  /* Persistent movable-tile glow */
+  .tile-movable-glow {
+    border-color: rgba(200, 169, 110, 0.5);
+    box-shadow: 0 0 7px 2px rgba(200, 169, 110, 0.2);
+  }
+
+  /* Reset confirmation dialog */
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(4, 3, 1, 0.88);
+    z-index: 80;
+    animation: fadeIn 0.2s ease;
+    padding: 24px;
+  }
+
+  .confirm-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(160deg, #1c1409 0%, #0e0a05 100%);
+    border: 1px solid rgba(200, 169, 110, 0.35);
+    border-radius: 8px;
+    padding: 28px 36px 28px;
+    max-width: 340px;
+    width: 100%;
+    animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
   }
 }
