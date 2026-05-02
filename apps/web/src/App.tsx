@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
+import { speak, stopSpeaking, type VoiceGender } from "./utils/narration";
 
 const DEV_MODE = new URLSearchParams(window.location.search).get("dev") === "true";
 const BOARD_PX = 344; // fixed physical size for all grid sizes
@@ -8,9 +9,35 @@ const DIFFICULTY_KEY = "shards_of_time_difficulty_v1";
 const INTRO_KEY = "shards_of_time_chapter1_intro_seen";
 const PROGRESS_KEY = "shards_of_time_chapter1_progress";
 const HINT_GLOW_KEY = "shards_of_time_hint_glow";
+const NARRATION_KEY = "shards_of_time_narration";
+const VOICE_GENDER_KEY = "shards_of_time_voice_gender";
 const CHAPTER_LABEL = "Chapter I · Ancient Egypt";
 const MAX_STEPS = 3;
 const STEP_PENALTY = 10;
+const VOICE_SAMPLE = "The sands of time await.";
+
+const INTRO_NARRATION =
+  "3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh. " +
+  "In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets. " +
+  "The gods fell silent. The Nile stopped flooding. Time itself cracked. " +
+  "You are the Restorer — chosen to piece history back together, one shard at a time.";
+
+const DIFFICULTY_DESCS: Record<3 | 4 | 5, string> = {
+  3: "Beginner friendly",
+  4: "A worthy challenge",
+  5: "For the devoted",
+};
+
+const PARTICLES = Array.from({ length: 22 }, (_, i) => ({
+  left: `${4 + (i * 4.3) % 90}%`,
+  delay: `${(i * 0.71) % 13}s`,
+  duration: `${9 + (i * 1.4) % 9}s`,
+  size: i % 4 === 0 ? 3 : 2,
+  opacity: 0.25 + (i % 3) * 0.15,
+}));
+
+type NarrationContext = "intro" | "lore" | "win" | "map" | null;
+type Screen = "start" | "cinematic" | "map" | "game";
 
 type Difficulty = 3 | 4 | 5;
 
@@ -33,8 +60,6 @@ function loadDifficulty(): Difficulty {
 function persistDifficulty(n: Difficulty) {
   localStorage.setItem(DIFFICULTY_KEY, String(n));
 }
-
-type Screen = "intro" | "map" | "game";
 
 interface PuzzleProgress { stars: number; }
 type ChapterProgress = Record<number, PuzzleProgress>;
@@ -286,15 +311,27 @@ export function App() {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasShuffled, setHasShuffled] = useState(false);
   const [screen, setScreen] = useState<Screen>(() =>
-    localStorage.getItem(INTRO_KEY) ? "map" : "intro",
+    localStorage.getItem(INTRO_KEY) ? "map" : "start",
   );
+  const [voiceGender, setVoiceGender] = useState<VoiceGender>(() =>
+    localStorage.getItem(VOICE_GENDER_KEY) === "woman" ? "woman" : "man",
+  );
+  const [startDifficulty, setStartDifficulty] = useState<Difficulty>(() =>
+    localStorage.getItem(DIFFICULTY_KEY) ? loadDifficulty() : 3,
+  );
+  const [cinematicReady, setCinematicReady] = useState(false);
   const [chapterProgress, setChapterProgress] = useState<ChapterProgress>(loadProgress);
   const [mapKey, setMapKey] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [hintGlow, setHintGlow] = useState(() => localStorage.getItem(HINT_GLOW_KEY) !== "0");
+  const [narrationOn, setNarrationOn] = useState(() => localStorage.getItem(NARRATION_KEY) !== "0");
+  const [narratingCtx, setNarratingCtx] = useState<NarrationContext>(null);
+  const [narratingMapId, setNarratingMapId] = useState<number | null>(null);
 
   const drawerRef = useRef<HTMLDivElement>(null);
+  const narrationOnRef = useRef(narrationOn);
+  narrationOnRef.current = narrationOn;
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -349,6 +386,65 @@ export function App() {
 
   // Confirm the initial tiles (from save or shuffle) are in place before win checks run.
   useEffect(() => { setHasShuffled(true); }, []);
+
+  // ── Narration helpers ──────────────────────────────────────────────────────
+  function narrate(text: string, ctx: NarrationContext, afterEnd?: () => void) {
+    if (!narrationOnRef.current) return;
+    setNarratingCtx(ctx);
+    if (ctx === "map") setNarratingMapId(null);
+    speak(text, {
+      gender: voiceGender,
+      onStart: () => setNarratingCtx(ctx),
+      onEnd: () => {
+        setNarratingCtx(null);
+        setNarratingMapId(null);
+        afterEnd?.();
+      },
+    });
+  }
+
+  function playSample(gender: VoiceGender) {
+    speak(VOICE_SAMPLE, { gender, rate: 0.85, pitch: 0.9, volume: 1.0 });
+  }
+
+  function stopNarration() {
+    stopSpeaking();
+    setNarratingCtx(null);
+    setNarratingMapId(null);
+  }
+
+  function handleToggleNarration() {
+    const next = !narrationOn;
+    setNarrationOn(next);
+    localStorage.setItem(NARRATION_KEY, next ? "1" : "0");
+    if (!next) stopNarration();
+  }
+
+  // Cinematic fallback — show Continue if narration never fires (speech blocked / off)
+  useEffect(() => {
+    if (screen !== "cinematic") return;
+    setCinematicReady(false);
+    const t = setTimeout(() => setCinematicReady(true), narrationOn ? 13000 : 2500);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
+
+  // Auto-narrate puzzle lore when game screen opens or puzzle changes
+  useEffect(() => {
+    if (screen !== "game") return;
+    const t = setTimeout(() => narrate(puzzle.lore, "lore"), 700);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, puzzleIdx]);
+
+  // Auto-narrate win text when win card appears
+  useEffect(() => {
+    if (winPhase !== "lore") return;
+    const t = setTimeout(() => narrate(puzzle.win, "win"), 400);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [winPhase]);
+  // ──────────────────────────────────────────────────────────────────────────
 
   function clearHint() {
     if (hintTimerRef.current) {
@@ -420,6 +516,7 @@ export function App() {
       return;
     }
     if (pressedIdx === idx && movable.has(idx)) {
+      if (moves === 0) stopNarration(); // first move — stop lore narration
       clearHint();
       const movedValue = tiles[idx]!;
       const newTiles = moveTile(tiles, idx, emptyIdx).tiles;
@@ -462,27 +559,57 @@ export function App() {
 
   function handlePlayAgain() { startPuzzle(puzzleIdx); }
   function handleNextShard() {
-    // Mark puzzle complete, save progress, then go to map
     const newProgress = { ...chapterProgress, [puzzle.id]: { stars } };
     setChapterProgress(newProgress);
     persistProgress(newProgress);
+    stopNarration();
     setMapKey((k) => k + 1);
     setScreen("map");
   }
   function handleNewGame() { startPuzzle(puzzleIdx); }
   function handleClearSave() { clearSave(n); startPuzzle(puzzleIdx); }
-  function handleBeginChapter() {
+
+  function handleStartVoiceSelect(option: "off" | "man" | "woman") {
+    if (option === "off") {
+      setNarrationOn(false);
+      localStorage.setItem(NARRATION_KEY, "0");
+    } else {
+      setNarrationOn(true);
+      setVoiceGender(option);
+      localStorage.setItem(NARRATION_KEY, "1");
+      localStorage.setItem(VOICE_GENDER_KEY, option);
+      playSample(option);
+    }
+  }
+
+  function handleBeginJourney() {
+    // Apply chosen difficulty and save voice setting
+    persistDifficulty(startDifficulty);
+    setN(startDifficulty);
+    // Transition to cinematic
+    stopNarration();
+    setScreen("cinematic");
+    // Gesture-triggered narration — works on mobile
+    if (narrationOnRef.current) {
+      narrate(INTRO_NARRATION, "intro", () => setCinematicReady(true));
+    }
+  }
+
+  function handleCinematicContinue() {
     localStorage.setItem(INTRO_KEY, "1");
+    stopNarration();
     setMapKey((k) => k + 1);
     setScreen("map");
   }
   function handleShowMap() {
     setTimerActive(false);
     setMenuOpen(false);
+    stopNarration();
     setMapKey((k) => k + 1);
     setScreen("map");
   }
   function handleMapSelect(idx: number) {
+    stopNarration();
     startPuzzle(idx);
     setScreen("game");
   }
@@ -495,7 +622,7 @@ export function App() {
     setShowResetConfirm(true);
   }
   function handleResetConfirm() {
-    [INTRO_KEY, PROGRESS_KEY, DIFFICULTY_KEY, HINT_GLOW_KEY,
+    [INTRO_KEY, PROGRESS_KEY, DIFFICULTY_KEY, HINT_GLOW_KEY, NARRATION_KEY, VOICE_GENDER_KEY,
       saveKeyFor(3), saveKeyFor(4), saveKeyFor(5)].forEach((k) =>
       localStorage.removeItem(k),
     );
@@ -504,13 +631,45 @@ export function App() {
 
   const stars = getStars(moves);
 
+  function Waveform() {
+    return (
+      <span className="waveform" aria-hidden="true">
+        <span /><span /><span />
+      </span>
+    );
+  }
+
+  function Particles() {
+    return (
+      <div className="particles-container" aria-hidden="true">
+        {PARTICLES.map((p, i) => (
+          <div
+            key={i}
+            className="particle"
+            style={{
+              left: p.left,
+              width: p.size,
+              height: p.size,
+              opacity: p.opacity,
+              animationDelay: p.delay,
+              animationDuration: p.duration,
+            }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  const voiceOption: "off" | "man" | "woman" = !narrationOn ? "off" : voiceGender;
+
   return (
     <main
-      className="flex min-h-screen flex-col items-center justify-center gap-5 px-4 py-10"
+      className="flex min-h-screen flex-col items-center justify-center gap-4 px-4"
+      style={{ paddingTop: 16, paddingBottom: 148 }}
       onPointerUp={() => setPressedIdx(null)}
     >
-      {/* Title + Map button row */}
-      <div style={{ position: "relative", width: "100%", maxWidth: 480, textAlign: "center" }}>
+      {/* Top bar: hamburger | puzzle name | moves · timer */}
+      <div className="top-bar">
         <button
           onClick={() => setMenuOpen(true)}
           className="hamburger-btn"
@@ -518,88 +677,28 @@ export function App() {
         >
           <span /><span /><span />
         </button>
-        <h1
-          className="text-4xl tracking-widest uppercase"
-          style={{ fontFamily: "'Cinzel', serif", color: "#f0e4c4" }}
-        >
-          Shards of Time
-        </h1>
-        <p
-          className="mt-1 text-sm tracking-wider opacity-60"
-          style={{ fontFamily: "'Crimson Text', serif", fontStyle: "italic", color: "#c8a96e" }}
-        >
-          {CHAPTER_LABEL}
-        </p>
-        <p
-          className="mt-0.5 text-base tracking-wide"
-          style={{ fontFamily: "'Cinzel', serif", color: "#f0e4c4", opacity: 0.85 }}
-        >
-          {puzzle.name}
-        </p>
-      </div>
 
-      {/* Stats row */}
-      <div
-        className="flex gap-10 text-center text-sm tracking-widest uppercase opacity-70"
-        style={{ fontFamily: "'Cinzel', serif", color: "#c8a96e" }}
-      >
-        <div style={{ position: "relative" }}>
-          <div className="text-xs opacity-60">Moves</div>
-          <div className="text-lg">{moves}</div>
-          {penaltyKey > 0 && (
-            <span key={penaltyKey} className="penalty-pop">+{STEP_PENALTY}</span>
-          )}
-        </div>
-        <div>
-          <div className="text-xs opacity-60">Time</div>
-          <div className="text-lg">{formatTime(elapsed)}</div>
-        </div>
-      </div>
+        <p className="top-bar-name">{puzzle.name}</p>
 
-      {/* Difficulty selector + hint controls */}
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <div className="diff-selector">
-          {DIFFICULTIES.map(({ n: dn, label }) => (
-            <button
-              key={dn}
-              className={`diff-btn${dn === n ? " diff-btn-active" : ""}`}
-              onClick={() => handleDifficultyChange(dn)}
-              disabled={frozen}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <div className="top-bar-stats">
+            <div style={{ position: "relative" }}>
+              <span>{moves}</span>
+              {penaltyKey > 0 && (
+                <span key={penaltyKey} className="penalty-pop">+{STEP_PENALTY}</span>
+              )}
+            </div>
+            <span style={{ opacity: 0.35 }}>·</span>
+            <span>{formatTime(elapsed)}</span>
+          </div>
 
-        {/* Separator */}
-        <div
-          style={{
-            width: 1,
-            height: 20,
-            background: "rgba(200,169,110,0.25)",
-            alignSelf: "center",
-          }}
-        />
-
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="hint-btn" onClick={handleHint} disabled={frozen}>
-            Hint
-          </button>
           <button
-            className={`hint-btn${stepsLeft === 0 ? " hint-btn-exhausted" : ""}`}
-            onClick={handleStep}
-            disabled={frozen || stepsLeft === 0}
-            title={stepsLeft === 0 ? "No steps remaining" : undefined}
+            className={`narration-btn${narratingCtx !== null && narrationOn ? " narration-btn-active" : ""}`}
+            onClick={handleToggleNarration}
+            title={narrationOn ? "Mute narration" : "Enable narration"}
+            aria-label={narrationOn ? "Mute narration" : "Enable narration"}
           >
-            Step ({stepsLeft} left)
+            {narrationOn && narratingCtx !== null ? <Waveform /> : narrationOn ? "🔊" : "🔇"}
           </button>
         </div>
       </div>
@@ -680,43 +779,56 @@ export function App() {
         </div>
       )}
 
-      {/* Bottom controls */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={handleNewGame}
-          className="px-6 py-2 text-sm tracking-widest uppercase transition-all hover:opacity-100 opacity-70"
-          style={{
-            fontFamily: "'Cinzel', serif",
-            color: "#c8a96e",
-            border: "1px solid #c8a96e",
-            background: "transparent",
-            borderRadius: "4px",
-          }}
-        >
-          New Game
-        </button>
-        <button
-          onClick={handleClearSave}
-          className="text-xs tracking-wider uppercase transition-all hover:opacity-70 opacity-40"
-          style={{
-            fontFamily: "'Cinzel', serif",
-            color: "#c8a96e",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Clear save
-        </button>
-      </div>
-
-      {/* Teaser lore */}
+      {/* Lore */}
       <p
-        className="max-w-xs text-center text-sm leading-relaxed opacity-50"
+        className="max-w-xs text-center text-sm leading-relaxed opacity-40"
         style={{ fontFamily: "'Crimson Text', serif", fontStyle: "italic", color: "#d4b896" }}
       >
         {puzzle.lore}
+        {narratingCtx === "lore" && narrationOn && <Waveform />}
       </p>
+
+      {/* Fixed bottom bar */}
+      {screen === "game" && (
+        <div className="bottom-bar">
+          {/* Row 1 — Difficulty */}
+          <div className="bottom-bar-section">
+            <span className="bottom-bar-label">Difficulty</span>
+            <div className="diff-selector">
+              {DIFFICULTIES.map(({ n: dn, label }) => (
+                <button
+                  key={dn}
+                  className={`diff-btn${dn === n ? " diff-btn-active" : ""}`}
+                  onClick={() => handleDifficultyChange(dn)}
+                  disabled={frozen}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Row 2 — Assistance */}
+          <div className="bottom-bar-section">
+            <span className="bottom-bar-label">Assistance</span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="hint-btn" onClick={handleHint} disabled={frozen}>
+                💡 Hint
+              </button>
+              <button
+                className={`hint-btn${stepsLeft === 0 ? " hint-btn-exhausted" : ""}`}
+                onClick={handleStep}
+                disabled={frozen || stepsLeft === 0}
+              >
+                👣 Step ({stepsLeft} left)
+              </button>
+              <button className="hint-btn" onClick={handleNewGame} disabled={frozen}>
+                🔄 New Game
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Dev shortcut button */}
       {DEV_MODE && (
@@ -746,58 +858,104 @@ export function App() {
         </button>
       )}
 
-      {/* Chapter intro overlay */}
-      {screen === "intro" && (
-        <div className="intro-overlay" onClick={(e) => e.stopPropagation()}>
-          <div className="intro-card">
-            <p
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: "0.7rem",
-                letterSpacing: "0.25em",
-                textTransform: "uppercase",
-                color: "#c8a96e",
-                opacity: 0.7,
-                marginBottom: 20,
-              }}
-            >
-              {CHAPTER_LABEL}
-            </p>
-            <div className="gold-sep" style={{ marginBottom: 24 }} />
-            <p
-              style={{
-                fontFamily: "'Crimson Text', serif",
-                fontStyle: "italic",
-                color: "#d4b896",
-                fontSize: "1.15rem",
-                lineHeight: 1.8,
-                textAlign: "center",
-                maxWidth: 360,
-              }}
-            >
-              3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh.
-              In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets.
-              The gods fell silent. The Nile stopped flooding. Time itself cracked.
-            </p>
-            <p
-              style={{
-                fontFamily: "'Crimson Text', serif",
-                fontStyle: "italic",
-                color: "#f0e4c4",
-                fontSize: "1.15rem",
-                lineHeight: 1.8,
-                textAlign: "center",
-                maxWidth: 360,
-                marginTop: 16,
-              }}
-            >
-              You are the Restorer — chosen to piece history back together, one shard at a time.
-            </p>
-            <div className="gold-sep" style={{ margin: "24px 0" }} />
-            <button className="win-btn win-btn-primary" onClick={handleBeginChapter}>
-              Begin
-            </button>
+      {/* ── Start screen ─────────────────────────────────────── */}
+      {screen === "start" && (
+        <div className="start-screen" onClick={(e) => e.stopPropagation()}>
+          {/* Blurred background */}
+          <div
+            className="start-bg"
+            style={{ backgroundImage: `url(${PUZZLES[0]!.imageUrl})` }}
+          />
+          <div className="start-overlay" />
+          <Particles />
+
+          {/* Scrollable content */}
+          <div className="start-content">
+            {/* ── Title ── */}
+            <div className="start-top">
+              <div className="gold-sep" />
+              <h1 className="start-title">Shards of Time</h1>
+              <p className="start-subtitle">{CHAPTER_LABEL}</p>
+              <div className="gold-sep" />
+              <p className="start-tagline">
+                Piece history back together, one shard at a time.
+              </p>
+            </div>
+
+            {/* ── Options ── */}
+            <div className="start-options">
+              {/* Narrator */}
+              <div className="start-option-group">
+                <span className="start-option-label">Narrator</span>
+                <div className="start-toggle-row">
+                  {(["off", "woman", "man"] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      className={`start-toggle${voiceOption === opt ? " start-toggle-active" : ""}`}
+                      onClick={() => handleStartVoiceSelect(opt)}
+                      onMouseEnter={() => opt !== "off" && playSample(opt)}
+                    >
+                      {opt === "off" ? "🔇 Off" : opt === "woman" ? "👩 Woman" : "👨 Man"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Difficulty */}
+              <div className="start-option-group">
+                <span className="start-option-label">Difficulty</span>
+                <div className="start-toggle-row">
+                  {DIFFICULTIES.map(({ n: dn, label }) => (
+                    <button
+                      key={dn}
+                      className={`start-toggle start-toggle-tall${startDifficulty === dn ? " start-toggle-active" : ""}`}
+                      onClick={() => setStartDifficulty(dn)}
+                    >
+                      <span>{label}</span>
+                      <span className="start-toggle-desc">{DIFFICULTY_DESCS[dn]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Begin ── */}
+            <div className="start-bottom">
+              <button className="start-begin-btn" onClick={handleBeginJourney}>
+                Begin Your Journey
+              </button>
+              <p className="start-save-hint">Your progress is saved automatically</p>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Cinematic (story text + narration) ──────────────── */}
+      {screen === "cinematic" && (
+        <div className="cinematic-overlay" onClick={(e) => e.stopPropagation()}>
+          <p className="cinematic-label">{CHAPTER_LABEL}</p>
+          <div className="gold-sep" style={{ width: 120, marginBottom: 32 }} />
+
+          <p className="cinematic-text">
+            3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh.
+            In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets.
+            The gods fell silent. The Nile stopped flooding. Time itself cracked.
+          </p>
+          <p className="cinematic-text cinematic-text-light" style={{ marginTop: 20 }}>
+            You are the <em>Restorer</em> — chosen to piece history back together,
+            one shard at a time.
+            {narratingCtx === "intro" && narrationOn && <Waveform />}
+          </p>
+
+          {cinematicReady && (
+            <button
+              className="win-btn win-btn-primary cinematic-continue"
+              onClick={handleCinematicContinue}
+              style={{ animation: "fadeIn 0.5s ease" }}
+            >
+              Enter the Chapter →
+            </button>
+          )}
         </div>
       )}
 
@@ -881,6 +1039,18 @@ export function App() {
                     opacity: isLocked ? 0.55 : 1,
                   }}
                   onClick={() => !isLocked && handleMapSelect(i)}
+                  onMouseEnter={() => {
+                    if (isLocked || !narrationOnRef.current) return;
+                    setNarratingMapId(p.id);
+                    speak(p.name, {
+                      rate: 0.85, pitch: 0.9, volume: 1.0,
+                      onStart: () => { setNarratingCtx("map"); setNarratingMapId(p.id); },
+                      onEnd: () => { setNarratingCtx(null); setNarratingMapId(null); },
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    if (narratingCtx === "map") stopNarration();
+                  }}
                 >
                   {/* Background image */}
                   <div
@@ -1022,9 +1192,14 @@ export function App() {
                         color: isLocked ? "rgba(200,169,110,0.35)" : "#c8a96e",
                         margin: 0,
                         lineHeight: 1.2,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 3,
                       }}
                     >
                       {p.name}
+                      {narratingMapId === p.id && narrationOn && <Waveform />}
                     </p>
                   </div>
                 </div>
@@ -1149,6 +1324,7 @@ export function App() {
               }}
             >
               {puzzle.win}
+              {narratingCtx === "win" && narrationOn && <Waveform />}
             </p>
 
             <div
