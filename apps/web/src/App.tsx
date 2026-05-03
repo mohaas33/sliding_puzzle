@@ -5,6 +5,7 @@ import { ChapterMap } from "./components/ChapterMap";
 import { GameBoard } from "./components/GameBoard";
 import { WinScreen } from "./components/WinScreen";
 import { GameMenu } from "./components/GameMenu";
+import { MissionCard } from "./components/MissionCard";
 import { Waveform } from "./components/Waveform";
 import { DEV_MODE, CHAPTER_LABEL, DIFFICULTIES, STEP_PENALTY } from "./constants";
 import { formatTime } from "./utils/solver";
@@ -55,6 +56,16 @@ export function App() {
         </div>
       </div>
 
+      {/* Mission bar (collapsed, in-flow) */}
+      {game.missionPhase === "bar" && !game.frozen && (
+        <MissionCard
+          phase="bar"
+          puzzle={game.puzzle}
+          onDismiss={game.handleDismissMission}
+          onExpand={game.handleExpandMission}
+        />
+      )}
+
       {/* Board */}
       <GameBoard
         n={game.n}
@@ -71,15 +82,6 @@ export function App() {
         onPointerDown={game.handlePointerDown}
         onPointerUp={game.handlePointerUp}
       />
-
-      {/* Lore */}
-      <p
-        className="max-w-xs text-center text-sm leading-relaxed opacity-40"
-        style={{ fontFamily: "'Crimson Text', serif", fontStyle: "italic", color: "#d4b896" }}
-      >
-        {game.puzzle.lore}
-        {narratingCtx === "lore" && narrationOn && <Waveform />}
-      </p>
 
       {/* Bottom bar */}
       {game.screen === "game" && (
@@ -207,7 +209,17 @@ export function App() {
         />
       )}
 
-      {/* Win overlay */}
+      {/* Mission overlay (full / exiting) */}
+      {(game.missionPhase === "full" || game.missionPhase === "exiting") && game.screen === "game" && !game.frozen && (
+        <MissionCard
+          phase={game.missionPhase as "full" | "exiting"}
+          puzzle={game.puzzle}
+          onDismiss={game.handleDismissMission}
+          onExpand={game.handleExpandMission}
+        />
+      )}
+
+      {/* Win overlay — stays open until player taps a button, no auto-dismiss */}
       {game.winPhase === "lore" && (
         <WinScreen
           puzzle={game.puzzle}

@@ -7,9 +7,12 @@ export interface PuzzleData {
   id: number;
   name: string;
   imageUrl: string;
+  hook: string;
   lore: string;
   win: string;
 }
+
+export type MissionPhase = "full" | "exiting" | "bar" | null;
 
 export interface PuzzleProgress {
   stars: number;

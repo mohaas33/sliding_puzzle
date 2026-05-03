@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
-import type { Difficulty, Screen, WinPhase, ChapterProgress, PuzzleData } from "../types";
+import type { Difficulty, Screen, WinPhase, ChapterProgress, PuzzleData, MissionPhase } from "../types";
 import type { NarrationHook } from "./useNarration";
 import {
   INTRO_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
@@ -37,6 +37,7 @@ export interface GameStateHook {
   menuOpen: boolean;
   showResetConfirm: boolean;
   hintGlow: boolean;
+  missionPhase: MissionPhase;
   puzzle: PuzzleData;
   emptyIdx: number;
   movable: Set<number>;
@@ -65,6 +66,8 @@ export interface GameStateHook {
   handleToggleHintGlow: () => void;
   handleResetRequest: () => void;
   handleResetConfirm: () => void;
+  handleDismissMission: () => void;
+  handleExpandMission: () => void;
 }
 
 export function useGameState(narration: NarrationHook): GameStateHook {
@@ -100,10 +103,12 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [hintGlow, setHintGlow] = useState(() => localStorage.getItem(HINT_GLOW_KEY) !== "0");
+  const [missionPhase, setMissionPhase] = useState<MissionPhase>(null);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moveLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const missionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const empty = n * n - 1;
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
@@ -127,6 +132,34 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     }
     setHintIdx(null);
   }
+
+  function handleDismissMission() {
+    if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
+    setMissionPhase("exiting");
+    setTimeout(() => setMissionPhase("bar"), 350);
+  }
+
+  function handleExpandMission() {
+    if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
+    setMissionPhase("full");
+    missionTimerRef.current = setTimeout(handleDismissMission, 3000);
+  }
+
+  function startMission() {
+    if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
+    setMissionPhase("full");
+    missionTimerRef.current = setTimeout(handleDismissMission, 3000);
+  }
+
+  // Show mission card on every new puzzle in the game screen
+  useEffect(() => {
+    if (screen !== "game") return;
+    startMission();
+    return () => {
+      if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen, puzzleIdx]);
 
   useEffect(() => {
     if (!timerActive || solved) return;
@@ -172,10 +205,10 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
-  // Auto-narrate puzzle lore when game screen opens or puzzle changes
+  // Auto-narrate mission hook when game screen opens or puzzle changes
   useEffect(() => {
     if (screen !== "game") return;
-    const t = setTimeout(() => narrate(puzzle.lore, "lore"), 700);
+    const t = setTimeout(() => narrate(puzzle.hook, "lore"), 700);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, puzzleIdx]);
@@ -385,13 +418,13 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     n, puzzleIdx, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
     hintIdx, stepsLeft, penaltyKey, lastMovedValue, moveLocked, imageLoaded,
     hasShuffled, screen, startDifficulty, cinematicReady, chapterProgress, mapKey,
-    menuOpen, showResetConfirm, hintGlow,
+    menuOpen, showResetConfirm, hintGlow, missionPhase,
     puzzle, emptyIdx, movable, solved, frozen, stars,
     setMenuOpen, setShowResetConfirm, setStartDifficulty, setPressedIdx,
     startPuzzle, handlePointerDown, handlePointerUp, handleHint, handleStep,
     handleDevSolve, handleDifficultyChange, handlePlayAgain, handleNextShard,
     handleViewMap, handleNewGame, handleBeginJourney, handleCinematicContinue,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
-    handleResetConfirm,
+    handleResetConfirm, handleDismissMission, handleExpandMission,
   };
 }
