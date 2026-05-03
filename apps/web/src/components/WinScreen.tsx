@@ -1,6 +1,6 @@
 import type { PuzzleData, NarrationContext } from "../types";
 import { PUZZLES } from "../constants";
-import { formatTime } from "../utils/solver";
+import { formatTime, personalize } from "../utils/solver";
 import { Waveform } from "./Waveform";
 
 interface WinScreenProps {
@@ -9,11 +9,18 @@ interface WinScreenProps {
   moves: number;
   elapsed: number;
   stars: number;
+  playerName: string;
   narrationOn: boolean;
   narratingCtx: NarrationContext;
   handlePlayAgain: () => void;
   handleNextShard: () => void;
   handleViewMap: () => void;
+}
+
+function anubisComment(stars: number, name: string): string {
+  if (stars === 3) return `Anubis nods. "Worthy of a scribe, ${name}."`;
+  if (stars === 2) return `Anubis tilts his head. "Acceptable. Barely."`;
+  return `Anubis sighs. "The feather outweighs your effort."`;
 }
 
 export function WinScreen({
@@ -22,6 +29,7 @@ export function WinScreen({
   moves,
   elapsed,
   stars,
+  playerName,
   narrationOn,
   narratingCtx,
   handlePlayAgain,
@@ -84,20 +92,22 @@ export function WinScreen({
           </div>
         </div>
 
+        {/* Stars */}
         <div
           style={{
             fontSize: "1.6rem",
             letterSpacing: "0.2em",
             color: "#c8a96e",
-            margin: "10px 0 12px",
+            margin: "10px 0 6px",
           }}
         >
           {Array.from({ length: 3 }, (_, i) => (
-            <span key={i} style={{ opacity: i < stars ? 1 : 0.18 }}>
-              ★
-            </span>
+            <span key={i} style={{ opacity: i < stars ? 1 : 0.18 }}>★</span>
           ))}
         </div>
+
+        {/* Anubis commentary */}
+        <p className="anubis-comment">{anubisComment(stars, playerName)}</p>
 
         {/* Restored image */}
         <div className="win-image-section">
@@ -108,6 +118,7 @@ export function WinScreen({
           <p className="win-image-name">{puzzle.name}</p>
         </div>
 
+        {/* Win paragraph */}
         <p
           style={{
             fontFamily: "'Crimson Text', serif",
@@ -115,37 +126,20 @@ export function WinScreen({
             color: "#d4b896",
             fontSize: "1.05rem",
             lineHeight: 1.7,
-            margin: "16px 0 16px",
+            margin: "16px 0 20px",
             textAlign: "center",
           }}
         >
-          {puzzle.win}
+          {personalize(puzzle.win, playerName)}
           {narratingCtx === "win" && narrationOn && <Waveform />}
         </p>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 36,
-            justifyContent: "center",
-            fontFamily: "'Cinzel', serif",
-            color: "#c8a96e",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            marginBottom: 24,
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "0.65rem", opacity: 0.55, marginBottom: 3 }}>Moves</div>
-            <div style={{ fontSize: "1.25rem" }}>{moves}</div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "0.65rem", opacity: 0.55, marginBottom: 3 }}>Time</div>
-            <div style={{ fontSize: "1.25rem" }}>{formatTime(elapsed)}</div>
-          </div>
-        </div>
+        {/* Personalized stats bar */}
+        <p className="win-stats-bar">
+          {playerName} · Shard {puzzle.id} of {PUZZLES.length} · {moves} moves · {formatTime(elapsed)}
+        </p>
 
-        <div style={{ display: "flex", gap: 12 }}>
+        <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
           <button className="win-btn" onClick={handlePlayAgain}>
             Play Again
           </button>

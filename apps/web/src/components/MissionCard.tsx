@@ -1,19 +1,23 @@
 import type { PuzzleData } from "../types";
+import { personalize } from "../utils/solver";
 
 interface MissionCardProps {
   puzzle: PuzzleData;
   phase: "full" | "exiting" | "bar";
+  playerName: string;
   onDismiss: () => void;
   onExpand: () => void;
 }
 
-export function MissionCard({ puzzle, phase, onDismiss, onExpand }: MissionCardProps) {
+export function MissionCard({ puzzle, phase, playerName, onDismiss, onExpand }: MissionCardProps) {
+  const hookText = personalize(puzzle.hook, playerName);
+
   if (phase === "bar") {
     return (
       <div className="mission-bar" onClick={onExpand} role="button" tabIndex={0}>
         <span className="mission-bar-label">MISSION</span>
         <span className="mission-bar-sep">·</span>
-        <span className="mission-bar-text">{puzzle.hook}</span>
+        <span className="mission-bar-text">{hookText}</span>
       </div>
     );
   }
@@ -29,7 +33,7 @@ export function MissionCard({ puzzle, phase, onDismiss, onExpand }: MissionCardP
       <div className="mission-content">
         <p className="mission-label">Mission</p>
         <div className="gold-sep" style={{ width: 80, margin: "12px 0 32px" }} />
-        <p className="mission-hook-text">{puzzle.hook}</p>
+        <p className="mission-hook-text">{hookText}</p>
         <p className="mission-puzzle-name">{puzzle.name}</p>
         <button className="mission-begin-btn" onClick={onDismiss}>
           Tap to Begin

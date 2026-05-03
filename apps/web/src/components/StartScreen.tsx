@@ -3,6 +3,8 @@ import type { VoiceGender } from "../utils/narration";
 import { DIFFICULTIES, DIFFICULTY_DESCS, PUZZLES, PARTICLES } from "../constants";
 import { loadProgress } from "../utils/storage";
 
+const NAME_PRESETS = ["Kha", "Neferu", "Amenhotep", "Merit"];
+
 interface StartScreenProps {
   voiceOption: "off" | "man" | "woman";
   startDifficulty: Difficulty;
@@ -11,6 +13,8 @@ interface StartScreenProps {
   playSample: (gender: VoiceGender) => void;
   handleBeginJourney: () => void;
   handleNewGame: () => void;
+  playerName: string;
+  onPlayerNameChange: (name: string) => void;
 }
 
 function Particles() {
@@ -42,6 +46,8 @@ export function StartScreen({
   playSample,
   handleBeginJourney,
   handleNewGame,
+  playerName,
+  onPlayerNameChange,
 }: StartScreenProps) {
   const hasProgress = Object.keys(loadProgress()).length > 0;
 
@@ -93,6 +99,32 @@ export function StartScreen({
                       </span>
                     )}
                   </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Player name */}
+          <div className="start-option-group">
+            <span className="start-option-label">Your name in the Book of the Dead</span>
+            <input
+              type="text"
+              className="name-input"
+              value={playerName}
+              maxLength={20}
+              placeholder="Enter your name"
+              onChange={(e) => onPlayerNameChange(e.target.value)}
+              spellCheck={false}
+              autoComplete="off"
+            />
+            <div className="name-presets">
+              {NAME_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  className={`name-preset-btn${playerName === preset ? " name-preset-btn-active" : ""}`}
+                  onClick={() => onPlayerNameChange(preset)}
+                >
+                  {preset}
                 </button>
               ))}
             </div>

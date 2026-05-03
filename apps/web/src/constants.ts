@@ -15,13 +15,17 @@ export const VOICE_GENDER_KEY = "shards_of_time_voice_gender";
 export const CHAPTER_LABEL = "Chapter I · Ancient Egypt";
 export const MAX_STEPS = 3;
 export const STEP_PENALTY = 10;
-export const VOICE_SAMPLE = "The sands of time await.";
+export const VOICE_SAMPLE = "The sands await.";
+export const PLAYER_NAME_KEY = "shards_of_time_player_name";
+export const DEFAULT_PLAYER_NAME = "Kha";
 
-export const INTRO_NARRATION =
-  "3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh. " +
-  "In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets. " +
-  "The gods fell silent. The Nile stopped flooding. Time itself cracked. " +
-  "You are the Restorer — chosen to piece history back together, one shard at a time.";
+export const INTRO_NARRATION = (name: string): string =>
+  `You are ${name}, scribe of the Temple of Karnak. ` +
+  `On the night of the spring flood, a tomb robber broke through the walls you were sworn to protect. ` +
+  `Ra has gone blind. The Nile has stopped. The dead wander lost. ` +
+  `Anubis has spoken your judgment: restore every shattered shard before the next eclipse — ` +
+  `or your soul will be weighed against a stone, not a feather. ` +
+  `Begin, ${name}.`;
 
 export const DIFFICULTY_DESCS: Record<3 | 4 | 5, string> = {
   3: "Beginner friendly",

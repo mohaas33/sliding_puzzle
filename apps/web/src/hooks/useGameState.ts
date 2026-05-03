@@ -5,13 +5,13 @@ import type { NarrationHook } from "./useNarration";
 import {
   INTRO_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
   NARRATION_KEY, VOICE_GENDER_KEY, MAX_STEPS, STEP_PENALTY,
-  INTRO_NARRATION, PUZZLES,
+  INTRO_NARRATION, PUZZLES, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
 } from "../constants";
 import {
   loadDifficulty, persistDifficulty, loadProgress, persistProgress,
   loadSave, writeSave, clearSave, saveKeyFor,
 } from "../utils/storage";
-import { getStars, nextSolverMove } from "../utils/solver";
+import { getStars, nextSolverMove, personalize } from "../utils/solver";
 
 export interface GameStateHook {
   n: Difficulty;
@@ -68,6 +68,8 @@ export interface GameStateHook {
   handleResetConfirm: () => void;
   handleDismissMission: () => void;
   handleExpandMission: () => void;
+  playerName: string;
+  handleSetPlayerName: (name: string) => void;
 }
 
 export function useGameState(narration: NarrationHook): GameStateHook {
@@ -104,6 +106,9 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [hintGlow, setHintGlow] = useState(() => localStorage.getItem(HINT_GLOW_KEY) !== "0");
   const [missionPhase, setMissionPhase] = useState<MissionPhase>(null);
+  const [playerName, setPlayerName] = useState(
+    () => localStorage.getItem(PLAYER_NAME_KEY) ?? DEFAULT_PLAYER_NAME,
+  );
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -130,6 +135,12 @@ export function useGameState(narration: NarrationHook): GameStateHook {
       hintTimerRef.current = null;
     }
     setHintIdx(null);
+  }
+
+  function handleSetPlayerName(raw: string) {
+    const cleaned = raw.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 20);
+    setPlayerName(cleaned);
+    localStorage.setItem(PLAYER_NAME_KEY, cleaned);
   }
 
   function handleDismissMission() {
@@ -195,7 +206,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   // Auto-narrate mission hook when game screen opens or puzzle changes
   useEffect(() => {
     if (screen !== "game") return;
-    const t = setTimeout(() => narrate(puzzle.hook, "lore"), 700);
+    const t = setTimeout(() => narrate(personalize(puzzle.hook, playerName), "lore"), 700);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, puzzleIdx]);
@@ -203,7 +214,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   // Auto-narrate win text when win card appears
   useEffect(() => {
     if (winPhase !== "lore") return;
-    const t = setTimeout(() => narrate(puzzle.win, "win"), 400);
+    const t = setTimeout(() => narrate(personalize(puzzle.win, playerName), "win"), 400);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winPhase]);
@@ -357,7 +368,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     setScreen("cinematic");
     // Gesture-triggered narration — works on mobile
     if (narrationOnRef.current) {
-      narrate(INTRO_NARRATION, "intro", () => setCinematicReady(true));
+      narrate(INTRO_NARRATION(playerName), "intro", () => setCinematicReady(true));
     }
   }
 
@@ -395,7 +406,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handleResetConfirm() {
     [
       INTRO_KEY, PROGRESS_KEY, DIFFICULTY_KEY, HINT_GLOW_KEY,
-      NARRATION_KEY, VOICE_GENDER_KEY,
+      NARRATION_KEY, VOICE_GENDER_KEY, PLAYER_NAME_KEY,
       saveKeyFor(3), saveKeyFor(4), saveKeyFor(5),
     ].forEach((k) => localStorage.removeItem(k));
     window.location.reload();
@@ -413,5 +424,6 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     handleViewMap, handleNewGame, handleBeginJourney, handleCinematicContinue,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
     handleResetConfirm, handleDismissMission, handleExpandMission,
+    playerName, handleSetPlayerName,
   };
 }

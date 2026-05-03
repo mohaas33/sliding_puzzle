@@ -1,6 +1,10 @@
 import { getMovableTiles, moveTile, isSolved } from "@sliding-puzzle/game-logic";
 import type { ChapterProgress } from "../types";
 
+export function personalize(template: string, name: string): string {
+  return template.replace(/\{name\}/g, name);
+}
+
 export function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, "0");
   const s = (seconds % 60).toString().padStart(2, "0");

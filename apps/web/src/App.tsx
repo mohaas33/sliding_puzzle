@@ -61,6 +61,7 @@ export function App() {
         <MissionCard
           phase="bar"
           puzzle={game.puzzle}
+          playerName={game.playerName}
           onDismiss={game.handleDismissMission}
           onExpand={game.handleExpandMission}
         />
@@ -161,6 +162,8 @@ export function App() {
           playSample={narration.playSample}
           handleBeginJourney={game.handleBeginJourney}
           handleNewGame={game.handleResetRequest}
+          playerName={game.playerName}
+          onPlayerNameChange={game.handleSetPlayerName}
         />
       )}
 
@@ -171,14 +174,20 @@ export function App() {
           <div className="gold-sep" style={{ width: 120, marginBottom: 32 }} />
 
           <p className="cinematic-text">
-            3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh.
-            In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets.
-            The gods fell silent. The Nile stopped flooding. Time itself cracked.
+            You are <em>{game.playerName}</em>, scribe of the Temple of Karnak.
+            On the night of the spring flood, a tomb robber broke through
+            the walls you were sworn to protect.
+          </p>
+          <p className="cinematic-text" style={{ marginTop: 20 }}>
+            Ra has gone blind. The Nile has stopped. The dead wander lost.
           </p>
           <p className="cinematic-text cinematic-text-light" style={{ marginTop: 20 }}>
-            You are the <em>Restorer</em> — chosen to piece history back together,
-            one shard at a time.
+            Anubis has spoken your judgment: restore every shattered shard before the
+            next eclipse — or your soul will be weighed against a stone, not a feather.
             {narratingCtx === "intro" && narrationOn && <Waveform />}
+          </p>
+          <p className="cinematic-text" style={{ marginTop: 20 }}>
+            Begin, <em>{game.playerName}</em>.
           </p>
 
           {game.cinematicReady && (
@@ -215,6 +224,7 @@ export function App() {
         <MissionCard
           phase={game.missionPhase as "full" | "exiting"}
           puzzle={game.puzzle}
+          playerName={game.playerName}
           onDismiss={game.handleDismissMission}
           onExpand={game.handleExpandMission}
         />
@@ -228,6 +238,7 @@ export function App() {
           moves={game.moves}
           elapsed={game.elapsed}
           stars={game.stars}
+          playerName={game.playerName}
           narrationOn={narrationOn}
           narratingCtx={narratingCtx}
           handlePlayAgain={game.handlePlayAgain}
