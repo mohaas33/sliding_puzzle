@@ -171,24 +171,26 @@ export function App() {
       {game.screen === "cinematic" && (
         <div className="cinematic-overlay" onClick={(e) => e.stopPropagation()}>
           <p className="cinematic-label">{CHAPTER_LABEL}</p>
-          <div className="gold-sep" style={{ width: 120, marginBottom: 32 }} />
+          <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 
-          <p className="cinematic-text">
-            You are <em>{game.playerName}</em>, scribe of the Temple of Karnak.
-            On the night of the spring flood, a tomb robber broke through
-            the walls you were sworn to protect.
-          </p>
-          <p className="cinematic-text" style={{ marginTop: 20 }}>
-            Ra has gone blind. The Nile has stopped. The dead wander lost.
-          </p>
-          <p className="cinematic-text cinematic-text-light" style={{ marginTop: 20 }}>
-            Anubis has spoken your judgment: restore every shattered shard before the
-            next eclipse — or your soul will be weighed against a stone, not a feather.
-            {narratingCtx === "intro" && narrationOn && <Waveform />}
-          </p>
-          <p className="cinematic-text" style={{ marginTop: 20 }}>
-            Begin, <em>{game.playerName}</em>.
-          </p>
+          <div className="cinematic-body">
+            <p className="cinematic-p1">
+              You are <em>{game.playerName}</em>, scribe of the Temple of Karnak.
+              On the night of the spring flood, a tomb robber broke through
+              the walls you were sworn to protect.
+            </p>
+            <p className="cinematic-p2">
+              Ra has gone blind. The Nile has stopped. The dead wander lost.
+            </p>
+            <p className="cinematic-p3">
+              Anubis has spoken your judgment: restore every shattered shard before the
+              next eclipse — or your soul will be weighed against a stone, not a feather.
+              {narratingCtx === "intro" && narrationOn && <Waveform />}
+            </p>
+            <p className="cinematic-p4">
+              Begin, <em>{game.playerName}</em>.
+            </p>
+          </div>
 
           {game.cinematicReady && (
             <button

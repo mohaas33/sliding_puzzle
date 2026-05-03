@@ -375,8 +375,8 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handleCinematicContinue() {
     localStorage.setItem(INTRO_KEY, "1");
     stopNarration();
-    setMapKey((k) => k + 1);
-    setScreen("map");
+    startPuzzle(0);
+    setScreen("game");
   }
 
   function handleShowMap() {
