@@ -1,9 +1,9 @@
 import { isSolved } from "@sliding-puzzle/game-logic";
 import type { Difficulty, SaveState, ChapterProgress } from "../types";
-import { DIFFICULTY_KEY, PROGRESS_KEY, MAX_STEPS } from "../constants";
+import { DIFFICULTY_KEY, PROGRESS_KEY } from "../constants";
 
 export function saveKeyFor(n: Difficulty): string {
-  return `shards_of_time_${n}x${n}_v1`;
+  return `shards_of_time_${n}x${n}_v2`;
 }
 
 export function loadDifficulty(): Difficulty {
@@ -42,7 +42,9 @@ export function loadSave(n: Difficulty): SaveState | null {
       tiles: data.tiles,
       moves: data.moves,
       elapsed: data.elapsed,
-      stepsLeft: typeof data.stepsLeft === "number" ? data.stepsLeft : MAX_STEPS,
+      raLightUsed: typeof data.raLightUsed === "number" ? data.raLightUsed : 0,
+      thothUsed: typeof data.thothUsed === "number" ? data.thothUsed : 0,
+      visionUsed: typeof data.visionUsed === "number" ? data.visionUsed : 0,
     };
   } catch {
     return null;

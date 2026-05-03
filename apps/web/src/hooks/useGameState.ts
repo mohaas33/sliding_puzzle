@@ -4,7 +4,9 @@ import type { Difficulty, Screen, WinPhase, ChapterProgress, PuzzleData, Mission
 import type { NarrationHook } from "./useNarration";
 import {
   INTRO_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
-  NARRATION_KEY, VOICE_GENDER_KEY, MAX_STEPS, STEP_PENALTY,
+  NARRATION_KEY, VOICE_GENDER_KEY,
+  RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
+  VISION_MAX, VISION_DURATION_MS,
   INTRO_NARRATION, PUZZLES, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
 } from "../constants";
 import {
@@ -22,10 +24,13 @@ export interface GameStateHook {
   timerActive: boolean;
   pressedIdx: number | null;
   winPhase: WinPhase;
-  hintIdx: number | null;
-  stepsLeft: number;
+  raLightIdx: number | null;
+  raLightUsed: number;
+  thothUsed: number;
+  visionUsed: number;
+  visionActive: boolean;
   penaltyKey: number;
-  lastMovedValue: number | null;
+  lastPenalty: number;
   moveLocked: boolean;
   imageLoaded: boolean;
   hasShuffled: boolean;
@@ -51,8 +56,9 @@ export interface GameStateHook {
   startPuzzle: (idx: number, targetN?: Difficulty) => void;
   handlePointerDown: (idx: number) => void;
   handlePointerUp: (idx: number) => void;
-  handleHint: () => void;
-  handleStep: () => void;
+  handleRaLight: () => void;
+  handleThothHand: () => void;
+  handleVisionOfOsiris: () => void;
   handleDevSolve: () => void;
   handleDifficultyChange: (newN: Difficulty) => void;
   handlePlayAgain: () => void;
@@ -86,9 +92,13 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const [timerActive, setTimerActive] = useState(() => (savedRef.current?.moves ?? 0) > 0);
   const [pressedIdx, setPressedIdx] = useState<number | null>(null);
   const [winPhase, setWinPhase] = useState<WinPhase>("none");
-  const [hintIdx, setHintIdx] = useState<number | null>(null);
-  const [stepsLeft, setStepsLeft] = useState(() => savedRef.current?.stepsLeft ?? MAX_STEPS);
+  const [raLightIdx, setRaLightIdx] = useState<number | null>(null);
+  const [raLightUsed, setRaLightUsed] = useState(() => savedRef.current?.raLightUsed ?? 0);
+  const [thothUsed, setThothUsed] = useState(() => savedRef.current?.thothUsed ?? 0);
+  const [visionUsed, setVisionUsed] = useState(() => savedRef.current?.visionUsed ?? 0);
+  const [visionActive, setVisionActive] = useState(false);
   const [penaltyKey, setPenaltyKey] = useState(0);
+  const [lastPenalty, setLastPenalty] = useState(0);
   const [lastMovedValue, setLastMovedValue] = useState<number | null>(null);
   const [moveLocked, setMoveLocked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -111,7 +121,8 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   );
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const raLightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moveLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const empty = n * n - 1;
@@ -121,7 +132,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   // Guard: never evaluate win until a shuffle has been confirmed and at least 1 move made
   const solved = hasShuffled && moves > 0 && isSolved(tiles);
   const frozen = winPhase !== "none";
-  const stars = getStars(moves);
+  const stars = getStars(raLightUsed, thothUsed);
 
   function lockMove() {
     setMoveLocked(true);
@@ -129,12 +140,20 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     moveLockTimerRef.current = setTimeout(() => setMoveLocked(false), 100);
   }
 
-  function clearHint() {
-    if (hintTimerRef.current) {
-      clearTimeout(hintTimerRef.current);
-      hintTimerRef.current = null;
+  function clearRaLight() {
+    if (raLightTimerRef.current) {
+      clearTimeout(raLightTimerRef.current);
+      raLightTimerRef.current = null;
     }
-    setHintIdx(null);
+    setRaLightIdx(null);
+  }
+
+  function clearVision() {
+    if (visionTimerRef.current) {
+      clearTimeout(visionTimerRef.current);
+      visionTimerRef.current = null;
+    }
+    setVisionActive(false);
   }
 
   function handleSetPlayerName(raw: string) {
@@ -256,7 +275,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     }
     if (pressedIdx === idx && movable.has(idx)) {
       if (moves === 0) stopNarration(); // first move — stop lore narration
-      clearHint();
+      clearRaLight();
       const movedValue = tiles[idx]!;
       const newTiles = moveTile(tiles, idx, emptyIdx).tiles;
       const newMoves = moves + 1;
@@ -265,43 +284,61 @@ export function useGameState(narration: NarrationHook): GameStateHook {
       setLastMovedValue(movedValue);
       setTimerActive(true);
       lockMove();
-      writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, stepsLeft });
+      writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, raLightUsed, thothUsed, visionUsed });
     }
     setPressedIdx(null);
   }
 
-  function handleHint() {
-    if (frozen) return;
-    clearHint();
+  function handleRaLight() {
+    if (frozen || raLightUsed >= RA_LIGHT_MAX) return;
+    clearRaLight();
     const best = nextSolverMove(tiles, n, lastMovedValue);
-    setHintIdx(best);
+    setRaLightIdx(best);
+    const newRaLightUsed = raLightUsed + 1;
+    const newMoves = moves + RA_LIGHT_COST;
+    setRaLightUsed(newRaLightUsed);
+    setMoves(newMoves);
+    setLastPenalty(RA_LIGHT_COST);
+    setPenaltyKey((k) => k + 1);
     if (best !== null) {
-      hintTimerRef.current = setTimeout(() => setHintIdx(null), 2000);
+      raLightTimerRef.current = setTimeout(() => setRaLightIdx(null), 3000);
     }
+    writeSave(n, { tiles, moves: newMoves, elapsed, raLightUsed: newRaLightUsed, thothUsed, visionUsed });
   }
 
-  function handleStep() {
-    if (frozen || stepsLeft <= 0 || moveLocked) return;
+  function handleThothHand() {
+    if (frozen || thothUsed >= THOTH_HAND_MAX || moveLocked) return;
     const best = nextSolverMove(tiles, n, lastMovedValue);
     if (best === null) return;
-    clearHint();
+    clearRaLight();
     const movedValue = tiles[best]!;
     const newTiles = moveTile(tiles, best, emptyIdx).tiles;
-    const newMoves = moves + STEP_PENALTY;
-    const newStepsLeft = stepsLeft - 1;
+    const newMoves = moves + THOTH_HAND_COST;
+    const newThothUsed = thothUsed + 1;
     setTiles(newTiles);
     setMoves(newMoves);
-    setStepsLeft(newStepsLeft);
+    setThothUsed(newThothUsed);
     setLastMovedValue(movedValue);
     setTimerActive(true);
     lockMove();
+    setLastPenalty(THOTH_HAND_COST);
     setPenaltyKey((k) => k + 1);
-    writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, stepsLeft: newStepsLeft });
+    writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, raLightUsed, thothUsed: newThothUsed, visionUsed });
+  }
+
+  function handleVisionOfOsiris() {
+    if (frozen || visionUsed >= VISION_MAX || visionActive) return;
+    clearVision();
+    const newVisionUsed = visionUsed + 1;
+    setVisionUsed(newVisionUsed);
+    setVisionActive(true);
+    visionTimerRef.current = setTimeout(() => setVisionActive(false), VISION_DURATION_MS);
+    writeSave(n, { tiles, moves, elapsed, raLightUsed, thothUsed, visionUsed: newVisionUsed });
   }
 
   function handleDevSolve() {
     if (frozen) return;
-    clearHint();
+    clearRaLight();
     setTiles(Array.from({ length: n * n }, (_, i) => i));
     setTimerActive(false);
   }
@@ -309,7 +346,8 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function startPuzzle(idx: number, targetN: Difficulty = n) {
     if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     if (moveLockTimerRef.current) clearTimeout(moveLockTimerRef.current);
-    clearHint();
+    clearRaLight();
+    clearVision();
     setMoveLocked(false);
     setTiles(shuffle(targetN));
     setMoves(0);
@@ -319,8 +357,11 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     setWinPhase("none");
     setPuzzleIdx(idx);
     setN(targetN);
-    setStepsLeft(MAX_STEPS);
+    setRaLightUsed(0);
+    setThothUsed(0);
+    setVisionUsed(0);
     setPenaltyKey(0);
+    setLastPenalty(0);
     setLastMovedValue(null);
     persistDifficulty(targetN);
     clearSave(targetN);
@@ -414,13 +455,15 @@ export function useGameState(narration: NarrationHook): GameStateHook {
 
   return {
     n, puzzleIdx, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
-    hintIdx, stepsLeft, penaltyKey, lastMovedValue, moveLocked, imageLoaded,
+    raLightIdx, raLightUsed, thothUsed, visionUsed, visionActive,
+    penaltyKey, lastPenalty, moveLocked, imageLoaded,
     hasShuffled, screen, startDifficulty, cinematicReady, chapterProgress, mapKey,
     menuOpen, showResetConfirm, hintGlow, missionPhase,
     puzzle, emptyIdx, movable, solved, frozen, stars,
     setMenuOpen, setShowResetConfirm, setStartDifficulty, setPressedIdx,
-    startPuzzle, handlePointerDown, handlePointerUp, handleHint, handleStep,
-    handleDevSolve, handleDifficultyChange, handlePlayAgain, handleNextShard,
+    startPuzzle, handlePointerDown, handlePointerUp,
+    handleRaLight, handleThothHand, handleVisionOfOsiris, handleDevSolve,
+    handleDifficultyChange, handlePlayAgain, handleNextShard,
     handleViewMap, handleNewGame, handleBeginJourney, handleCinematicContinue,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
     handleResetConfirm, handleDismissMission, handleExpandMission,

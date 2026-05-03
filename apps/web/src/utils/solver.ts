@@ -11,10 +11,10 @@ export function formatTime(seconds: number): string {
   return `${m}:${s}`;
 }
 
-export function getStars(moves: number): number {
-  if (moves < 30) return 3;
-  if (moves < 60) return 2;
-  return 1;
+export function getStars(raLightUsed: number, thothUsed: number): number {
+  if (thothUsed > 0) return 1;
+  if (raLightUsed > 0) return 2;
+  return 3;
 }
 
 export function getPuzzleState(

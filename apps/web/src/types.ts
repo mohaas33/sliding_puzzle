@@ -24,5 +24,7 @@ export interface SaveState {
   tiles: number[];
   moves: number;
   elapsed: number;
-  stepsLeft: number;
+  raLightUsed: number;
+  thothUsed: number;
+  visionUsed: number;
 }

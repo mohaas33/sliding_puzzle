@@ -10,8 +10,9 @@ interface GameBoardProps {
   frozen: boolean;
   moveLocked: boolean;
   movable: Set<number>;
-  hintIdx: number | null;
+  raLightIdx: number | null;
   hintGlow: boolean;
+  visionActive: boolean;
   pressedIdx: number | null;
   onPointerDown: (idx: number) => void;
   onPointerUp: (idx: number) => void;
@@ -26,8 +27,9 @@ export function GameBoard({
   frozen,
   moveLocked,
   movable,
-  hintIdx,
+  raLightIdx,
   hintGlow,
+  visionActive,
   pressedIdx,
   onPointerDown,
   onPointerUp,
@@ -52,7 +54,7 @@ export function GameBoard({
     >
       {tiles.map((tile, idx) => {
         const isEmpty = tile === empty;
-        const isHint = !frozen && hintIdx === idx;
+        const isRaLight = !frozen && raLightIdx === idx;
         const isPressed = pressedIdx === idx;
         const isMovable = !frozen && movable.has(idx);
 
@@ -63,7 +65,7 @@ export function GameBoard({
           "tile",
           isEmpty
             ? "tile-empty"
-            : isHint
+            : isRaLight
             ? "tile-hint"
             : isPressed
             ? "tile-pressed"
@@ -94,7 +96,24 @@ export function GameBoard({
         );
       })}
 
-      {/* Win reveal: full image fades in over 0.5s */}
+      {/* Vision of Osiris: semi-transparent solved image */}
+      {visionActive && !frozen && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url(${puzzle.imageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            borderRadius: 4,
+            opacity: 0.72,
+            animation: "fadeIn 0.35s ease",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+
+      {/* Win reveal: full image */}
       {(winPhase === "reveal" || winPhase === "lore") && (
         <div
           style={{

@@ -7,7 +7,10 @@ import { WinScreen } from "./components/WinScreen";
 import { GameMenu } from "./components/GameMenu";
 import { MissionCard } from "./components/MissionCard";
 import { Waveform } from "./components/Waveform";
-import { DEV_MODE, CHAPTER_LABEL, DIFFICULTIES, STEP_PENALTY } from "./constants";
+import {
+  DEV_MODE, CHAPTER_LABEL, DIFFICULTIES,
+  RA_LIGHT_MAX, THOTH_HAND_MAX, VISION_MAX,
+} from "./constants";
 import { formatTime } from "./utils/solver";
 
 export function App() {
@@ -38,7 +41,7 @@ export function App() {
             <div style={{ position: "relative" }}>
               <span>{game.moves}</span>
               {game.penaltyKey > 0 && (
-                <span key={game.penaltyKey} className="penalty-pop">+{STEP_PENALTY}</span>
+                <span key={game.penaltyKey} className="penalty-pop">+{game.lastPenalty}</span>
               )}
             </div>
             <span style={{ opacity: 0.35 }}>·</span>
@@ -77,8 +80,9 @@ export function App() {
         frozen={game.frozen}
         moveLocked={game.moveLocked}
         movable={game.movable}
-        hintIdx={game.hintIdx}
+        raLightIdx={game.raLightIdx}
         hintGlow={game.hintGlow}
+        visionActive={game.visionActive}
         pressedIdx={game.pressedIdx}
         onPointerDown={game.handlePointerDown}
         onPointerUp={game.handlePointerUp}
@@ -104,20 +108,31 @@ export function App() {
           </div>
 
           <div className="bottom-bar-section">
-            <span className="bottom-bar-label">Assistance</span>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button className="hint-btn" onClick={game.handleHint} disabled={game.frozen}>
-                💡 Hint
+            <span className="bottom-bar-label">Favor of the Gods</span>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button
+                className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
+                onClick={game.handleRaLight}
+                disabled={game.frozen || game.raLightUsed >= RA_LIGHT_MAX}
+                title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : `+${2} moves`}
+              >
+                ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
               </button>
               <button
-                className={`hint-btn${game.stepsLeft === 0 ? " hint-btn-exhausted" : ""}`}
-                onClick={game.handleStep}
-                disabled={game.frozen || game.stepsLeft === 0}
+                className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
+                onClick={game.handleThothHand}
+                disabled={game.frozen || game.thothUsed >= THOTH_HAND_MAX}
+                title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : `+${5} moves`}
               >
-                👣 Step ({game.stepsLeft} left)
+                𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
               </button>
-              <button className="hint-btn" onClick={game.handleNewGame} disabled={game.frozen}>
-                🔄 New Game
+              <button
+                className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
+                onClick={game.handleVisionOfOsiris}
+                disabled={game.frozen || game.visionUsed >= VISION_MAX}
+                title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
+              >
+                ◈ Vision ({VISION_MAX - game.visionUsed})
               </button>
             </div>
           </div>
@@ -241,6 +256,9 @@ export function App() {
           elapsed={game.elapsed}
           stars={game.stars}
           playerName={game.playerName}
+          raLightUsed={game.raLightUsed}
+          thothUsed={game.thothUsed}
+          visionUsed={game.visionUsed}
           narrationOn={narrationOn}
           narratingCtx={narratingCtx}
           handlePlayAgain={game.handlePlayAgain}

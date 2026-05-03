@@ -13,8 +13,12 @@ export const NARRATION_KEY = "shards_of_time_narration";
 export const VOICE_GENDER_KEY = "shards_of_time_voice_gender";
 
 export const CHAPTER_LABEL = "Chapter I · Ancient Egypt";
-export const MAX_STEPS = 3;
-export const STEP_PENALTY = 10;
+export const RA_LIGHT_MAX = 5;
+export const RA_LIGHT_COST = 2;
+export const THOTH_HAND_MAX = 3;
+export const THOTH_HAND_COST = 5;
+export const VISION_MAX = 2;
+export const VISION_DURATION_MS = 3000;
 export const VOICE_SAMPLE = "The sands await.";
 export const PLAYER_NAME_KEY = "shards_of_time_player_name";
 export const DEFAULT_PLAYER_NAME = "Kha";

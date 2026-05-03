@@ -10,6 +10,9 @@ interface WinScreenProps {
   elapsed: number;
   stars: number;
   playerName: string;
+  raLightUsed: number;
+  thothUsed: number;
+  visionUsed: number;
   narrationOn: boolean;
   narratingCtx: NarrationContext;
   handlePlayAgain: () => void;
@@ -23,6 +26,21 @@ function anubisComment(stars: number, name: string): string {
   return `Anubis sighs. "The feather outweighs your effort."`;
 }
 
+function divineFavorLine(raLightUsed: number, thothUsed: number, visionUsed: number): string {
+  if (thothUsed > 0) {
+    const times = thothUsed === 1 ? "once" : `${thothUsed} times`;
+    return `Thoth guided your hand ${times}. The scales reflect this.`;
+  }
+  if (raLightUsed > 0) {
+    const steps = raLightUsed === 1 ? "1 step" : `${raLightUsed} steps`;
+    return `Ra illuminated ${steps} of your path.`;
+  }
+  if (visionUsed > 0) {
+    return `You sought only vision, not intervention. Wise.`;
+  }
+  return `The gods watched in silence — you needed no help.`;
+}
+
 export function WinScreen({
   puzzle,
   puzzleIdx,
@@ -30,6 +48,9 @@ export function WinScreen({
   elapsed,
   stars,
   playerName,
+  raLightUsed,
+  thothUsed,
+  visionUsed,
   narrationOn,
   narratingCtx,
   handlePlayAgain,
@@ -108,6 +129,7 @@ export function WinScreen({
 
         {/* Anubis commentary */}
         <p className="anubis-comment">{anubisComment(stars, playerName)}</p>
+        <p className="divine-favor-line">{divineFavorLine(raLightUsed, thothUsed, visionUsed)}</p>
 
         {/* Restored image */}
         <div className="win-image-section">
