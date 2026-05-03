@@ -28,9 +28,9 @@ export function MissionCard({ puzzle, phase, onDismiss, onExpand }: MissionCardP
 
       <div className="mission-content">
         <p className="mission-label">Mission</p>
-        <div className="gold-sep" style={{ width: 80, margin: "12px 0 24px" }} />
-        <h2 className="mission-name">{puzzle.name}</h2>
+        <div className="gold-sep" style={{ width: 80, margin: "12px 0 32px" }} />
         <p className="mission-hook-text">{puzzle.hook}</p>
+        <p className="mission-puzzle-name">{puzzle.name}</p>
         <button className="mission-begin-btn" onClick={onDismiss}>
           Tap to Begin
         </button>

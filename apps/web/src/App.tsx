@@ -160,6 +160,7 @@ export function App() {
           handleStartVoiceSelect={narration.handleStartVoiceSelect}
           playSample={narration.playSample}
           handleBeginJourney={game.handleBeginJourney}
+          handleNewGame={game.handleResetRequest}
         />
       )}
 

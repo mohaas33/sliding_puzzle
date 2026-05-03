@@ -108,7 +108,6 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moveLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const missionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const empty = n * n - 1;
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
@@ -134,30 +133,18 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   }
 
   function handleDismissMission() {
-    if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
     setMissionPhase("exiting");
     setTimeout(() => setMissionPhase("bar"), 350);
   }
 
   function handleExpandMission() {
-    if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
     setMissionPhase("full");
-    missionTimerRef.current = setTimeout(handleDismissMission, 3000);
-  }
-
-  function startMission() {
-    if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
-    setMissionPhase("full");
-    missionTimerRef.current = setTimeout(handleDismissMission, 3000);
   }
 
   // Show mission card on every new puzzle in the game screen
   useEffect(() => {
     if (screen !== "game") return;
-    startMission();
-    return () => {
-      if (missionTimerRef.current) clearTimeout(missionTimerRef.current);
-    };
+    setMissionPhase("full");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, puzzleIdx]);
 

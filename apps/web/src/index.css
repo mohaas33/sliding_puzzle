@@ -936,51 +936,115 @@ body {
     margin: 0;
   }
 
-  .mission-name {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.35rem, 5vw, 1.8rem);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #f0e4c4;
-    margin: 0 0 28px;
-    text-shadow: 0 0 40px rgba(200, 169, 110, 0.28);
-    animation: slideUp 0.55s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-
   .mission-hook-text {
     font-family: 'Crimson Text', serif;
     font-style: italic;
-    font-size: clamp(1.15rem, 4vw, 1.45rem);
-    line-height: 1.65;
-    color: #d4b896;
-    margin: 0 0 40px;
-    animation: slideUp 0.6s 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+    font-size: clamp(1.25rem, 4.5vw, 1.6rem);
+    line-height: 1.6;
+    color: #e8d8b8;
+    margin: 0 0 16px;
+    text-align: center;
+    animation: slideUp 0.55s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mission-puzzle-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #c8a96e;
+    opacity: 0.65;
+    margin: 0 0 44px;
+    animation: fadeIn 0.5s 0.3s ease both;
   }
 
   .mission-begin-btn {
-    padding: 13px 36px;
+    width: 100%;
+    max-width: 300px;
+    padding: 16px 24px;
     font-family: 'Cinzel', serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.24em;
+    font-size: 0.85rem;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
     color: #0a0806;
     background: linear-gradient(135deg, #a07840, #c8a96e 50%, #e8c97e);
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    box-shadow: 0 0 28px rgba(200, 169, 110, 0.35);
-    transition: opacity 0.2s, transform 0.15s;
-    animation: fadeIn 0.5s 0.55s ease both;
+    box-shadow: 0 0 32px rgba(200, 169, 110, 0.35);
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    animation: fadeIn 0.5s 0.5s ease both;
   }
 
   .mission-begin-btn:hover {
-    opacity: 0.9;
+    opacity: 0.92;
     transform: translateY(-2px);
-    box-shadow: 0 4px 36px rgba(200, 169, 110, 0.5);
+    box-shadow: 0 4px 40px rgba(200, 169, 110, 0.55);
   }
 
   .mission-begin-btn:active {
     transform: translateY(0);
+  }
+
+  /* Voice preview button inside narrator toggles */
+  .voice-preview {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 5px;
+    font-size: 0.55rem;
+    color: rgba(200, 169, 110, 0.6);
+    border: 1px solid rgba(200, 169, 110, 0.25);
+    border-radius: 3px;
+    padding: 2px 4px;
+    line-height: 1;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .voice-preview:hover {
+    color: #c8a96e;
+    border-color: rgba(200, 169, 110, 0.6);
+    background: rgba(200, 169, 110, 0.08);
+  }
+
+  /* Start screen chapter footer */
+  .start-chapter-footer {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 0.78rem;
+    color: #c8a96e;
+    opacity: 0.4;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+  }
+
+  /* New game text link on start screen */
+  .start-new-game-link {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Crimson Text', serif;
+    font-style: italic;
+    font-size: 0.82rem;
+    color: #c8a96e;
+    opacity: 0.4;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+    padding: 2px 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(200, 169, 110, 0.3);
+  }
+
+  .start-new-game-link:hover {
+    opacity: 0.7;
   }
 
   /* Collapsed mission bar */
