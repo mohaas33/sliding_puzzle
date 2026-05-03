@@ -99,7 +99,14 @@ export function WinScreen({
           ))}
         </div>
 
-        <div className="gold-sep" />
+        {/* Restored image */}
+        <div className="win-image-section">
+          <p className="win-image-label">Restored</p>
+          <div className="win-image-frame">
+            <img src={puzzle.imageUrl} alt={puzzle.name} />
+          </div>
+          <p className="win-image-name">{puzzle.name}</p>
+        </div>
 
         <p
           style={{
@@ -108,7 +115,7 @@ export function WinScreen({
             color: "#d4b896",
             fontSize: "1.05rem",
             lineHeight: 1.7,
-            margin: "18px 0 16px",
+            margin: "16px 0 16px",
             textAlign: "center",
           }}
         >
