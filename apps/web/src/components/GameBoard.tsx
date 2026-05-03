@@ -1,0 +1,113 @@
+import type { WinPhase, PuzzleData, Difficulty } from "../types";
+import { BOARD_PX, GAP_PX } from "../constants";
+
+interface GameBoardProps {
+  n: Difficulty;
+  tiles: number[];
+  puzzle: PuzzleData;
+  imageLoaded: boolean;
+  winPhase: WinPhase;
+  frozen: boolean;
+  moveLocked: boolean;
+  movable: Set<number>;
+  hintIdx: number | null;
+  hintGlow: boolean;
+  pressedIdx: number | null;
+  onPointerDown: (idx: number) => void;
+  onPointerUp: (idx: number) => void;
+}
+
+export function GameBoard({
+  n,
+  tiles,
+  puzzle,
+  imageLoaded,
+  winPhase,
+  frozen,
+  moveLocked,
+  movable,
+  hintIdx,
+  hintGlow,
+  pressedIdx,
+  onPointerDown,
+  onPointerUp,
+}: GameBoardProps) {
+  const empty = n * n - 1;
+
+  if (!imageLoaded) {
+    return <div className="board-shimmer" style={{ width: BOARD_PX, height: BOARD_PX }} />;
+  }
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        display: "grid",
+        gridTemplateColumns: `repeat(${n}, 1fr)`,
+        gap: GAP_PX,
+        width: BOARD_PX,
+        height: BOARD_PX,
+        pointerEvents: frozen || moveLocked ? "none" : undefined,
+      }}
+    >
+      {tiles.map((tile, idx) => {
+        const isEmpty = tile === empty;
+        const isHint = !frozen && hintIdx === idx;
+        const isPressed = pressedIdx === idx;
+        const isMovable = !frozen && movable.has(idx);
+
+        const imgRow = Math.floor(tile / n);
+        const imgCol = tile % n;
+
+        const tileClass = [
+          "tile",
+          isEmpty
+            ? "tile-empty"
+            : isHint
+            ? "tile-hint"
+            : isPressed
+            ? "tile-pressed"
+            : isMovable
+            ? `tile-movable${hintGlow ? " tile-movable-glow" : ""}`
+            : "",
+        ]
+          .join(" ")
+          .trim();
+
+        return (
+          <button
+            key={idx}
+            onPointerDown={() => onPointerDown(idx)}
+            onPointerUp={() => onPointerUp(idx)}
+            disabled={isEmpty || frozen}
+            className={tileClass}
+            style={
+              isEmpty
+                ? undefined
+                : {
+                    backgroundImage: `url(${puzzle.imageUrl})`,
+                    backgroundSize: `calc(100% * ${n}) calc(100% * ${n})`,
+                    backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
+                  }
+            }
+          />
+        );
+      })}
+
+      {/* Win reveal: full image fades in over 0.5s */}
+      {(winPhase === "reveal" || winPhase === "lore") && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url(${puzzle.imageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            borderRadius: 4,
+            animation: "fadeIn 0.5s ease",
+          }}
+        />
+      )}
+    </div>
+  );
+}
