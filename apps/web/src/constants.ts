@@ -1,4 +1,5 @@
-import type { Difficulty } from "./types";
+import type { Difficulty, Narrator } from "./types";
+import type { VoiceGender } from "./utils/narration";
 export { PUZZLES, CHAPTERS } from "./data/puzzles";
 
 export const DEV_MODE = new URLSearchParams(window.location.search).get("dev") === "true";
@@ -11,6 +12,9 @@ export const PROGRESS_KEY = "shards_of_time_chapter1_progress";
 export const HINT_GLOW_KEY = "shards_of_time_hint_glow";
 export const NARRATION_KEY = "shards_of_time_narration";
 export const VOICE_GENDER_KEY = "shards_of_time_voice_gender";
+export const NARRATOR_KEY = "shards_of_time_narrator";
+export const PLAYER_NAME_KEY = "shards_of_time_player_name";
+export const DEFAULT_PLAYER_NAME = "Kha";
 
 export const CHAPTER_LABEL = "Chapter I · Ancient Egypt";
 export const RA_LIGHT_MAX = 5;
@@ -19,9 +23,7 @@ export const THOTH_HAND_MAX = 3;
 export const THOTH_HAND_COST = 5;
 export const VISION_MAX = 2;
 export const VISION_DURATION_MS = 3000;
-export const VOICE_SAMPLE = "The sands await.";
-export const PLAYER_NAME_KEY = "shards_of_time_player_name";
-export const DEFAULT_PLAYER_NAME = "Kha";
+export const NARRATOR_VOICE_SAMPLE = "The sands of time await, brave soul.";
 
 export const INTRO_NARRATION = (name: string): string =>
   `You are ${name}, scribe of the Temple of Karnak. ` +
@@ -31,17 +33,36 @@ export const INTRO_NARRATION = (name: string): string =>
   `or your soul will be weighed against a stone, not a feather. ` +
   `Begin, ${name}.`;
 
-export const DIFFICULTY_DESCS: Record<3 | 4 | 5, string> = {
-  3: "Beginner friendly",
-  4: "A worthy challenge",
-  5: "For the devoted",
-};
+export interface NarratorInfo {
+  id: Narrator;
+  name: string;
+  role: string;
+  gender: VoiceGender | null;
+  rate: number;
+}
 
-export const DIFFICULTIES: { n: Difficulty; label: string }[] = [
-  { n: 3, label: "3×3 Easy" },
-  { n: 4, label: "4×4 Medium" },
-  { n: 5, label: "5×5 Hard" },
+export const NARRATORS: NarratorInfo[] = [
+  { id: "osiris", name: "Osiris", role: "God of Resurrection · Deep & Authoritative", gender: "man", rate: 0.85 },
+  { id: "isis",   name: "Isis",   role: "Goddess of Magic · Warm & Mysterious",       gender: "woman", rate: 0.85 },
+  { id: "thoth",  name: "Thoth",  role: "God of Wisdom · Calm & Neutral",             gender: "man",  rate: 0.80 },
+  { id: "off",    name: "Off",    role: "No Narration",                                gender: null,   rate: 0.85 },
 ];
+
+export interface DifficultyInfo {
+  n: Difficulty;
+  label: string;
+  tiles: number;
+  desc: string;
+  multiplier: number;
+  par: number;
+  starsSymbol: string;
+}
+
+export const DIFFICULTY_INFO: Record<3 | 4 | 5, DifficultyInfo> = {
+  3: { n: 3, label: "Apprentice Scribe", tiles: 8,  desc: "Learn the sacred arts",   multiplier: 1, par: 20,  starsSymbol: "✦"   },
+  4: { n: 4, label: "Temple Keeper",     tiles: 15, desc: "Prove your devotion",      multiplier: 2, par: 50,  starsSymbol: "✦✦"  },
+  5: { n: 5, label: "High Priest",       tiles: 24, desc: "Face the gods themselves", multiplier: 3, par: 100, starsSymbol: "✦✦✦" },
+};
 
 export const PARTICLES = Array.from({ length: 22 }, (_, i) => ({
   left: `${4 + ((i * 4.3) % 90)}%`,
@@ -50,4 +71,3 @@ export const PARTICLES = Array.from({ length: 22 }, (_, i) => ({
   size: i % 4 === 0 ? 3 : 2,
   opacity: 0.25 + (i % 3) * 0.15,
 }));
-

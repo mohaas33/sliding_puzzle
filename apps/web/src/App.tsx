@@ -8,7 +8,7 @@ import { GameMenu } from "./components/GameMenu";
 import { MissionCard } from "./components/MissionCard";
 import { Waveform } from "./components/Waveform";
 import {
-  DEV_MODE, CHAPTER_LABEL, DIFFICULTIES,
+  DEV_MODE, CHAPTER_LABEL, DIFFICULTY_INFO,
   RA_LIGHT_MAX, THOTH_HAND_MAX, VISION_MAX,
 } from "./constants";
 import { formatTime } from "./utils/solver";
@@ -16,7 +16,7 @@ import { formatTime } from "./utils/solver";
 export function App() {
   const narration = useNarration();
   const game = useGameState(narration);
-  const { narrationOn, narratingCtx, voiceOption } = narration;
+  const { narrationOn, narratingCtx } = narration;
 
   return (
     <main
@@ -34,7 +34,10 @@ export function App() {
           <span /><span /><span />
         </button>
 
-        <p className="top-bar-name">{game.puzzle.name}</p>
+        <p className="top-bar-name">
+          {game.puzzle.name}
+          <span className="diff-badge">{DIFFICULTY_INFO[game.n].starsSymbol}</span>
+        </p>
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
           <div className="top-bar-stats">
@@ -91,22 +94,6 @@ export function App() {
       {/* Bottom bar */}
       {game.screen === "game" && (
         <div className="bottom-bar">
-          <div className="bottom-bar-section">
-            <span className="bottom-bar-label">Difficulty</span>
-            <div className="diff-selector">
-              {DIFFICULTIES.map(({ n: dn, label }) => (
-                <button
-                  key={dn}
-                  className={`diff-btn${dn === game.n ? " diff-btn-active" : ""}`}
-                  onClick={() => game.handleDifficultyChange(dn)}
-                  disabled={game.frozen}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="bottom-bar-section">
             <span className="bottom-bar-label">Favor of the Gods</span>
             <div style={{ display: "flex", gap: 6 }}>
@@ -170,11 +157,11 @@ export function App() {
       {/* Start screen */}
       {game.screen === "start" && (
         <StartScreen
-          voiceOption={voiceOption}
+          narrator={narration.narrator}
+          onSetNarrator={narration.handleSetNarrator}
+          playSample={narration.playSample}
           startDifficulty={game.startDifficulty}
           setStartDifficulty={game.setStartDifficulty}
-          handleStartVoiceSelect={narration.handleStartVoiceSelect}
-          playSample={narration.playSample}
           handleBeginJourney={game.handleBeginJourney}
           handleNewGame={game.handleResetRequest}
           playerName={game.playerName}
@@ -259,6 +246,7 @@ export function App() {
           raLightUsed={game.raLightUsed}
           thothUsed={game.thothUsed}
           visionUsed={game.visionUsed}
+          puzzlePoints={game.lastPuzzlePoints}
           narrationOn={narrationOn}
           narratingCtx={narratingCtx}
           handlePlayAgain={game.handlePlayAgain}
@@ -273,11 +261,13 @@ export function App() {
         showResetConfirm={game.showResetConfirm}
         setShowResetConfirm={game.setShowResetConfirm}
         hintGlow={game.hintGlow}
+        currentDifficulty={game.n}
         handleShowMap={game.handleShowMap}
         handleRestartPuzzle={() => { game.startPuzzle(game.puzzleIdx); game.setMenuOpen(false); }}
         handleResetRequest={game.handleResetRequest}
         handleResetConfirm={game.handleResetConfirm}
         handleToggleHintGlow={game.handleToggleHintGlow}
+        onChangeDifficulty={(newN) => { game.handleDifficultyChange(newN); game.setMenuOpen(false); }}
       />
     </main>
   );

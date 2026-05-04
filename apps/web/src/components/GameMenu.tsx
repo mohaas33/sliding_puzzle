@@ -1,5 +1,6 @@
-import { useRef } from "react";
-import { CHAPTER_LABEL } from "../constants";
+import { useRef, useState } from "react";
+import type { Difficulty } from "../types";
+import { CHAPTER_LABEL, DIFFICULTY_INFO } from "../constants";
 
 interface GameMenuProps {
   menuOpen: boolean;
@@ -7,11 +8,13 @@ interface GameMenuProps {
   showResetConfirm: boolean;
   setShowResetConfirm: (v: boolean) => void;
   hintGlow: boolean;
+  currentDifficulty: Difficulty;
   handleShowMap: () => void;
   handleRestartPuzzle: () => void;
   handleResetRequest: () => void;
   handleResetConfirm: () => void;
   handleToggleHintGlow: () => void;
+  onChangeDifficulty: (n: Difficulty) => void;
 }
 
 export function GameMenu({
@@ -20,13 +23,23 @@ export function GameMenu({
   showResetConfirm,
   setShowResetConfirm,
   hintGlow,
+  currentDifficulty,
   handleShowMap,
   handleRestartPuzzle,
   handleResetRequest,
   handleResetConfirm,
   handleToggleHintGlow,
+  onChangeDifficulty,
 }: GameMenuProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [pendingDiff, setPendingDiff] = useState<Difficulty | null>(null);
+
+  function confirmDiffChange(n: Difficulty) {
+    onChangeDifficulty(n);
+    setPendingDiff(null);
+  }
+
+  const currentInfo = DIFFICULTY_INFO[currentDifficulty];
 
   return (
     <>
@@ -63,6 +76,28 @@ export function GameMenu({
           <span className="drawer-icon">🔁</span> Restart Puzzle
         </button>
 
+        {/* Change Difficulty */}
+        <div className="drawer-diff-section">
+          <p className="drawer-diff-label">
+            Difficulty · <span style={{ color: "#c8a96e" }}>{currentInfo.label}</span>
+          </p>
+          <div className="drawer-diff-buttons">
+            {([3, 4, 5] as const).map((dn) => {
+              const info = DIFFICULTY_INFO[dn];
+              return (
+                <button
+                  key={dn}
+                  className={`drawer-diff-btn${currentDifficulty === dn ? " drawer-diff-btn-active" : ""}`}
+                  onClick={() => currentDifficulty !== dn && setPendingDiff(dn)}
+                  disabled={currentDifficulty === dn}
+                >
+                  {info.starsSymbol}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <button
           className="drawer-item drawer-item-danger"
           onClick={() => { setMenuOpen(false); handleResetRequest(); }}
@@ -98,6 +133,50 @@ export function GameMenu({
         </button>
       </div>
 
+      {/* Difficulty change confirm */}
+      {pendingDiff !== null && (
+        <div className="confirm-overlay" onClick={(e) => e.stopPropagation()}>
+          <div className="confirm-card">
+            <p
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: "0.7rem",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "#c8a96e",
+                marginBottom: 16,
+              }}
+            >
+              Change Difficulty
+            </p>
+            <div className="gold-sep" style={{ marginBottom: 20 }} />
+            <p
+              style={{
+                fontFamily: "'Crimson Text', serif",
+                fontStyle: "italic",
+                color: "#d4b896",
+                fontSize: "1rem",
+                lineHeight: 1.65,
+                textAlign: "center",
+                marginBottom: 24,
+              }}
+            >
+              Switch to <strong style={{ color: "#c8a96e" }}>{DIFFICULTY_INFO[pendingDiff].label}</strong>?
+              <br />This will restart the current puzzle.
+            </p>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className="win-btn" onClick={() => setPendingDiff(null)}>
+                Cancel
+              </button>
+              <button className="win-btn win-btn-primary" onClick={() => confirmDiffChange(pendingDiff)}>
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset confirm */}
       {showResetConfirm && (
         <div className="confirm-overlay" onClick={(e) => e.stopPropagation()}>
           <div className="confirm-card">

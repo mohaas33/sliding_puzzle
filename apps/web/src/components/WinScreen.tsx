@@ -13,6 +13,7 @@ interface WinScreenProps {
   raLightUsed: number;
   thothUsed: number;
   visionUsed: number;
+  puzzlePoints: number;
   narrationOn: boolean;
   narratingCtx: NarrationContext;
   handlePlayAgain: () => void;
@@ -51,6 +52,7 @@ export function WinScreen({
   raLightUsed,
   thothUsed,
   visionUsed,
+  puzzlePoints,
   narrationOn,
   narratingCtx,
   handlePlayAgain,
@@ -160,6 +162,9 @@ export function WinScreen({
         <p className="win-stats-bar">
           {playerName} · Shard {puzzle.id} of {PUZZLES.length} · {moves} moves · {formatTime(elapsed)}
         </p>
+
+        {/* Points earned */}
+        <p className="win-points-earned">✦ {puzzlePoints} Points Earned</p>
 
         <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
           <button className="win-btn" onClick={handlePlayAgain}>

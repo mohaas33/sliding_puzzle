@@ -1,6 +1,7 @@
 export type NarrationContext = "intro" | "lore" | "win" | "map" | null;
 export type Screen = "start" | "cinematic" | "map" | "game";
 export type Difficulty = 3 | 4 | 5;
+export type Narrator = "osiris" | "isis" | "thoth" | "off";
 export type WinPhase = "none" | "frozen" | "reveal" | "lore";
 
 export interface PuzzleData {
@@ -16,6 +17,7 @@ export type MissionPhase = "full" | "exiting" | "bar" | null;
 
 export interface PuzzleProgress {
   stars: number;
+  points: number;
 }
 
 export type ChapterProgress = Record<number, PuzzleProgress>;

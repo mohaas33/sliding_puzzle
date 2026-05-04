@@ -2,6 +2,10 @@ import { speak } from "../utils/narration";
 import type { NarrationContext, ChapterProgress } from "../types";
 import { PUZZLES, CHAPTER_LABEL } from "../constants";
 import { getPuzzleState } from "../utils/solver";
+
+function totalScore(progress: ChapterProgress): number {
+  return Object.values(progress).reduce((sum, p) => sum + (p.points ?? 0), 0);
+}
 import { Waveform } from "./Waveform";
 
 interface ChapterMapProps {
@@ -56,6 +60,11 @@ export function ChapterMap({
           }}
         >
           {Object.keys(chapterProgress).length} of {PUZZLES.length} Shards Restored
+          {totalScore(chapterProgress) > 0 && (
+            <span style={{ marginLeft: 10, opacity: 0.7 }}>
+              · ✦ {totalScore(chapterProgress).toLocaleString()} pts
+            </span>
+          )}
         </p>
 
         <div style={{ width: "100%", maxWidth: 420, margin: "10px auto 0" }}>

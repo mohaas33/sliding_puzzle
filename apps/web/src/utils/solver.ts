@@ -1,5 +1,6 @@
 import { getMovableTiles, moveTile, isSolved } from "@sliding-puzzle/game-logic";
-import type { ChapterProgress } from "../types";
+import type { ChapterProgress, Difficulty } from "../types";
+import { DIFFICULTY_INFO } from "../constants";
 
 export function personalize(template: string, name: string): string {
   return template.replace(/\{name\}/g, name);
@@ -9,6 +10,25 @@ export function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, "0");
   const s = (seconds % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
+}
+
+export function calculatePoints(
+  n: Difficulty,
+  stars: number,
+  moves: number,
+  raLightUsed: number,
+  thothUsed: number,
+): number {
+  const info = DIFFICULTY_INFO[n];
+  let pts = 100 * info.multiplier;
+  if (stars === 3) pts += 50;
+  else if (stars === 2) pts += 20;
+  const underPar = info.par - moves;
+  if (underPar > 0) pts += underPar * 10;
+  if (raLightUsed === 0 && thothUsed === 0) pts += 30;
+  pts -= raLightUsed * 10;
+  pts -= thothUsed * 20;
+  return Math.max(0, pts);
 }
 
 export function getStars(raLightUsed: number, thothUsed: number): number {

@@ -4,16 +4,17 @@ import type { Difficulty, Screen, WinPhase, ChapterProgress, PuzzleData, Mission
 import type { NarrationHook } from "./useNarration";
 import {
   INTRO_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
-  NARRATION_KEY, VOICE_GENDER_KEY,
+  NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY,
   RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
   VISION_MAX, VISION_DURATION_MS,
   INTRO_NARRATION, PUZZLES, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
+  DIFFICULTY_INFO,
 } from "../constants";
 import {
   loadDifficulty, persistDifficulty, loadProgress, persistProgress,
   loadSave, writeSave, clearSave, saveKeyFor,
 } from "../utils/storage";
-import { getStars, nextSolverMove, personalize } from "../utils/solver";
+import { getStars, nextSolverMove, personalize, calculatePoints } from "../utils/solver";
 
 export interface GameStateHook {
   n: Difficulty;
@@ -76,6 +77,7 @@ export interface GameStateHook {
   handleExpandMission: () => void;
   playerName: string;
   handleSetPlayerName: (name: string) => void;
+  lastPuzzlePoints: number;
 }
 
 export function useGameState(narration: NarrationHook): GameStateHook {
@@ -119,6 +121,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem(PLAYER_NAME_KEY) ?? DEFAULT_PLAYER_NAME,
   );
+  const [lastPuzzlePoints, setLastPuzzlePoints] = useState(0);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const raLightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -376,7 +379,16 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handlePlayAgain() { startPuzzle(puzzleIdx); }
 
   function saveWinProgress() {
-    const newProgress = { ...chapterProgress, [puzzle.id]: { stars } };
+    const pts = calculatePoints(n, stars, moves, raLightUsed, thothUsed);
+    setLastPuzzlePoints(pts);
+    const prev = chapterProgress[puzzle.id];
+    const newProgress: ChapterProgress = {
+      ...chapterProgress,
+      [puzzle.id]: {
+        stars: Math.max(stars, prev?.stars ?? 0),
+        points: Math.max(pts, prev?.points ?? 0),
+      },
+    };
     setChapterProgress(newProgress);
     persistProgress(newProgress);
   }
@@ -447,7 +459,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handleResetConfirm() {
     [
       INTRO_KEY, PROGRESS_KEY, DIFFICULTY_KEY, HINT_GLOW_KEY,
-      NARRATION_KEY, VOICE_GENDER_KEY, PLAYER_NAME_KEY,
+      NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY, PLAYER_NAME_KEY,
       saveKeyFor(3), saveKeyFor(4), saveKeyFor(5),
     ].forEach((k) => localStorage.removeItem(k));
     window.location.reload();
@@ -467,6 +479,6 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     handleViewMap, handleNewGame, handleBeginJourney, handleCinematicContinue,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
     handleResetConfirm, handleDismissMission, handleExpandMission,
-    playerName, handleSetPlayerName,
+    playerName, handleSetPlayerName, lastPuzzlePoints,
   };
 }
