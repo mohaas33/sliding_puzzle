@@ -21,7 +21,7 @@ export function App() {
   return (
     <main
       className="flex min-h-screen flex-col items-center justify-center gap-4 px-4"
-      style={{ paddingTop: 16, paddingBottom: 148 }}
+      style={{ paddingTop: 16, paddingBottom: 24 }}
       onPointerUp={() => game.setPressedIdx(null)}
     >
       {/* Top bar */}
@@ -91,37 +91,35 @@ export function App() {
         onPointerUp={game.handlePointerUp}
       />
 
-      {/* Bottom bar */}
-      {game.screen === "game" && (
-        <div className="bottom-bar">
-          <div className="bottom-bar-section">
-            <span className="bottom-bar-label">Favor of the Gods</span>
-            <div style={{ display: "flex", gap: 6 }}>
-              <button
-                className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
-                onClick={game.handleRaLight}
-                disabled={game.frozen || game.raLightUsed >= RA_LIGHT_MAX}
-                title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : `+${2} moves`}
-              >
-                ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
-              </button>
-              <button
-                className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
-                onClick={game.handleThothHand}
-                disabled={game.frozen || game.thothUsed >= THOTH_HAND_MAX}
-                title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : `+${5} moves`}
-              >
-                𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
-              </button>
-              <button
-                className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
-                onClick={game.handleVisionOfOsiris}
-                disabled={game.frozen || game.visionUsed >= VISION_MAX}
-                title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
-              >
-                ◈ Vision ({VISION_MAX - game.visionUsed})
-              </button>
-            </div>
+      {/* Favor of the Gods — inline below board */}
+      {game.screen === "game" && !game.frozen && (
+        <div className="favor-panel">
+          <span className="favor-panel-label">Favor of the Gods</span>
+          <div className="favor-btn-row">
+            <button
+              className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
+              onClick={game.handleRaLight}
+              disabled={game.raLightUsed >= RA_LIGHT_MAX}
+              title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : "+2 moves"}
+            >
+              ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
+            </button>
+            <button
+              className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
+              onClick={game.handleThothHand}
+              disabled={game.thothUsed >= THOTH_HAND_MAX}
+              title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : "+5 moves"}
+            >
+              𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
+            </button>
+            <button
+              className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
+              onClick={game.handleVisionOfOsiris}
+              disabled={game.visionUsed >= VISION_MAX}
+              title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
+            >
+              ◈ Vision ({VISION_MAX - game.visionUsed})
+            </button>
           </div>
         </div>
       )}
