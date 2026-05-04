@@ -1,6 +1,5 @@
 import { getMovableTiles, moveTile, isSolved } from "@sliding-puzzle/game-logic";
-import type { ChapterProgress, Difficulty } from "../types";
-import { DIFFICULTY_INFO } from "../constants";
+import type { ChapterProgress } from "../types";
 
 export function personalize(template: string, name: string): string {
   return template.replace(/\{name\}/g, name);
@@ -18,39 +17,38 @@ export interface PointsResult {
 }
 
 export function calculatePoints(
-  n: Difficulty,
   stars: number,
   moves: number,
+  elapsed: number,
   raLightUsed: number,
   thothUsed: number,
-  visionUsed: number,
 ): PointsResult {
-  const info = DIFFICULTY_INFO[n];
-  const base = 100 * info.multiplier;
+  // Base: 1000 minus 10 per move, floored at 100
+  const moveCost = moves * 10;
+  const base = Math.max(100, 1000 - moveCost);
 
-  const starBonus = stars === 3 ? 50 : stars === 2 ? 20 : 0;
+  // Speed bonus (time-based)
+  const speedBonus = elapsed < 30 ? 200 : elapsed < 60 ? 100 : 0;
 
-  const par = n * n * 2;
-  const speedBonus = Math.max(0, (par - moves) * 10);
+  // No hints bonus (Ra's Light and Thoth's Hand are hints; Vision is free)
+  const noHints = raLightUsed === 0 && thothUsed === 0;
+  const noHintsBonus = noHints ? 100 : 0;
 
-  const noFavors = raLightUsed === 0 && thothUsed === 0;
-  const onlyVision = noFavors && visionUsed > 0;
-  const favorBonus = noFavors ? (onlyVision ? 20 : 30) : 0;
-  const favorBonusLabel = onlyVision ? "Vision only" : "No favors";
+  // Stars bonus (1/2/3 stars based on which favors were used)
+  const starsBonus = stars * 50;
 
-  const favorPenalty = raLightUsed * 10 + thothUsed * 20;
+  const total = base + speedBonus + noHintsBonus + starsBonus;
 
-  const total = Math.max(10, base + starBonus + speedBonus + favorBonus - favorPenalty);
+  // Human-readable breakdown
+  // e.g. "Base 1000 − 14×10 = 860 + Speed +100 + No hints +100 + Stars +150 = ✦ 1210 pts"
+  let bd = `Base 1000`;
+  if (moveCost > 0) bd += ` − ${moves}×10 = ${base}`;
+  if (speedBonus > 0) bd += ` + Speed +${speedBonus}`;
+  if (noHintsBonus > 0) bd += ` + No hints +${noHintsBonus}`;
+  if (starsBonus > 0) bd += ` + Stars +${starsBonus}`;
+  bd += ` = ✦ ${total} pts`;
 
-  // Build human-readable breakdown
-  const parts: string[] = [`Base ${base}`];
-  if (starBonus > 0) parts.push(`Stars +${starBonus}`);
-  if (speedBonus > 0) parts.push(`Speed +${speedBonus}`);
-  if (favorBonus > 0) parts.push(`${favorBonusLabel} +${favorBonus}`);
-  if (favorPenalty > 0) parts.push(`Favors −${favorPenalty}`);
-  const breakdown = `${parts.join(" + ")} = ✦ ${total} pts`;
-
-  return { total, breakdown };
+  return { total, breakdown: bd };
 }
 
 export function getStars(raLightUsed: number, thothUsed: number): number {

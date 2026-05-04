@@ -137,7 +137,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const stars = getStars(raLightUsed, thothUsed);
   // Computed when win screen is visible so it shows immediately without waiting for a button click
   const lastPuzzlePoints: PointsResult = winPhase === "lore"
-    ? calculatePoints(n, stars, moves, raLightUsed, thothUsed, visionUsed)
+    ? calculatePoints(stars, moves, elapsed, raLightUsed, thothUsed)
     : { total: 0, breakdown: "" };
 
   function lockMove() {
@@ -382,7 +382,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handlePlayAgain() { startPuzzle(puzzleIdx); }
 
   function saveWinProgress() {
-    const pts = calculatePoints(n, stars, moves, raLightUsed, thothUsed, visionUsed).total;
+    const pts = calculatePoints(stars, moves, elapsed, raLightUsed, thothUsed).total;
     const prev = chapterProgress[puzzle.id];
     const newProgress: ChapterProgress = {
       ...chapterProgress,
