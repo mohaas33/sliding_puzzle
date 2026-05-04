@@ -14,7 +14,7 @@ import {
   loadDifficulty, persistDifficulty, loadProgress, persistProgress,
   loadSave, writeSave, clearSave, saveKeyFor,
 } from "../utils/storage";
-import { getStars, nextSolverMove, personalize, calculatePoints } from "../utils/solver";
+import { getStars, nextSolverMove, personalize, calculatePoints, type PointsResult } from "../utils/solver";
 
 export interface GameStateHook {
   n: Difficulty;
@@ -77,7 +77,7 @@ export interface GameStateHook {
   handleExpandMission: () => void;
   playerName: string;
   handleSetPlayerName: (name: string) => void;
-  lastPuzzlePoints: number;
+  lastPuzzlePoints: PointsResult;
 }
 
 export function useGameState(narration: NarrationHook): GameStateHook {
@@ -121,7 +121,6 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem(PLAYER_NAME_KEY) ?? DEFAULT_PLAYER_NAME,
   );
-  const [lastPuzzlePoints, setLastPuzzlePoints] = useState(0);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const raLightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -136,6 +135,10 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const solved = hasShuffled && moves > 0 && isSolved(tiles);
   const frozen = winPhase !== "none";
   const stars = getStars(raLightUsed, thothUsed);
+  // Computed when win screen is visible so it shows immediately without waiting for a button click
+  const lastPuzzlePoints: PointsResult = winPhase === "lore"
+    ? calculatePoints(n, stars, moves, raLightUsed, thothUsed, visionUsed)
+    : { total: 0, breakdown: "" };
 
   function lockMove() {
     setMoveLocked(true);
@@ -379,8 +382,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handlePlayAgain() { startPuzzle(puzzleIdx); }
 
   function saveWinProgress() {
-    const pts = calculatePoints(n, stars, moves, raLightUsed, thothUsed);
-    setLastPuzzlePoints(pts);
+    const pts = calculatePoints(n, stars, moves, raLightUsed, thothUsed, visionUsed).total;
     const prev = chapterProgress[puzzle.id];
     const newProgress: ChapterProgress = {
       ...chapterProgress,

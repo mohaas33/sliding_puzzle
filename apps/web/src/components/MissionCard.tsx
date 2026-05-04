@@ -36,7 +36,7 @@ export function MissionCard({ puzzle, phase, playerName, onDismiss, onExpand }: 
         <p className="mission-hook-text">{hookText}</p>
         <p className="mission-puzzle-name">{puzzle.name}</p>
         <button className="mission-begin-btn" onClick={onDismiss}>
-          Tap to Begin
+          ✦ Accept Your Fate ✦
         </button>
       </div>
     </div>

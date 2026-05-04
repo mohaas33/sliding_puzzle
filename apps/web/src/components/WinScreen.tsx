@@ -1,6 +1,6 @@
 import type { PuzzleData, NarrationContext } from "../types";
 import { PUZZLES } from "../constants";
-import { formatTime, personalize } from "../utils/solver";
+import { formatTime, personalize, type PointsResult } from "../utils/solver";
 import { Waveform } from "./Waveform";
 
 interface WinScreenProps {
@@ -13,7 +13,7 @@ interface WinScreenProps {
   raLightUsed: number;
   thothUsed: number;
   visionUsed: number;
-  puzzlePoints: number;
+  puzzlePoints: PointsResult;
   narrationOn: boolean;
   narratingCtx: NarrationContext;
   handlePlayAgain: () => void;
@@ -164,7 +164,12 @@ export function WinScreen({
         </p>
 
         {/* Points earned */}
-        <p className="win-points-earned">✦ {puzzlePoints} Points Earned</p>
+        {puzzlePoints.total > 0 && (
+          <>
+            <p className="win-points-earned">✦ {puzzlePoints.total} Points</p>
+            <p className="win-points-breakdown">{puzzlePoints.breakdown}</p>
+          </>
+        )}
 
         <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
           <button className="win-btn" onClick={handlePlayAgain}>

@@ -12,23 +12,45 @@ export function formatTime(seconds: number): string {
   return `${m}:${s}`;
 }
 
+export interface PointsResult {
+  total: number;
+  breakdown: string;
+}
+
 export function calculatePoints(
   n: Difficulty,
   stars: number,
   moves: number,
   raLightUsed: number,
   thothUsed: number,
-): number {
+  visionUsed: number,
+): PointsResult {
   const info = DIFFICULTY_INFO[n];
-  let pts = 100 * info.multiplier;
-  if (stars === 3) pts += 50;
-  else if (stars === 2) pts += 20;
-  const underPar = info.par - moves;
-  if (underPar > 0) pts += underPar * 10;
-  if (raLightUsed === 0 && thothUsed === 0) pts += 30;
-  pts -= raLightUsed * 10;
-  pts -= thothUsed * 20;
-  return Math.max(0, pts);
+  const base = 100 * info.multiplier;
+
+  const starBonus = stars === 3 ? 50 : stars === 2 ? 20 : 0;
+
+  const par = n * n * 2;
+  const speedBonus = Math.max(0, (par - moves) * 10);
+
+  const noFavors = raLightUsed === 0 && thothUsed === 0;
+  const onlyVision = noFavors && visionUsed > 0;
+  const favorBonus = noFavors ? (onlyVision ? 20 : 30) : 0;
+  const favorBonusLabel = onlyVision ? "Vision only" : "No favors";
+
+  const favorPenalty = raLightUsed * 10 + thothUsed * 20;
+
+  const total = Math.max(10, base + starBonus + speedBonus + favorBonus - favorPenalty);
+
+  // Build human-readable breakdown
+  const parts: string[] = [`Base ${base}`];
+  if (starBonus > 0) parts.push(`Stars +${starBonus}`);
+  if (speedBonus > 0) parts.push(`Speed +${speedBonus}`);
+  if (favorBonus > 0) parts.push(`${favorBonusLabel} +${favorBonus}`);
+  if (favorPenalty > 0) parts.push(`Favors −${favorPenalty}`);
+  const breakdown = `${parts.join(" + ")} = ✦ ${total} pts`;
+
+  return { total, breakdown };
 }
 
 export function getStars(raLightUsed: number, thothUsed: number): number {
