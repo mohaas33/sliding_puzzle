@@ -709,10 +709,10 @@ body {
     align-items: center;
     gap: 5px;
     font-family: 'Cinzel', serif;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     color: #c8a96e;
-    opacity: 0.75;
     white-space: nowrap;
     flex-shrink: 0;
   }

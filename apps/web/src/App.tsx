@@ -42,12 +42,12 @@ export function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
           <div className="top-bar-stats">
             <div style={{ position: "relative" }}>
-              <span>{game.moves}</span>
+              <span style={{ fontWeight: 700, fontSize: "1.2rem" }}>{game.moves}</span>
               {game.penaltyKey > 0 && (
                 <span key={game.penaltyKey} className="penalty-pop">+{game.lastPenalty}</span>
               )}
             </div>
-            <span style={{ opacity: 0.35 }}>·</span>
+            <span style={{ opacity: 0.3 }}>·</span>
             <span>{formatTime(game.elapsed)}</span>
           </div>
 
