@@ -44,7 +44,7 @@ export function calculatePoints(
   let bd = `Base 1000`;
   if (moveCost > 0) bd += ` − ${moves}×10 = ${base}`;
   if (speedBonus > 0) bd += ` + Speed +${speedBonus}`;
-  if (noHintsBonus > 0) bd += ` + No hints +${noHintsBonus}`;
+  if (noHintsBonus > 0) bd += ` + No favors +${noHintsBonus}`;
   if (starsBonus > 0) bd += ` + Stars +${starsBonus}`;
   bd += ` = ✦ ${total} pts`;
 
