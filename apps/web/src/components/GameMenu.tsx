@@ -10,6 +10,7 @@ interface GameMenuProps {
   hintGlow: boolean;
   currentDifficulty: Difficulty;
   narrationOn: boolean;
+  musicMuted: boolean;
   handleShowMap: () => void;
   handleRestartPuzzle: () => void;
   handleResetRequest: () => void;
@@ -17,6 +18,7 @@ interface GameMenuProps {
   handleToggleHintGlow: () => void;
   onChangeDifficulty: (n: Difficulty) => void;
   onToggleNarration: () => void;
+  onToggleMusic: () => void;
 }
 
 export function GameMenu({
@@ -27,6 +29,7 @@ export function GameMenu({
   hintGlow,
   currentDifficulty,
   narrationOn,
+  musicMuted,
   handleShowMap,
   handleRestartPuzzle,
   handleResetRequest,
@@ -34,6 +37,7 @@ export function GameMenu({
   handleToggleHintGlow,
   onChangeDifficulty,
   onToggleNarration,
+  onToggleMusic,
 }: GameMenuProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const [pendingDiff, setPendingDiff] = useState<Difficulty | null>(null);
@@ -124,9 +128,15 @@ export function GameMenu({
         </button>
 
         <button className="drawer-item" onClick={onToggleNarration}>
-          <span className="drawer-icon">{narrationOn ? "🔊" : "🔇"}</span>
+          <span className="drawer-icon">{narrationOn ? "🗣" : "🔕"}</span>
           Narration
           <span className={`drawer-toggle${narrationOn ? " drawer-toggle-on" : ""}`} />
+        </button>
+
+        <button className="drawer-item" onClick={onToggleMusic}>
+          <span className="drawer-icon">{musicMuted ? "🔇" : "🔊"}</span>
+          Music
+          <span className={`drawer-toggle${!musicMuted ? " drawer-toggle-on" : ""}`} />
         </button>
       </div>
 

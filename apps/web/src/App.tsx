@@ -1,5 +1,6 @@
 import { useNarration } from "./hooks/useNarration";
 import { useGameState } from "./hooks/useGameState";
+import { useAudio } from "./hooks/useAudio";
 import { StartScreen } from "./components/StartScreen";
 import { ChapterMap } from "./components/ChapterMap";
 import { GameBoard } from "./components/GameBoard";
@@ -18,6 +19,7 @@ export function App() {
   const narration = useNarration();
   const game = useGameState(narration);
   const { narrationOn, narratingCtx } = narration;
+  const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed });
 
   const totalScore = Object.values(game.chapterProgress).reduce(
     (sum, p) => sum + (p.points ?? 0), 0,
@@ -76,7 +78,15 @@ export function App() {
             title={narrationOn ? "Mute narration" : "Enable narration"}
             aria-label={narrationOn ? "Mute narration" : "Enable narration"}
           >
-            {narrationOn && narratingCtx !== null ? <Waveform /> : narrationOn ? "🔊" : "🔇"}
+            {narrationOn && narratingCtx !== null ? <Waveform /> : narrationOn ? "🗣" : "🔕"}
+          </button>
+          <button
+            className="narration-btn"
+            onClick={audio.toggleMute}
+            title={audio.isMuted ? "Unmute music" : "Mute music"}
+            aria-label={audio.isMuted ? "Unmute music" : "Mute music"}
+          >
+            {audio.isMuted ? "🔇" : "🔊"}
           </button>
         </div>
       </div>
@@ -291,6 +301,7 @@ export function App() {
         hintGlow={game.hintGlow}
         currentDifficulty={game.n}
         narrationOn={narrationOn}
+        musicMuted={audio.isMuted}
         handleShowMap={game.handleShowMap}
         handleRestartPuzzle={() => { game.startPuzzle(game.puzzleIdx); game.setMenuOpen(false); }}
         handleResetRequest={game.handleResetRequest}
@@ -298,6 +309,7 @@ export function App() {
         handleToggleHintGlow={game.handleToggleHintGlow}
         onChangeDifficulty={(newN) => { game.handleDifficultyChange(newN); game.setMenuOpen(false); }}
         onToggleNarration={narration.handleToggleNarration}
+        onToggleMusic={audio.toggleMute}
       />
     </main>
   );
