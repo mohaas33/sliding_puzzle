@@ -102,56 +102,58 @@ export function App() {
         />
       )}
 
-      {/* Board */}
-      <GameBoard
-        n={game.n}
-        tiles={game.tiles}
-        puzzle={game.puzzle}
-        imageLoaded={game.imageLoaded}
-        winPhase={game.winPhase}
-        frozen={game.frozen}
-        moveLocked={game.moveLocked}
-        movable={game.movable}
-        raLightIdx={game.raLightIdx}
-        hintGlow={game.hintGlow}
-        visionActive={game.visionActive}
-        pressedIdx={game.pressedIdx}
-        onPointerDown={game.handlePointerDown}
-        onPointerUp={game.handlePointerUp}
-      />
+      {/* Board + Favor panel share the same max-width container */}
+      <div className="board-column">
+        <GameBoard
+          n={game.n}
+          tiles={game.tiles}
+          puzzle={game.puzzle}
+          imageLoaded={game.imageLoaded}
+          winPhase={game.winPhase}
+          frozen={game.frozen}
+          moveLocked={game.moveLocked}
+          movable={game.movable}
+          raLightIdx={game.raLightIdx}
+          hintGlow={game.hintGlow}
+          visionActive={game.visionActive}
+          pressedIdx={game.pressedIdx}
+          onPointerDown={game.handlePointerDown}
+          onPointerUp={game.handlePointerUp}
+        />
 
-      {/* Favor of the Gods — inline below board */}
-      {game.screen === "game" && !game.frozen && (
-        <div className="favor-panel">
-          <span className="favor-panel-label">Favor of the Gods</span>
-          <div className="favor-btn-row">
-            <button
-              className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
-              onClick={game.handleRaLight}
-              disabled={game.raLightUsed >= RA_LIGHT_MAX}
-              title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : "+2 moves"}
-            >
-              ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
-            </button>
-            <button
-              className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
-              onClick={game.handleThothHand}
-              disabled={game.thothUsed >= THOTH_HAND_MAX}
-              title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : "+5 moves"}
-            >
-              𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
-            </button>
-            <button
-              className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
-              onClick={game.handleVisionOfOsiris}
-              disabled={game.visionUsed >= VISION_MAX}
-              title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
-            >
-              ◈ Vision ({VISION_MAX - game.visionUsed})
-            </button>
+        {/* Favor of the Gods — inline below board, same width */}
+        {game.screen === "game" && !game.frozen && (
+          <div className="favor-panel">
+            <span className="favor-panel-label">Favor of the Gods</span>
+            <div className="favor-btn-row">
+              <button
+                className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
+                onClick={game.handleRaLight}
+                disabled={game.raLightUsed >= RA_LIGHT_MAX}
+                title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : "+2 moves"}
+              >
+                ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
+              </button>
+              <button
+                className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
+                onClick={game.handleThothHand}
+                disabled={game.thothUsed >= THOTH_HAND_MAX}
+                title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : "+5 moves"}
+              >
+                𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
+              </button>
+              <button
+                className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
+                onClick={game.handleVisionOfOsiris}
+                disabled={game.visionUsed >= VISION_MAX}
+                title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
+              >
+                ◈ Vision ({VISION_MAX - game.visionUsed})
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Dev shortcut */}
       {DEV_MODE && (
