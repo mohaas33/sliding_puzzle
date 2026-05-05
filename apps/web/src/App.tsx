@@ -19,7 +19,7 @@ export function App() {
   const narration = useNarration();
   const game = useGameState(narration);
   const { narrationOn, narratingCtx } = narration;
-  const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed });
+  const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed, n: game.n });
 
   const totalScore = Object.values(game.chapterProgress).reduce(
     (sum, p) => sum + (p.points ?? 0), 0,

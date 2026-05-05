@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Screen, WinPhase } from "../types";
+import type { Screen, WinPhase, Difficulty } from "../types";
 
 const MUTE_KEY = "sot_muted";
 const FADE_MS = 800;
@@ -11,14 +11,24 @@ export interface UseAudioReturn {
   toggleMute: () => void;
 }
 
+// Bug 4: difficulty-based threshold for switching to intense music.
+// Returns null if intense music should never play for this difficulty.
+function intenseThreshold(difficulty: Difficulty): number | null {
+  if (difficulty === 3) return null; // Apprentice Scribe — too short, no tension
+  if (difficulty === 4) return 90;   // Temple Keeper — 90s
+  return 60;                          // High Priest — 60s
+}
+
 export function useAudio({
   screen,
   winPhase,
   elapsed,
+  n,
 }: {
   screen: Screen;
   winPhase: WinPhase;
   elapsed: number;
+  n: Difficulty;
 }): UseAudioReturn {
   const [isMuted, setIsMuted] = useState(() => localStorage.getItem(MUTE_KEY) === "1");
   const isMutedRef = useRef(isMuted);
@@ -27,9 +37,13 @@ export function useAudio({
   const tracks = useRef<Record<TrackName, HTMLAudioElement> | null>(null);
   const activeTrack = useRef<TrackName | null>(null);
   const activeVol = useRef(0);
-  const hasInteracted = useRef(false);
-  const pendingPlay = useRef<{ name: TrackName; vol: number } | null>(null);
   const fadeTimers = useRef<Map<HTMLAudioElement, ReturnType<typeof setInterval>>>(new Map());
+
+  // Bug 2 & 3: win sound timeout ref so it can be cancelled
+  const winTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Bug 3: track previous winPhase to detect dismissal
+  const prevWinPhaseRef = useRef<WinPhase>("none");
 
   // ── Fade helpers ─────────────────────────────────────────────────────────
 
@@ -84,13 +98,9 @@ export function useAudio({
   // ── Main play function ────────────────────────────────────────────────────
 
   function playTrack(name: TrackName, vol: number) {
-    if (!hasInteracted.current) {
-      pendingPlay.current = { name, vol };
-      return;
-    }
     if (!tracks.current) return;
 
-    // Same track playing — just adjust volume if needed
+    // Same track already playing — just adjust volume if needed
     if (activeTrack.current === name) {
       if (Math.abs(activeVol.current - vol) > 0.01) {
         activeVol.current = vol;
@@ -106,11 +116,11 @@ export function useAudio({
 
     const audio = tracks.current[name];
     if (name === "win") audio.currentTime = 0;
-    audio.play().catch(() => { /* autoplay blocked — will play on next interaction */ });
+    audio.play().catch(() => { /* silenced — browser may block autoplay */ });
     fadeTo(audio, vol);
   }
 
-  // ── Init: create Audio elements, wire up interaction unlock ──────────────
+  // ── Init: create Audio elements, start menu immediately (Bug 1) ──────────
 
   useEffect(() => {
     const base = import.meta.env.BASE_URL;
@@ -131,23 +141,14 @@ export function useAudio({
     Object.values(t).forEach(a => { a.volume = 0; });
     tracks.current = t;
 
-    const onInteract = () => {
-      if (hasInteracted.current) return;
-      hasInteracted.current = true;
-      if (pendingPlay.current) {
-        const { name, vol } = pendingPlay.current;
-        pendingPlay.current = null;
-        playTrack(name, vol);
-      }
-    };
-    window.addEventListener("click",      onInteract, { passive: true });
-    window.addEventListener("keydown",    onInteract, { passive: true });
-    window.addEventListener("touchstart", onInteract, { passive: true });
+    // Bug 1: start menu immediately without waiting for user interaction
+    activeTrack.current = "menu";
+    activeVol.current = 0.4;
+    t.menu.play().catch(() => {});
+    fadeTo(t.menu, 0.4);
 
     return () => {
-      window.removeEventListener("click",      onInteract);
-      window.removeEventListener("keydown",    onInteract);
-      window.removeEventListener("touchstart", onInteract);
+      if (winTimeoutRef.current) clearTimeout(winTimeoutRef.current);
       Object.values(t).forEach(a => { a.pause(); });
       fadeTimers.current.forEach(id => clearInterval(id));
     };
@@ -162,41 +163,71 @@ export function useAudio({
     } else if (screen === "map") {
       playTrack("map", 0.35);
     } else if (screen === "game" && winPhase === "none") {
-      // Pick track based on elapsed (handles restored saves with elapsed > 60)
-      playTrack(elapsed >= 60 ? "intense" : "ambient", elapsed >= 60 ? 0.4 : 0.3);
+      // Bug 4: use difficulty-aware threshold for restored saves with elapsed > threshold
+      const threshold = intenseThreshold(n);
+      const useIntense = threshold !== null && elapsed >= threshold;
+      playTrack(useIntense ? "intense" : "ambient", useIntense ? 0.4 : 0.3);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
-  // ── Win screen ────────────────────────────────────────────────────────────
+  // ── Win screen + dismissal (Bugs 2 & 3) ──────────────────────────────────
 
   useEffect(() => {
-    if (winPhase !== "lore" || !tracks.current) return;
-    stopAllExcept("win");
-    activeTrack.current = "win";
-    activeVol.current = 0.7;
-    const win = tracks.current.win;
-    win.currentTime = 0;
-    win.play().catch(() => {});
-    fadeTo(win, 0.7, 400);
-    win.onended = () => {
+    const prev = prevWinPhaseRef.current;
+    prevWinPhaseRef.current = winPhase;
+
+    if (winPhase === "lore") {
       if (!tracks.current) return;
-      activeTrack.current = "ambient";
-      activeVol.current = 0.2;
-      const amb = tracks.current.ambient;
-      amb.play().catch(() => {});
-      fadeTo(amb, 0.2, FADE_MS);
-    };
+
+      // Stop all ambient/loop tracks
+      stopAllExcept("win");
+      activeTrack.current = "win";
+      activeVol.current = 0.7;
+
+      const win = tracks.current.win;
+      win.currentTime = 0;
+      win.play().catch(() => {});
+      fadeTo(win, 0.7, 400);
+
+      // Bug 2: stop after 10 seconds, then fade in soft ambient
+      if (winTimeoutRef.current) clearTimeout(winTimeoutRef.current);
+      winTimeoutRef.current = setTimeout(() => {
+        winTimeoutRef.current = null;
+        if (!tracks.current) return;
+        tracks.current.win.pause();
+        tracks.current.win.currentTime = 0;
+        activeTrack.current = "ambient";
+        activeVol.current = 0.2;
+        tracks.current.ambient.play().catch(() => {});
+        fadeTo(tracks.current.ambient, 0.2, FADE_MS);
+      }, 10000);
+
+    } else if (prev === "lore" && winPhase === "none") {
+      // Bug 3: player clicked Next Shard or Play Again — cancel win and start gameplay music
+      if (winTimeoutRef.current) {
+        clearTimeout(winTimeoutRef.current);
+        winTimeoutRef.current = null;
+      }
+      if (tracks.current) {
+        tracks.current.win.pause();
+        tracks.current.win.currentTime = 0;
+      }
+      // elapsed is 0 after startPuzzle, so always ambient here
+      playTrack("ambient", 0.3);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winPhase]);
 
-  // ── Elapsed crossfade: ambient → intense at 60s, back to ambient on restart
+  // ── Elapsed crossfade (Bug 4: difficulty-aware threshold) ────────────────
 
   useEffect(() => {
     if (screen !== "game" || winPhase !== "none") return;
-    if (elapsed === 60) {
+    const threshold = intenseThreshold(n);
+    if (threshold !== null && elapsed === threshold) {
       playTrack("intense", 0.4);
     } else if (elapsed === 0 && activeTrack.current === "intense") {
+      // Restart — go back to ambient
       playTrack("ambient", 0.3);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
