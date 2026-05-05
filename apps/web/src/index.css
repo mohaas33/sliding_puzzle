@@ -993,6 +993,76 @@ body {
     box-shadow: 0 0 7px 2px rgba(200, 169, 110, 0.2);
   }
 
+  /* ── Score breakdown overlay (shown during reveal phase) ────── */
+
+  @keyframes scoreLineIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .score-breakdown-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 4, 2, 0.72);
+    animation: fadeIn 0.35s ease;
+  }
+
+  .score-breakdown-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 240px;
+    padding: 32px 40px;
+  }
+
+  .score-breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #c8a96e;
+    opacity: 0;
+    animation: scoreLineIn 0.4s ease forwards;
+  }
+
+  .score-breakdown-label {
+    opacity: 0.75;
+  }
+
+  .score-breakdown-value {
+    font-weight: 600;
+    opacity: 1;
+  }
+
+  .score-breakdown-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200,169,110,0.5), transparent);
+    opacity: 0;
+    animation: fadeIn 0.35s ease forwards;
+    margin: 4px 0;
+  }
+
+  .score-breakdown-total {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c8a96e;
+    text-align: center;
+    opacity: 0;
+    animation: scoreLineIn 0.5s ease forwards;
+    text-shadow: 0 0 24px rgba(200, 169, 110, 0.55);
+  }
+
   /* ── Win screen restored image ─────────────────────────────── */
 
   @keyframes winImageReveal {

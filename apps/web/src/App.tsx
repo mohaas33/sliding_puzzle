@@ -6,6 +6,7 @@ import { GameBoard } from "./components/GameBoard";
 import { WinScreen } from "./components/WinScreen";
 import { GameMenu } from "./components/GameMenu";
 import { MissionCard } from "./components/MissionCard";
+import { ScoreBreakdown } from "./components/ScoreBreakdown";
 import { Waveform } from "./components/Waveform";
 import {
   DEV_MODE, CHAPTER_LABEL, DIFFICULTY_INFO,
@@ -17,6 +18,10 @@ export function App() {
   const narration = useNarration();
   const game = useGameState(narration);
   const { narrationOn, narratingCtx } = narration;
+
+  const totalScore = Object.values(game.chapterProgress).reduce(
+    (sum, p) => sum + (p.points ?? 0), 0,
+  );
 
   return (
     <main
@@ -49,6 +54,12 @@ export function App() {
             </div>
             <span style={{ opacity: 0.3 }}>·</span>
             <span>{formatTime(game.elapsed)}</span>
+            {totalScore > 0 && (
+              <>
+                <span style={{ opacity: 0.3 }}>·</span>
+                <span>✦ {totalScore.toLocaleString()}</span>
+              </>
+            )}
           </div>
 
           <button
@@ -244,12 +255,23 @@ export function App() {
           raLightUsed={game.raLightUsed}
           thothUsed={game.thothUsed}
           visionUsed={game.visionUsed}
-          puzzlePoints={game.lastPuzzlePoints}
+          puzzlePoints={game.lastPuzzlePoints.total}
           narrationOn={narrationOn}
           narratingCtx={narratingCtx}
           handlePlayAgain={game.handlePlayAgain}
           handleNextShard={game.handleNextShard}
           handleViewMap={game.handleViewMap}
+        />
+      )}
+
+      {/* Score breakdown — animates during the reveal phase, before win card */}
+      {game.winPhase === "reveal" && (
+        <ScoreBreakdown
+          stars={game.stars}
+          moves={game.moves}
+          elapsed={game.elapsed}
+          raLightUsed={game.raLightUsed}
+          thothUsed={game.thothUsed}
         />
       )}
 

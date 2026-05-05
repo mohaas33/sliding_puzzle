@@ -196,7 +196,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     } else if (winPhase === "frozen") {
       revealTimerRef.current = setTimeout(() => setWinPhase("reveal"), 1000);
     } else if (winPhase === "reveal") {
-      revealTimerRef.current = setTimeout(() => setWinPhase("lore"), 2000);
+      revealTimerRef.current = setTimeout(() => setWinPhase("lore"), 3500);
     }
     return () => {
       if (revealTimerRef.current) {
