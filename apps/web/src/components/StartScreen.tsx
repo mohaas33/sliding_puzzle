@@ -3,13 +3,20 @@ import { NARRATORS, DIFFICULTY_INFO, PUZZLES, PARTICLES } from "../constants";
 import { loadProgress } from "../utils/storage";
 
 const NAME_PRESETS = [
-  { name: "Kha",       meaning: "To Rise · Scribe"              },
-  { name: "Neferu",    meaning: "Beautiful One · Noble"          },
-  { name: "Amenhotep", meaning: "Amun is Satisfied · Pharaoh"   },
-  { name: "Merit",     meaning: "Beloved · Priestess"            },
+  { name: "Kha",       meaning: "To Rise · Scribe"            },
+  { name: "Neferu",    meaning: "Beautiful One · Noble"        },
+  { name: "Amenhotep", meaning: "Amun is Satisfied · Pharaoh" },
+  { name: "Merit",     meaning: "Beloved · Priestess"          },
 ];
 
 const DIFFICULTIES: (3 | 4 | 5)[] = [3, 4, 5];
+
+const NARRATOR_FLAVOR: Record<Narrator, string> = {
+  osiris: "Deep & Authoritative",
+  isis:   "Warm & Mysterious",
+  thoth:  "Calm & Neutral",
+  off:    "No narration",
+};
 
 interface StartScreenProps {
   narrator: Narrator;
@@ -66,7 +73,7 @@ export function StartScreen({
           filter: "blur(12px) brightness(0.15) saturate(0.5)",
         }}
       />
-      <div className="start-overlay" style={{ background: "rgba(10,8,6,0.82)" }} />
+      <div className="start-overlay" style={{ background: "rgba(10,8,6,0.85)" }} />
       <Particles />
 
       <div className="start-content">
@@ -79,33 +86,22 @@ export function StartScreen({
           <p className="start-tagline">Piece history back together, one shard at a time.</p>
         </div>
 
-        {/* ── Narrator ── */}
         <div className="start-options">
+          {/* ── Narrator ── */}
           <div className="start-option-group">
             <span className="start-option-label">Narrator</span>
-            <div className="narrator-grid">
+            <div className="narrator-pills">
               {NARRATORS.map((info) => (
                 <button
                   key={info.id}
-                  className={`narrator-card${narrator === info.id ? " narrator-card-active" : ""}`}
-                  onClick={() => onSetNarrator(info.id)}
+                  className={`narrator-pill${narrator === info.id ? " narrator-pill-active" : ""}`}
+                  onClick={() => { onSetNarrator(info.id); if (info.id !== "off") playSample(info.id); }}
                 >
-                  <span className="narrator-card-name">{info.name}</span>
-                  <span className="narrator-card-role">{info.role}</span>
-                  {info.id !== "off" && (
-                    <span
-                      className="narrator-card-preview"
-                      onClick={(e) => { e.stopPropagation(); playSample(info.id); }}
-                      title="Preview voice"
-                      role="button"
-                      aria-label={`Preview ${info.name} voice`}
-                    >
-                      ▶
-                    </span>
-                  )}
+                  {info.name}
                 </button>
               ))}
             </div>
+            <p className="narrator-flavor">{NARRATOR_FLAVOR[narrator]}</p>
           </div>
 
           {/* ── Player name ── */}
@@ -139,20 +135,20 @@ export function StartScreen({
           {/* ── Difficulty ── */}
           <div className="start-option-group">
             <span className="start-option-label">Difficulty</span>
-            <div className="difficulty-grid">
+            <div className="difficulty-rows">
               {DIFFICULTIES.map((dn) => {
                 const info = DIFFICULTY_INFO[dn];
+                const active = startDifficulty === dn;
                 return (
                   <button
                     key={dn}
-                    className={`diff-card${startDifficulty === dn ? " diff-card-active" : ""}`}
+                    className={`diff-row${active ? " diff-row-active" : ""}`}
                     onClick={() => setStartDifficulty(dn)}
                   >
-                    <span className="diff-card-stars">{info.starsSymbol}</span>
-                    <span className="diff-card-label">{info.label}</span>
-                    <span className="diff-card-tiles">{info.tiles} tiles</span>
-                    <span className="diff-card-desc">{info.desc}</span>
-                    <span className="diff-card-mult">×{info.multiplier} points</span>
+                    <span className="diff-row-stars">{info.starsSymbol}</span>
+                    <span className="diff-row-label">{info.label}</span>
+                    <span className="diff-row-meta">{info.tiles} tiles</span>
+                    <span className="diff-row-mult">×{info.multiplier}</span>
                   </button>
                 );
               })}
