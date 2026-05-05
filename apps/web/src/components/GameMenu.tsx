@@ -9,12 +9,14 @@ interface GameMenuProps {
   setShowResetConfirm: (v: boolean) => void;
   hintGlow: boolean;
   currentDifficulty: Difficulty;
+  narrationOn: boolean;
   handleShowMap: () => void;
   handleRestartPuzzle: () => void;
   handleResetRequest: () => void;
   handleResetConfirm: () => void;
   handleToggleHintGlow: () => void;
   onChangeDifficulty: (n: Difficulty) => void;
+  onToggleNarration: () => void;
 }
 
 export function GameMenu({
@@ -24,12 +26,14 @@ export function GameMenu({
   setShowResetConfirm,
   hintGlow,
   currentDifficulty,
+  narrationOn,
   handleShowMap,
   handleRestartPuzzle,
   handleResetRequest,
   handleResetConfirm,
   handleToggleHintGlow,
   onChangeDifficulty,
+  onToggleNarration,
 }: GameMenuProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const [pendingDiff, setPendingDiff] = useState<Difficulty | null>(null);
@@ -99,8 +103,14 @@ export function GameMenu({
         </div>
 
         <button
-          className="drawer-item drawer-item-danger"
-          onClick={() => { setMenuOpen(false); handleResetRequest(); }}
+          className="drawer-item"
+          style={{ color: "rgba(200,169,110,0.4)" }}
+          onClick={() => {
+            setMenuOpen(false);
+            if (window.confirm("Reset all progress in Chapter I? This cannot be undone.")) {
+              handleResetConfirm();
+            }
+          }}
         >
           <span className="drawer-icon">↺</span> Reset Chapter
         </button>
@@ -113,23 +123,10 @@ export function GameMenu({
           <span className={`drawer-toggle${hintGlow ? " drawer-toggle-on" : ""}`} />
         </button>
 
-        <button className="drawer-item" disabled>
-          <span className="drawer-icon" style={{ opacity: 0.35 }}>🔊</span>
-          <span style={{ opacity: 0.35 }}>Sound</span>
-          <span
-            style={{
-              marginLeft: "auto",
-              fontSize: "0.52rem",
-              letterSpacing: "0.08em",
-              color: "#c8a96e",
-              opacity: 0.3,
-              fontFamily: "'Crimson Text', serif",
-              fontStyle: "italic",
-              textTransform: "none",
-            }}
-          >
-            Coming soon
-          </span>
+        <button className="drawer-item" onClick={onToggleNarration}>
+          <span className="drawer-icon">{narrationOn ? "🔊" : "🔇"}</span>
+          Narration
+          <span className={`drawer-toggle${narrationOn ? " drawer-toggle-on" : ""}`} />
         </button>
       </div>
 

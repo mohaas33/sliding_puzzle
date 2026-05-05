@@ -46,6 +46,14 @@ export function App() {
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
           <div className="top-bar-stats">
+            <span style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: "9px",
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+              color: "#c8a96e",
+              opacity: 0.6,
+            }}>Moves</span>
             <div style={{ position: "relative" }}>
               <span style={{ fontWeight: 700, fontSize: "1.2rem" }}>{game.moves}</span>
               {game.penaltyKey > 0 && (
@@ -282,12 +290,14 @@ export function App() {
         setShowResetConfirm={game.setShowResetConfirm}
         hintGlow={game.hintGlow}
         currentDifficulty={game.n}
+        narrationOn={narrationOn}
         handleShowMap={game.handleShowMap}
         handleRestartPuzzle={() => { game.startPuzzle(game.puzzleIdx); game.setMenuOpen(false); }}
         handleResetRequest={game.handleResetRequest}
         handleResetConfirm={game.handleResetConfirm}
         handleToggleHintGlow={game.handleToggleHintGlow}
         onChangeDifficulty={(newN) => { game.handleDifficultyChange(newN); game.setMenuOpen(false); }}
+        onToggleNarration={narration.handleToggleNarration}
       />
     </main>
   );
