@@ -431,6 +431,8 @@ export function useGameState(): GameStateHook {
   }
 
   function handleShowMap() {
+    if (winPhase === "lore") saveWinProgress(); // save if navigating away from win screen
+    setWinPhase("none");
     setTimerActive(false);
     setMenuOpen(false);
     setMapKey((k) => k + 1);
