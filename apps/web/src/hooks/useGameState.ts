@@ -1,20 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
-import type { Difficulty, Screen, WinPhase, ChapterProgress, PuzzleData, MissionPhase } from "../types";
-import type { NarrationHook } from "./useNarration";
+import type { Difficulty, Screen, WinPhase, PuzzleProgress, PuzzleData, MissionPhase } from "../types";
 import {
   INTRO_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
   NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY,
   RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
   VISION_MAX, VISION_DURATION_MS,
-  INTRO_NARRATION, PUZZLES, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
+  PUZZLES, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
   DIFFICULTY_INFO,
 } from "../constants";
 import {
   loadDifficulty, persistDifficulty, loadProgress, persistProgress,
   loadSave, writeSave, clearSave, saveKeyFor,
 } from "../utils/storage";
-import { getStars, nextSolverMove, personalize, calculatePoints, type PointsResult } from "../utils/solver";
+import { getStars, nextSolverMove, calculatePoints, type PointsResult } from "../utils/solver";
+
+export interface ChapterProgress {
+  stars: number;
+  completed: number;
+}
 
 export interface GameStateHook {
   n: Difficulty;
@@ -38,7 +42,7 @@ export interface GameStateHook {
   screen: Screen;
   startDifficulty: Difficulty;
   cinematicReady: boolean;
-  chapterProgress: ChapterProgress;
+  chapterProgress: Record<number, ChapterProgress>;
   mapKey: number;
   menuOpen: boolean;
   showResetConfirm: boolean;
@@ -69,7 +73,7 @@ export interface GameStateHook {
   handleBeginJourney: () => void;
   handleCinematicContinue: () => void;
   handleShowMap: () => void;
-  handleMapSelect: (idx: number) => void;
+  handleMapSelect: (chapterId: number) => void;
   handleToggleHintGlow: () => void;
   handleResetRequest: () => void;
   handleResetConfirm: () => void;
@@ -80,9 +84,7 @@ export interface GameStateHook {
   lastPuzzlePoints: PointsResult;
 }
 
-export function useGameState(narration: NarrationHook): GameStateHook {
-  const { narrate, stopNarration, narrationOnRef } = narration;
-
+export function useGameState(): GameStateHook {
   const initialN = useRef<Difficulty>(loadDifficulty()).current;
   const savedRef = useRef(loadSave(initialN));
 
@@ -112,7 +114,7 @@ export function useGameState(narration: NarrationHook): GameStateHook {
     localStorage.getItem(DIFFICULTY_KEY) ? loadDifficulty() : 3,
   );
   const [cinematicReady, setCinematicReady] = useState(false);
-  const [chapterProgress, setChapterProgress] = useState<ChapterProgress>(loadProgress);
+  const [puzzleProgress, setPuzzleProgress] = useState<Record<number, PuzzleProgress>>(loadProgress);
   const [mapKey, setMapKey] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -139,6 +141,16 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   const lastPuzzlePoints: PointsResult = winPhase === "lore"
     ? calculatePoints(stars, moves, elapsed, raLightUsed, thothUsed)
     : { total: 0, breakdown: "" };
+
+  // Aggregate puzzle-level progress into per-chapter summaries (8 puzzles per chapter)
+  const chapterProgress: Record<number, ChapterProgress> = {};
+  for (const [idStr, prog] of Object.entries(puzzleProgress)) {
+    const puzzleId = Number(idStr);
+    const chapterId = Math.ceil(puzzleId / 8);
+    if (!chapterProgress[chapterId]) chapterProgress[chapterId] = { stars: 0, completed: 0 };
+    chapterProgress[chapterId].stars += prog.stars ?? 0;
+    chapterProgress[chapterId].completed += 1;
+  }
 
   function lockMove() {
     setMoveLocked(true);
@@ -219,30 +231,14 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   // Confirm the initial tiles are in place before win checks run.
   useEffect(() => { setHasShuffled(true); }, []);
 
-  // Cinematic fallback — show Continue if narration never fires (speech blocked / off)
+  // Cinematic fallback — show Continue button after brief delay
   useEffect(() => {
     if (screen !== "cinematic") return;
     setCinematicReady(false);
-    const t = setTimeout(() => setCinematicReady(true), narrationOnRef.current ? 13000 : 2500);
+    const t = setTimeout(() => setCinematicReady(true), 2500);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
-
-  // Auto-narrate mission hook when game screen opens or puzzle changes
-  useEffect(() => {
-    if (screen !== "game") return;
-    const t = setTimeout(() => narrate(personalize(puzzle.hook, playerName), "lore"), 700);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen, puzzleIdx]);
-
-  // Auto-narrate win text when win card appears
-  useEffect(() => {
-    if (winPhase !== "lore") return;
-    const t = setTimeout(() => narrate(personalize(puzzle.win, playerName), "win"), 400);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [winPhase]);
 
   // Preload next puzzle's image while win screen is showing
   useEffect(() => {
@@ -280,7 +276,6 @@ export function useGameState(narration: NarrationHook): GameStateHook {
       return;
     }
     if (pressedIdx === idx && movable.has(idx)) {
-      if (moves === 0) stopNarration(); // first move — stop lore narration
       clearRaLight();
       const movedValue = tiles[idx]!;
       const newTiles = moveTile(tiles, idx, emptyIdx).tiles;
@@ -383,21 +378,20 @@ export function useGameState(narration: NarrationHook): GameStateHook {
 
   function saveWinProgress() {
     const pts = calculatePoints(stars, moves, elapsed, raLightUsed, thothUsed).total;
-    const prev = chapterProgress[puzzle.id];
-    const newProgress: ChapterProgress = {
-      ...chapterProgress,
+    const prev = puzzleProgress[puzzle.id];
+    const newPuzzleProgress: Record<number, PuzzleProgress> = {
+      ...puzzleProgress,
       [puzzle.id]: {
         stars: Math.max(stars, prev?.stars ?? 0),
         points: Math.max(pts, prev?.points ?? 0),
       },
     };
-    setChapterProgress(newProgress);
-    persistProgress(newProgress);
+    setPuzzleProgress(newPuzzleProgress);
+    persistProgress(newPuzzleProgress);
   }
 
   function handleNextShard() {
     saveWinProgress();
-    stopNarration();
     const isLast = puzzleIdx >= PUZZLES.length - 1;
     if (isLast) {
       setMapKey((k) => k + 1);
@@ -409,7 +403,6 @@ export function useGameState(narration: NarrationHook): GameStateHook {
 
   function handleViewMap() {
     saveWinProgress();
-    stopNarration();
     setMapKey((k) => k + 1);
     setScreen("map");
   }
@@ -419,17 +412,11 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handleBeginJourney() {
     persistDifficulty(startDifficulty);
     setN(startDifficulty);
-    stopNarration();
     setScreen("cinematic");
-    // Gesture-triggered narration — works on mobile
-    if (narrationOnRef.current) {
-      narrate(INTRO_NARRATION(playerName), "intro", () => setCinematicReady(true));
-    }
   }
 
   function handleCinematicContinue() {
     localStorage.setItem(INTRO_KEY, "1");
-    stopNarration();
     startPuzzle(0);
     setScreen("game");
   }
@@ -437,13 +424,12 @@ export function useGameState(narration: NarrationHook): GameStateHook {
   function handleShowMap() {
     setTimerActive(false);
     setMenuOpen(false);
-    stopNarration();
     setMapKey((k) => k + 1);
     setScreen("map");
   }
 
-  function handleMapSelect(idx: number) {
-    stopNarration();
+  function handleMapSelect(chapterId: number) {
+    const idx = (chapterId - 1) * 8;
     startPuzzle(idx);
     setScreen("game");
   }

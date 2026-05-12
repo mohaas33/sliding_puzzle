@@ -9,7 +9,6 @@ interface GameMenuProps {
   setShowResetConfirm: (v: boolean) => void;
   hintGlow: boolean;
   currentDifficulty: Difficulty;
-  narrationOn: boolean;
   musicMuted: boolean;
   handleShowMap: () => void;
   handleRestartPuzzle: () => void;
@@ -17,7 +16,6 @@ interface GameMenuProps {
   handleResetConfirm: () => void;
   handleToggleHintGlow: () => void;
   onChangeDifficulty: (n: Difficulty) => void;
-  onToggleNarration: () => void;
   onToggleMusic: () => void;
 }
 
@@ -28,7 +26,6 @@ export function GameMenu({
   setShowResetConfirm,
   hintGlow,
   currentDifficulty,
-  narrationOn,
   musicMuted,
   handleShowMap,
   handleRestartPuzzle,
@@ -36,7 +33,6 @@ export function GameMenu({
   handleResetConfirm,
   handleToggleHintGlow,
   onChangeDifficulty,
-  onToggleNarration,
   onToggleMusic,
 }: GameMenuProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -125,12 +121,6 @@ export function GameMenu({
           <span className="drawer-icon">💡</span>
           Movable Tile Glow
           <span className={`drawer-toggle${hintGlow ? " drawer-toggle-on" : ""}`} />
-        </button>
-
-        <button className="drawer-item" onClick={onToggleNarration}>
-          <span className="drawer-icon">{narrationOn ? "🗣" : "🔕"}</span>
-          Narration
-          <span className={`drawer-toggle${narrationOn ? " drawer-toggle-on" : ""}`} />
         </button>
 
         <button className="drawer-item" onClick={onToggleMusic}>

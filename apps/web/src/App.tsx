@@ -1,14 +1,12 @@
-import { useNarration } from "./hooks/useNarration";
 import { useGameState } from "./hooks/useGameState";
 import { useAudio } from "./hooks/useAudio";
 import { StartScreen } from "./components/StartScreen";
-import { ChapterMap } from "./components/ChapterMap";
+import { WorldMapScreen } from "./components/WorldMapScreen";
 import { GameBoard } from "./components/GameBoard";
 import { WinScreen } from "./components/WinScreen";
 import { GameMenu } from "./components/GameMenu";
 import { MissionCard } from "./components/MissionCard";
 import { ScoreBreakdown } from "./components/ScoreBreakdown";
-import { Waveform } from "./components/Waveform";
 import {
   DEV_MODE, CHAPTER_LABEL, DIFFICULTY_INFO,
   RA_LIGHT_MAX, THOTH_HAND_MAX, VISION_MAX,
@@ -16,13 +14,11 @@ import {
 import { formatTime } from "./utils/solver";
 
 export function App() {
-  const narration = useNarration();
-  const game = useGameState(narration);
-  const { narrationOn, narratingCtx } = narration;
+  const game = useGameState();
   const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed, n: game.n });
 
   const totalScore = Object.values(game.chapterProgress).reduce(
-    (sum, p) => sum + (p.points ?? 0), 0,
+    (sum, p) => sum + (p.stars ?? 0), 0,
   );
 
   return (
@@ -73,14 +69,6 @@ export function App() {
           </div>
 
           <button
-            className={`narration-btn${narratingCtx !== null && narrationOn ? " narration-btn-active" : ""}`}
-            onClick={narration.handleToggleNarration}
-            title={narrationOn ? "Mute narration" : "Enable narration"}
-            aria-label={narrationOn ? "Mute narration" : "Enable narration"}
-          >
-            {narrationOn && narratingCtx !== null ? <Waveform /> : narrationOn ? "🗣" : "🔕"}
-          </button>
-          <button
             className="narration-btn"
             onClick={audio.toggleMute}
             title={audio.isMuted ? "Unmute music" : "Mute music"}
@@ -91,7 +79,7 @@ export function App() {
         </div>
       </div>
 
-      {/* Mission bar (collapsed, in-flow) */}
+      {/* Mission bar */}
       {game.missionPhase === "bar" && !game.frozen && (
         <MissionCard
           phase="bar"
@@ -102,7 +90,7 @@ export function App() {
         />
       )}
 
-      {/* Board + Favor panel share the same max-width container */}
+      {/* Board + Favor panel */}
       <div className="board-column">
         <GameBoard
           n={game.n}
@@ -121,7 +109,6 @@ export function App() {
           onPointerUp={game.handlePointerUp}
         />
 
-        {/* Favor of the Gods — inline below board, same width */}
         {game.screen === "game" && !game.frozen && (
           <div className="favor-panel">
             <span className="favor-panel-label">Favor of the Gods</span>
@@ -186,9 +173,6 @@ export function App() {
       {/* Start screen */}
       {game.screen === "start" && (
         <StartScreen
-          narrator={narration.narrator}
-          onSetNarrator={narration.handleSetNarrator}
-          playSample={narration.playSample}
           startDifficulty={game.startDifficulty}
           setStartDifficulty={game.setStartDifficulty}
           handleBeginJourney={game.handleBeginJourney}
@@ -216,7 +200,6 @@ export function App() {
             <p className="cinematic-p3">
               Anubis has spoken your judgment: restore every shattered shard before the
               next eclipse — or your soul will be weighed against a stone, not a feather.
-              {narratingCtx === "intro" && narrationOn && <Waveform />}
             </p>
             <p className="cinematic-p4">
               Begin, <em>{game.playerName}</em>.
@@ -235,24 +218,18 @@ export function App() {
         </div>
       )}
 
-      {/* Chapter map */}
+      {/* World map */}
       {game.screen === "map" && (
-        <ChapterMap
+        <WorldMapScreen
           key={game.mapKey}
           chapterProgress={game.chapterProgress}
-          narrationOn={narrationOn}
-          narrationOnRef={narration.narrationOnRef}
-          narratingCtx={narratingCtx}
-          narratingMapId={narration.narratingMapId}
-          setNarratingCtx={narration.setNarratingCtx}
-          setNarratingMapId={narration.setNarratingMapId}
-          handleMapSelect={game.handleMapSelect}
-          handleResetRequest={game.handleResetRequest}
-          stopNarration={narration.stopNarration}
+          builtChapters={[1]}
+          onSelectChapter={(chapterId) => game.handleMapSelect(chapterId)}
+          onResetRequest={game.handleResetRequest}
         />
       )}
 
-      {/* Mission overlay (full / exiting) */}
+      {/* Mission overlay */}
       {(game.missionPhase === "full" || game.missionPhase === "exiting") && game.screen === "game" && !game.frozen && (
         <MissionCard
           phase={game.missionPhase as "full" | "exiting"}
@@ -263,7 +240,7 @@ export function App() {
         />
       )}
 
-      {/* Win overlay — stays open until player taps a button, no auto-dismiss */}
+      {/* Win screen */}
       {game.winPhase === "lore" && (
         <WinScreen
           puzzle={game.puzzle}
@@ -276,15 +253,13 @@ export function App() {
           thothUsed={game.thothUsed}
           visionUsed={game.visionUsed}
           puzzlePoints={game.lastPuzzlePoints.total}
-          narrationOn={narrationOn}
-          narratingCtx={narratingCtx}
           handlePlayAgain={game.handlePlayAgain}
           handleNextShard={game.handleNextShard}
           handleViewMap={game.handleViewMap}
         />
       )}
 
-      {/* Score breakdown — animates during the reveal phase, before win card */}
+      {/* Score breakdown */}
       {game.winPhase === "reveal" && (
         <ScoreBreakdown
           stars={game.stars}
@@ -302,7 +277,6 @@ export function App() {
         setShowResetConfirm={game.setShowResetConfirm}
         hintGlow={game.hintGlow}
         currentDifficulty={game.n}
-        narrationOn={narrationOn}
         musicMuted={audio.isMuted}
         handleShowMap={game.handleShowMap}
         handleRestartPuzzle={() => { game.startPuzzle(game.puzzleIdx); game.setMenuOpen(false); }}
@@ -310,7 +284,6 @@ export function App() {
         handleResetConfirm={game.handleResetConfirm}
         handleToggleHintGlow={game.handleToggleHintGlow}
         onChangeDifficulty={(newN) => { game.handleDifficultyChange(newN); game.setMenuOpen(false); }}
-        onToggleNarration={narration.handleToggleNarration}
         onToggleMusic={audio.toggleMute}
       />
     </main>

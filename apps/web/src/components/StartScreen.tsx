@@ -1,5 +1,5 @@
-import type { Difficulty, Narrator } from "../types";
-import { NARRATORS, DIFFICULTY_INFO, PUZZLES, PARTICLES } from "../constants";
+import type { Difficulty } from "../types";
+import { DIFFICULTY_INFO, PUZZLES, PARTICLES } from "../constants";
 import { loadProgress } from "../utils/storage";
 
 const NAME_PRESETS = [
@@ -11,17 +11,7 @@ const NAME_PRESETS = [
 
 const DIFFICULTIES: (3 | 4 | 5)[] = [3, 4, 5];
 
-const NARRATOR_FLAVOR: Record<Narrator, string> = {
-  osiris: "Deep & Authoritative",
-  isis:   "Warm & Mysterious",
-  thoth:  "Calm & Neutral",
-  off:    "No narration",
-};
-
 interface StartScreenProps {
-  narrator: Narrator;
-  onSetNarrator: (narrator: Narrator) => void;
-  playSample: (narrator: Narrator) => void;
   startDifficulty: Difficulty;
   setStartDifficulty: (n: Difficulty) => void;
   handleBeginJourney: () => void;
@@ -52,9 +42,6 @@ function Particles() {
 }
 
 export function StartScreen({
-  narrator,
-  onSetNarrator,
-  playSample,
   startDifficulty,
   setStartDifficulty,
   handleBeginJourney,
@@ -88,22 +75,6 @@ export function StartScreen({
 
         <div className="start-options">
           {/* ── Narrator ── */}
-          <div className="start-option-group">
-            <span className="start-option-label">Narrator</span>
-            <div className="narrator-pills">
-              {NARRATORS.map((info) => (
-                <button
-                  key={info.id}
-                  className={`narrator-pill${narrator === info.id ? " narrator-pill-active" : ""}`}
-                  onClick={() => { onSetNarrator(info.id); if (info.id !== "off") playSample(info.id); }}
-                >
-                  {info.name}
-                </button>
-              ))}
-            </div>
-            <p className="narrator-flavor">{NARRATOR_FLAVOR[narrator]}</p>
-          </div>
-
           {/* ── Player name ── */}
           <div className="start-option-group">
             <span className="start-option-label">Your name in the Book of the Dead</span>

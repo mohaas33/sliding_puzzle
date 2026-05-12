@@ -1,7 +1,6 @@
-import type { PuzzleData, NarrationContext } from "../types";
+import type { PuzzleData } from "../types";
 import { PUZZLES } from "../constants";
 import { formatTime, personalize } from "../utils/solver";
-import { Waveform } from "./Waveform";
 
 interface WinScreenProps {
   puzzle: PuzzleData;
@@ -14,8 +13,6 @@ interface WinScreenProps {
   thothUsed: number;
   visionUsed: number;
   puzzlePoints: number;
-  narrationOn: boolean;
-  narratingCtx: NarrationContext;
   handlePlayAgain: () => void;
   handleNextShard: () => void;
   handleViewMap: () => void;
@@ -53,8 +50,6 @@ export function WinScreen({
   thothUsed,
   visionUsed,
   puzzlePoints,
-  narrationOn,
-  narratingCtx,
   handlePlayAgain,
   handleNextShard,
   handleViewMap,
@@ -155,7 +150,6 @@ export function WinScreen({
           }}
         >
           {personalize(puzzle.win, playerName)}
-          {narratingCtx === "win" && narrationOn && <Waveform />}
         </p>
 
         {/* Personalized stats bar */}
