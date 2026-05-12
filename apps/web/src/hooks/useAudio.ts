@@ -129,9 +129,9 @@ export function useAudio({
     const t: Record<TrackName, HTMLAudioElement> = {
       menu:    new Audio(url("Menu Egyptian v312.ogg")),
       ambient: new Audio(url("Calm_Socapex - Dark Ambiance - Mastered.ogg")),
-      map:     new Audio(url("Temple of the Mystics.wav")),
+      map:     new Audio(url("Temple of the Mystics.ogg")),
       intense: new Audio(url("intense_ancient_ruins.mp3")),
-      win:     new Audio(url("LevelUp_Convert.wav")),
+      win:     new Audio(url("LevelUp_Convert.ogg")),
     };
     t.menu.loop    = true;
     t.ambient.loop = true;
