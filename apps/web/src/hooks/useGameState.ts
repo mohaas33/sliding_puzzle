@@ -393,12 +393,19 @@ export function useGameState(): GameStateHook {
 
   function handleNextShard() {
     saveWinProgress();
-    setMapKey((k) => k + 1);
-    setScreen("map");
+    if (puzzleIdx >= PUZZLES.length - 1) {
+      setWinPhase("none");
+      setMapKey((k) => k + 1);
+      setScreen("map");
+    } else {
+      startPuzzle(puzzleIdx + 1); // resets winPhase to "none" internally
+      setScreen("game");
+    }
   }
 
   function handleViewMap() {
     saveWinProgress();
+    setWinPhase("none"); // clear win overlay before showing map
     setMapKey((k) => k + 1);
     setScreen("map");
   }
