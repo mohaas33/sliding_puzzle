@@ -110,6 +110,9 @@ export function WorldMapScreen({
   onSelectChapter,
   onResetRequest,
 }: Props) {
+  // Debug: log the raw progress so we can verify the data shape
+  console.log('[WorldMapScreen] puzzleProgress:', JSON.stringify(puzzleProgress));
+
   // Total stars across all built chapters
   let totalStars = 0;
   let totalMaxStars = 0;

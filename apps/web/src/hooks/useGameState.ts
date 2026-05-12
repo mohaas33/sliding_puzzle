@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
 import type { Difficulty, Screen, WinPhase, PuzzleProgress, PuzzleData, MissionPhase } from "../types";
 import {
-  INTRO_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
+  INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
   NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY,
   RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
   VISION_MAX, VISION_DURATION_MS,
@@ -108,9 +108,7 @@ export function useGameState(): GameStateHook {
   const [moveLocked, setMoveLocked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [hasShuffled, setHasShuffled] = useState(false);
-  const [screen, setScreen] = useState<Screen>(() =>
-    localStorage.getItem(INTRO_KEY) ? "map" : "start",
-  );
+  const [screen, setScreen] = useState<Screen>("start");
   const [startDifficulty, setStartDifficulty] = useState<Difficulty>(() =>
     localStorage.getItem(DIFFICULTY_KEY) ? loadDifficulty() : 3,
   );
@@ -387,6 +385,7 @@ export function useGameState(): GameStateHook {
         points: Math.max(pts, prev?.points ?? 0),
       },
     };
+    console.log('[saveWinProgress] puzzle.id:', puzzle.id, 'stars:', stars, 'newPuzzleProgress:', JSON.stringify(newPuzzleProgress));
     setPuzzleProgress(newPuzzleProgress);
     persistProgress(newPuzzleProgress);
   }
@@ -415,11 +414,18 @@ export function useGameState(): GameStateHook {
   function handleBeginJourney() {
     persistDifficulty(startDifficulty);
     setN(startDifficulty);
-    setScreen("cinematic");
+    if (localStorage.getItem(CINEMATIC_SEEN_KEY)) {
+      // Cinematic already played — go straight to the world map
+      setMapKey((k) => k + 1);
+      setScreen("map");
+    } else {
+      setScreen("cinematic");
+    }
   }
 
   function handleCinematicContinue() {
     localStorage.setItem(INTRO_KEY, "1");
+    localStorage.setItem(CINEMATIC_SEEN_KEY, "1");
     setMapKey((k) => k + 1);
     setScreen("map");
   }
@@ -449,7 +455,7 @@ export function useGameState(): GameStateHook {
 
   function handleResetConfirm() {
     [
-      INTRO_KEY, PROGRESS_KEY, DIFFICULTY_KEY, HINT_GLOW_KEY,
+      INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, DIFFICULTY_KEY, HINT_GLOW_KEY,
       NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY, PLAYER_NAME_KEY,
       saveKeyFor(3), saveKeyFor(4), saveKeyFor(5),
     ].forEach((k) => localStorage.removeItem(k));

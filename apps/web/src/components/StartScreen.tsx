@@ -68,7 +68,6 @@ export function StartScreen({
         <div className="start-top">
           <div className="gold-sep" />
           <h1 className="start-title">Shards of Time</h1>
-          <p className="start-subtitle">Chapter I · Ancient Egypt</p>
           <div className="gold-sep" />
           <p className="start-tagline">Piece history back together, one shard at a time.</p>
         </div>
@@ -142,7 +141,7 @@ export function StartScreen({
         </div>
       </div>
 
-      <p className="start-chapter-footer">Chapter I of V · Ancient Egypt</p>
+      <p className="start-chapter-footer">Five chapters · Five civilizations</p>
     </div>
   );
 }

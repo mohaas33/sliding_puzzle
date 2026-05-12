@@ -8,6 +8,7 @@ export const GAP_PX = 6;
 
 export const DIFFICULTY_KEY = "shards_of_time_difficulty_v1";
 export const INTRO_KEY = "shards_of_time_chapter1_intro_seen";
+export const CINEMATIC_SEEN_KEY = "shards_of_time_cinematic_seen";
 export const PROGRESS_KEY = "shards_of_time_chapter1_progress";
 export const HINT_GLOW_KEY = "shards_of_time_hint_glow";
 export const NARRATION_KEY = "shards_of_time_narration";
