@@ -17,8 +17,8 @@ export function App() {
   const game = useGameState();
   const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed, n: game.n });
 
-  const totalScore = Object.values(game.chapterProgress).reduce(
-    (sum, p) => sum + (p.stars ?? 0), 0,
+  const totalScore = Object.values(game.puzzleProgress).reduce(
+    (sum, p) => sum + (p.points ?? 0), 0,
   );
 
   return (
@@ -27,60 +27,62 @@ export function App() {
       style={{ paddingTop: 16, paddingBottom: 24 }}
       onPointerUp={() => game.setPressedIdx(null)}
     >
-      {/* Top bar */}
-      <div className="top-bar">
-        <button
-          onClick={() => game.setMenuOpen(true)}
-          className="hamburger-btn"
-          aria-label="Open menu"
-        >
-          <span /><span /><span />
-        </button>
+      {/* Top bar — only during active gameplay */}
+      {game.screen === "game" && (
+        <div className="top-bar">
+          <button
+            onClick={() => game.setMenuOpen(true)}
+            className="hamburger-btn"
+            aria-label="Open menu"
+          >
+            <span /><span /><span />
+          </button>
 
-        <p className="top-bar-name">
-          {game.puzzle.name}
-          <span className="diff-badge">{DIFFICULTY_INFO[game.n].starsSymbol}</span>
-        </p>
+          <p className="top-bar-name">
+            {game.puzzle.name}
+            <span className="diff-badge">{DIFFICULTY_INFO[game.n].starsSymbol}</span>
+          </p>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <div className="top-bar-stats">
-            <span style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: "9px",
-              letterSpacing: "1px",
-              textTransform: "uppercase",
-              color: "#c8a96e",
-              opacity: 0.6,
-            }}>Moves</span>
-            <div style={{ position: "relative" }}>
-              <span style={{ fontWeight: 700, fontSize: "1.2rem" }}>{game.moves}</span>
-              {game.penaltyKey > 0 && (
-                <span key={game.penaltyKey} className="penalty-pop">+{game.lastPenalty}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            <div className="top-bar-stats">
+              <span style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: "9px",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                color: "#c8a96e",
+                opacity: 0.6,
+              }}>Moves</span>
+              <div style={{ position: "relative" }}>
+                <span style={{ fontWeight: 700, fontSize: "1.2rem" }}>{game.moves}</span>
+                {game.penaltyKey > 0 && (
+                  <span key={game.penaltyKey} className="penalty-pop">+{game.lastPenalty}</span>
+                )}
+              </div>
+              <span style={{ opacity: 0.3 }}>·</span>
+              <span>{formatTime(game.elapsed)}</span>
+              {totalScore > 0 && (
+                <>
+                  <span style={{ opacity: 0.3 }}>·</span>
+                  <span>✦ {totalScore.toLocaleString()}</span>
+                </>
               )}
             </div>
-            <span style={{ opacity: 0.3 }}>·</span>
-            <span>{formatTime(game.elapsed)}</span>
-            {totalScore > 0 && (
-              <>
-                <span style={{ opacity: 0.3 }}>·</span>
-                <span>✦ {totalScore.toLocaleString()}</span>
-              </>
-            )}
+
+            <button
+              className="narration-btn"
+              onClick={audio.toggleMute}
+              title={audio.isMuted ? "Unmute music" : "Mute music"}
+              aria-label={audio.isMuted ? "Unmute music" : "Mute music"}
+            >
+              {audio.isMuted ? "🔇" : "🔊"}
+            </button>
           </div>
-
-          <button
-            className="narration-btn"
-            onClick={audio.toggleMute}
-            title={audio.isMuted ? "Unmute music" : "Mute music"}
-            aria-label={audio.isMuted ? "Unmute music" : "Mute music"}
-          >
-            {audio.isMuted ? "🔇" : "🔊"}
-          </button>
         </div>
-      </div>
+      )}
 
-      {/* Mission bar */}
-      {game.missionPhase === "bar" && !game.frozen && (
+      {/* Mission bar — only during active gameplay */}
+      {game.screen === "game" && game.missionPhase === "bar" && !game.frozen && (
         <MissionCard
           phase="bar"
           puzzle={game.puzzle}
@@ -90,57 +92,59 @@ export function App() {
         />
       )}
 
-      {/* Board + Favor panel */}
-      <div className="board-column">
-        <GameBoard
-          n={game.n}
-          tiles={game.tiles}
-          puzzle={game.puzzle}
-          imageLoaded={game.imageLoaded}
-          winPhase={game.winPhase}
-          frozen={game.frozen}
-          moveLocked={game.moveLocked}
-          movable={game.movable}
-          raLightIdx={game.raLightIdx}
-          hintGlow={game.hintGlow}
-          visionActive={game.visionActive}
-          pressedIdx={game.pressedIdx}
-          onPointerDown={game.handlePointerDown}
-          onPointerUp={game.handlePointerUp}
-        />
+      {/* Board + Favor panel — only during active gameplay */}
+      {game.screen === "game" && (
+        <div className="board-column">
+          <GameBoard
+            n={game.n}
+            tiles={game.tiles}
+            puzzle={game.puzzle}
+            imageLoaded={game.imageLoaded}
+            winPhase={game.winPhase}
+            frozen={game.frozen}
+            moveLocked={game.moveLocked}
+            movable={game.movable}
+            raLightIdx={game.raLightIdx}
+            hintGlow={game.hintGlow}
+            visionActive={game.visionActive}
+            pressedIdx={game.pressedIdx}
+            onPointerDown={game.handlePointerDown}
+            onPointerUp={game.handlePointerUp}
+          />
 
-        {game.screen === "game" && !game.frozen && (
-          <div className="favor-panel">
-            <span className="favor-panel-label">Favor of the Gods</span>
-            <div className="favor-btn-row">
-              <button
-                className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
-                onClick={game.handleRaLight}
-                disabled={game.raLightUsed >= RA_LIGHT_MAX}
-                title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : "+2 moves"}
-              >
-                ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
-              </button>
-              <button
-                className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
-                onClick={game.handleThothHand}
-                disabled={game.thothUsed >= THOTH_HAND_MAX}
-                title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : "+5 moves"}
-              >
-                𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
-              </button>
-              <button
-                className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
-                onClick={game.handleVisionOfOsiris}
-                disabled={game.visionUsed >= VISION_MAX}
-                title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
-              >
-                ◈ Vision ({VISION_MAX - game.visionUsed})
-              </button>
+          {!game.frozen && (
+            <div className="favor-panel">
+              <span className="favor-panel-label">Favor of the Gods</span>
+              <div className="favor-btn-row">
+                <button
+                  className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
+                  onClick={game.handleRaLight}
+                  disabled={game.raLightUsed >= RA_LIGHT_MAX}
+                  title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : "+2 moves"}
+                >
+                  ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
+                </button>
+                <button
+                  className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
+                  onClick={game.handleThothHand}
+                  disabled={game.thothUsed >= THOTH_HAND_MAX}
+                  title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : "+5 moves"}
+                >
+                  𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
+                </button>
+                <button
+                  className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
+                  onClick={game.handleVisionOfOsiris}
+                  disabled={game.visionUsed >= VISION_MAX}
+                  title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
+                >
+                  ◈ Vision ({VISION_MAX - game.visionUsed})
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Dev shortcut */}
       {DEV_MODE && (
@@ -222,7 +226,7 @@ export function App() {
       {game.screen === "map" && (
         <WorldMapScreen
           key={game.mapKey}
-          chapterProgress={game.chapterProgress}
+          puzzleProgress={game.puzzleProgress}
           builtChapters={[1]}
           onSelectChapter={(chapterId) => game.handleMapSelect(chapterId)}
           onResetRequest={game.handleResetRequest}
@@ -230,7 +234,7 @@ export function App() {
       )}
 
       {/* Mission overlay */}
-      {(game.missionPhase === "full" || game.missionPhase === "exiting") && game.screen === "game" && !game.frozen && (
+      {game.screen === "game" && (game.missionPhase === "full" || game.missionPhase === "exiting") && !game.frozen && (
         <MissionCard
           phase={game.missionPhase as "full" | "exiting"}
           puzzle={game.puzzle}

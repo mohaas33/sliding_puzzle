@@ -42,6 +42,7 @@ export interface GameStateHook {
   screen: Screen;
   startDifficulty: Difficulty;
   cinematicReady: boolean;
+  puzzleProgress: Record<number, PuzzleProgress>;
   chapterProgress: Record<number, ChapterProgress>;
   mapKey: number;
   menuOpen: boolean;
@@ -392,13 +393,8 @@ export function useGameState(): GameStateHook {
 
   function handleNextShard() {
     saveWinProgress();
-    const isLast = puzzleIdx >= PUZZLES.length - 1;
-    if (isLast) {
-      setMapKey((k) => k + 1);
-      setScreen("map");
-    } else {
-      startPuzzle(puzzleIdx + 1);
-    }
+    setMapKey((k) => k + 1);
+    setScreen("map");
   }
 
   function handleViewMap() {
@@ -417,8 +413,8 @@ export function useGameState(): GameStateHook {
 
   function handleCinematicContinue() {
     localStorage.setItem(INTRO_KEY, "1");
-    startPuzzle(0);
-    setScreen("game");
+    setMapKey((k) => k + 1);
+    setScreen("map");
   }
 
   function handleShowMap() {
@@ -457,7 +453,7 @@ export function useGameState(): GameStateHook {
     n, puzzleIdx, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
     raLightIdx, raLightUsed, thothUsed, visionUsed, visionActive,
     penaltyKey, lastPenalty, moveLocked, imageLoaded,
-    hasShuffled, screen, startDifficulty, cinematicReady, chapterProgress, mapKey,
+    hasShuffled, screen, startDifficulty, cinematicReady, puzzleProgress, chapterProgress, mapKey,
     menuOpen, showResetConfirm, hintGlow, missionPhase,
     puzzle, emptyIdx, movable, solved, frozen, stars,
     setMenuOpen, setShowResetConfirm, setStartDifficulty, setPressedIdx,

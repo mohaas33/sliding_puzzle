@@ -1,4 +1,4 @@
-import type { ChapterProgress } from "../hooks/useGameState";
+import type { PuzzleProgress } from "../types";
 
 const CHAPTERS = [
   {
@@ -49,21 +49,39 @@ const CHAPTERS = [
 ] as const;
 
 interface Props {
-  chapterProgress: Record<number, ChapterProgress>;
+  // Raw per-puzzle progress keyed by puzzle.id (1-based)
+  puzzleProgress: Record<number, PuzzleProgress>;
   // For now only chapter 1 is built — others show as "coming soon"
   builtChapters?: number[];
   onSelectChapter: (chapterId: number) => void;
   onResetRequest: () => void;
 }
 
-function Stars({ earned, max }: { earned: number; max: number }) {
+// Puzzles are numbered 1–8 per chapter: chapter 1 → puzzles 1-8, chapter 2 → 9-16, etc.
+function chapterStats(
+  puzzleProgress: Record<number, PuzzleProgress>,
+  chapterId: number,
+  puzzleCount: number,
+): { stars: number; completed: number } {
+  const first = (chapterId - 1) * puzzleCount + 1;
+  const last = chapterId * puzzleCount;
+  let stars = 0, completed = 0;
+  for (let id = first; id <= last; id++) {
+    const p = puzzleProgress[id];
+    if (p) { stars += p.stars ?? 0; completed++; }
+  }
+  return { stars, completed };
+}
+
+function StarRow({ earned, max }: { earned: number; max: number }) {
+  if (max === 0) return null;
   return (
     <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
       {Array.from({ length: max }).map((_, i) => (
         <span
           key={i}
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: i < earned ? "#c8a96e" : "rgba(200,169,110,0.2)",
             lineHeight: 1,
           }}
@@ -75,7 +93,7 @@ function Stars({ earned, max }: { earned: number; max: number }) {
         style={{
           fontSize: 11,
           color: "rgba(200,169,110,0.5)",
-          marginLeft: 5,
+          marginLeft: 4,
           fontFamily: "'Cinzel', serif",
           letterSpacing: "0.05em",
         }}
@@ -86,29 +104,35 @@ function Stars({ earned, max }: { earned: number; max: number }) {
   );
 }
 
-export function WorldMapScreen({ chapterProgress, builtChapters = [1], onSelectChapter, onResetRequest }: Props) {
-  const totalStars = Object.values(chapterProgress).reduce(
-    (sum, p) => sum + (p.stars ?? 0),
-    0
-  );
-  const totalMaxStars = builtChapters.reduce(
-    (sum, id) => sum + (CHAPTERS.find((c) => c.id === id)?.puzzleCount ?? 0) * 3,
-    0
-  );
+export function WorldMapScreen({
+  puzzleProgress,
+  builtChapters = [1],
+  onSelectChapter,
+  onResetRequest,
+}: Props) {
+  // Total stars across all built chapters
+  let totalStars = 0;
+  let totalMaxStars = 0;
+  for (const ch of CHAPTERS) {
+    if (!builtChapters.includes(ch.id)) continue;
+    const { stars, completed } = chapterStats(puzzleProgress, ch.id, ch.puzzleCount);
+    totalStars += stars;
+    totalMaxStars += completed * 3; // max for puzzles actually attempted
+  }
 
-  // Chapter 1 is always unlocked; chapter N unlocks when chapter N-1 has any completed puzzle
+  // Chapter 1 always unlocked; chapter N unlocks when chapter N-1 has any completion
   function isUnlocked(chapterId: number): boolean {
     if (!builtChapters.includes(chapterId)) return false;
     if (chapterId === 1) return true;
-    const prev = chapterProgress[chapterId - 1];
-    return prev != null && (prev.completed ?? 0) > 0;
+    const prev = chapterStats(puzzleProgress, chapterId - 1, CHAPTERS[chapterId - 2]!.puzzleCount);
+    return prev.completed > 0;
   }
 
   function getStatus(chapterId: number): "complete" | "unlocked" | "coming" | "locked" {
     if (!builtChapters.includes(chapterId)) return "coming";
-    const prog = chapterProgress[chapterId];
-    const puzzleCount = CHAPTERS.find((c) => c.id === chapterId)?.puzzleCount ?? 8;
-    if ((prog?.completed ?? 0) >= puzzleCount) return "complete";
+    const chapter = CHAPTERS.find((c) => c.id === chapterId)!;
+    const { completed } = chapterStats(puzzleProgress, chapterId, chapter.puzzleCount);
+    if (completed >= chapter.puzzleCount) return "complete";
     if (isUnlocked(chapterId)) return "unlocked";
     return "locked";
   }
@@ -151,7 +175,7 @@ export function WorldMapScreen({ chapterProgress, builtChapters = [1], onSelectC
         >
           World Map
         </h1>
-        {totalMaxStars > 0 && (
+        {totalStars > 0 && (
           <p
             style={{
               fontSize: 13,
@@ -170,10 +194,11 @@ export function WorldMapScreen({ chapterProgress, builtChapters = [1], onSelectC
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {CHAPTERS.map((chapter) => {
           const status = getStatus(chapter.id);
-          const prog = chapterProgress[chapter.id];
-          const earnedStars = prog?.stars ?? 0;
-          const maxStars = chapter.puzzleCount * 3;
-          const completedPuzzles = prog?.completed ?? 0;
+          const { stars: earnedStars, completed: completedPuzzles } = chapterStats(
+            puzzleProgress,
+            chapter.id,
+            chapter.puzzleCount,
+          );
           const isClickable = status === "unlocked" || status === "complete";
 
           return (
@@ -253,7 +278,7 @@ export function WorldMapScreen({ chapterProgress, builtChapters = [1], onSelectC
                     style={{
                       fontSize: 12,
                       color: "rgba(200,169,110,0.5)",
-                      margin: "0 0 8px",
+                      margin: "0 0 6px",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -262,11 +287,12 @@ export function WorldMapScreen({ chapterProgress, builtChapters = [1], onSelectC
                     {chapter.tagline}
                   </p>
 
-                  {status !== "coming" && (
-                    <Stars earned={earnedStars} max={maxStars} />
+                  {/* Stars: only shown once at least one puzzle is done */}
+                  {completedPuzzles > 0 && (
+                    <StarRow earned={earnedStars} max={completedPuzzles * 3} />
                   )}
 
-                  {/* Progress bar */}
+                  {/* Puzzle completion progress bar */}
                   {(status === "complete" || status === "unlocked") && (
                     <div
                       style={{
@@ -359,7 +385,7 @@ export function WorldMapScreen({ chapterProgress, builtChapters = [1], onSelectC
                       fontFamily: "'Cinzel', serif",
                     }}
                   >
-                    {chapter.puzzleCount} shards
+                    {completedPuzzles}/{chapter.puzzleCount}
                   </span>
                 </div>
               </div>
