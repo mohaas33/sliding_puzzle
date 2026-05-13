@@ -2,6 +2,14 @@ import type { PuzzleData } from "../types";
 import { PUZZLES } from "../constants";
 import { formatTime, personalize } from "../utils/solver";
 
+const CHAPTER_ACCENT: Record<number, { primary: string; dim: string; bg: string }> = {
+  1: { primary: "#c8a96e", dim: "rgba(200,169,110,0.5)",  bg: "rgba(200,169,110,0.08)" },
+  2: { primary: "#7eb8e8", dim: "rgba(126,184,232,0.5)",  bg: "rgba(126,184,232,0.08)" },
+  3: { primary: "#5dcaa5", dim: "rgba(93,202,165,0.5)",   bg: "rgba(93,202,165,0.08)"  },
+  4: { primary: "#ef9f27", dim: "rgba(239,159,39,0.5)",   bg: "rgba(239,159,39,0.08)"  },
+  5: { primary: "#afa9ec", dim: "rgba(175,169,236,0.5)",  bg: "rgba(175,169,236,0.08)" },
+};
+
 interface WinScreenProps {
   puzzle: PuzzleData;
   puzzleIdx: number;
@@ -13,6 +21,7 @@ interface WinScreenProps {
   thothUsed: number;
   visionUsed: number;
   puzzlePoints: number;
+  chapterId?: number;
   handlePlayAgain: () => void;
   handleNextShard: () => void;
   handleViewMap: () => void;
@@ -50,10 +59,13 @@ export function WinScreen({
   thothUsed,
   visionUsed,
   puzzlePoints,
+  chapterId = 1,
   handlePlayAgain,
   handleNextShard,
   handleViewMap,
 }: WinScreenProps) {
+  const accent = CHAPTER_ACCENT[chapterId] ?? CHAPTER_ACCENT[1]!;
+
   return (
     <div className="win-overlay" onClick={(e) => e.stopPropagation()}>
       <div className="win-card">
@@ -79,7 +91,7 @@ export function WinScreen({
             fontSize: "0.65rem",
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "#c8a96e",
+            color: accent.primary,
             opacity: 0.7,
             marginBottom: 10,
             textAlign: "center",
@@ -94,7 +106,7 @@ export function WinScreen({
             style={{
               height: 3,
               borderRadius: 2,
-              background: "rgba(200,169,110,0.15)",
+              background: accent.bg,
               overflow: "hidden",
             }}
           >
@@ -102,7 +114,7 @@ export function WinScreen({
               style={{
                 height: "100%",
                 width: `${(puzzle.id / PUZZLES.length) * 100}%`,
-                background: "linear-gradient(90deg, #a07840, #c8a96e)",
+                background: `linear-gradient(90deg, ${accent.dim}, ${accent.primary})`,
                 borderRadius: 2,
                 transition: "width 0.6s ease",
               }}
@@ -115,7 +127,7 @@ export function WinScreen({
           style={{
             fontSize: "1.6rem",
             letterSpacing: "0.2em",
-            color: "#c8a96e",
+            color: accent.primary,
             margin: "10px 0 6px",
           }}
         >
@@ -181,7 +193,7 @@ export function WinScreen({
             fontFamily: "'Crimson Text', serif",
             fontStyle: "italic",
             fontSize: "0.82rem",
-            color: "#c8a96e",
+            color: accent.primary,
             opacity: 0.45,
             letterSpacing: "0.04em",
             transition: "opacity 0.2s",
