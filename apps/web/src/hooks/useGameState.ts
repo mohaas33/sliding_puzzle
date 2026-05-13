@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
 import type { Difficulty, Screen, WinPhase, PuzzleProgress, PuzzleData, MissionPhase } from "../types";
 import {
-  INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, HINT_GLOW_KEY, DIFFICULTY_KEY,
+  INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, PROGRESS_KEY_2, HINT_GLOW_KEY, DIFFICULTY_KEY,
   NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY,
   RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
   VISION_MAX, VISION_DURATION_MS,
@@ -463,7 +463,7 @@ export function useGameState(): GameStateHook {
 
   function handleResetConfirm() {
     [
-      INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, DIFFICULTY_KEY, HINT_GLOW_KEY,
+      INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, PROGRESS_KEY_2, DIFFICULTY_KEY, HINT_GLOW_KEY,
       NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY, PLAYER_NAME_KEY,
       saveKeyFor(3), saveKeyFor(4), saveKeyFor(5),
     ].forEach((k) => localStorage.removeItem(k));
