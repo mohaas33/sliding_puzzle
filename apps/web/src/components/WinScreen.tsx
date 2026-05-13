@@ -2,12 +2,12 @@ import type { PuzzleData } from "../types";
 import { PUZZLES } from "../constants";
 import { formatTime, personalize } from "../utils/solver";
 
-const CHAPTER_ACCENT: Record<number, { primary: string; dim: string; bg: string }> = {
-  1: { primary: "#c8a96e", dim: "rgba(200,169,110,0.5)",  bg: "rgba(200,169,110,0.08)" },
-  2: { primary: "#7eb8e8", dim: "rgba(126,184,232,0.5)",  bg: "rgba(126,184,232,0.08)" },
-  3: { primary: "#5dcaa5", dim: "rgba(93,202,165,0.5)",   bg: "rgba(93,202,165,0.08)"  },
-  4: { primary: "#ef9f27", dim: "rgba(239,159,39,0.5)",   bg: "rgba(239,159,39,0.08)"  },
-  5: { primary: "#afa9ec", dim: "rgba(175,169,236,0.5)",  bg: "rgba(175,169,236,0.08)" },
+const CHAPTER_ACCENT: Record<number, { primary: string; dim: string; bg: string; glow: string }> = {
+  1: { primary: "#c8a96e", dim: "rgba(200,169,110,0.5)",  bg: "rgba(200,169,110,0.08)", glow: "rgba(200,169,110,0.3)"  },
+  2: { primary: "#7eb8e8", dim: "rgba(126,184,232,0.5)",  bg: "rgba(126,184,232,0.08)", glow: "rgba(126,184,232,0.3)"  },
+  3: { primary: "#5dcaa5", dim: "rgba(93,202,165,0.5)",   bg: "rgba(93,202,165,0.08)",  glow: "rgba(93,202,165,0.3)"   },
+  4: { primary: "#ef9f27", dim: "rgba(239,159,39,0.5)",   bg: "rgba(239,159,39,0.08)",  glow: "rgba(239,159,39,0.3)"   },
+  5: { primary: "#afa9ec", dim: "rgba(175,169,236,0.5)",  bg: "rgba(175,169,236,0.08)", glow: "rgba(175,169,236,0.3)"  },
 };
 
 interface WinScreenProps {
@@ -85,6 +85,7 @@ export function WinScreen({
           Shard Restored
         </h2>
 
+        {/* N of Total */}
         <p
           style={{
             fontFamily: "'Cinzel', serif",
@@ -102,14 +103,7 @@ export function WinScreen({
 
         {/* Chapter progress bar */}
         <div style={{ width: "100%", marginBottom: 6 }}>
-          <div
-            style={{
-              height: 3,
-              borderRadius: 2,
-              background: accent.bg,
-              overflow: "hidden",
-            }}
-          >
+          <div style={{ height: 3, borderRadius: 2, background: accent.bg, overflow: "hidden" }}>
             <div
               style={{
                 height: "100%",
@@ -123,30 +117,81 @@ export function WinScreen({
         </div>
 
         {/* Stars */}
-        <div
-          style={{
-            fontSize: "1.6rem",
-            letterSpacing: "0.2em",
-            color: accent.primary,
-            margin: "10px 0 6px",
-          }}
-        >
+        <div style={{ fontSize: "1.6rem", letterSpacing: "0.2em", color: accent.primary, margin: "10px 0 6px" }}>
           {Array.from({ length: 3 }, (_, i) => (
             <span key={i} style={{ opacity: i < stars ? 1 : 0.18 }}>★</span>
           ))}
         </div>
 
-        {/* Anubis commentary */}
-        <p className="anubis-comment">{anubisComment(stars, playerName)}</p>
-        <p className="divine-favor-line">{divineFavorLine(raLightUsed, thothUsed, visionUsed)}</p>
+        {/* Anubis + divine favor — converted from CSS classes to inline */}
+        <p
+          style={{
+            fontFamily: "'Crimson Text', serif",
+            fontStyle: "italic",
+            fontSize: "0.88rem",
+            color: accent.primary,
+            opacity: 0.75,
+            margin: "0 0 8px",
+            textAlign: "center",
+            letterSpacing: "0.02em",
+          }}
+        >
+          {anubisComment(stars, playerName)}
+        </p>
+        <p
+          style={{
+            fontFamily: "'Crimson Text', serif",
+            fontStyle: "italic",
+            fontSize: "0.78rem",
+            color: accent.dim,
+            opacity: 0.9,
+            margin: "0 0 4px",
+            textAlign: "center",
+            letterSpacing: "0.01em",
+          }}
+        >
+          {divineFavorLine(raLightUsed, thothUsed, visionUsed)}
+        </p>
 
         {/* Restored image */}
         <div className="win-image-section">
-          <p className="win-image-label">Restored</p>
-          <div className="win-image-frame">
+          {/* "RESTORED" label */}
+          <p
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: "0.5rem",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: accent.dim,
+              margin: 0,
+            }}
+          >
+            Restored
+          </p>
+          {/* Image frame */}
+          <div
+            className="win-image-frame"
+            style={{
+              border: `2px solid ${accent.primary}`,
+              boxShadow: `0 0 0 1px ${accent.bg}, 0 0 20px ${accent.glow}, 0 0 50px ${accent.bg}`,
+            }}
+          >
             <img src={puzzle.imageUrl} alt={puzzle.name} />
           </div>
-          <p className="win-image-name">{puzzle.name}</p>
+          {/* Puzzle name below frame */}
+          <p
+            style={{
+              fontFamily: "'Crimson Text', serif",
+              fontStyle: "italic",
+              fontSize: "0.82rem",
+              color: accent.primary,
+              opacity: 0.6,
+              margin: 0,
+              letterSpacing: "0.04em",
+            }}
+          >
+            {puzzle.name}
+          </p>
         </div>
 
         {/* Win paragraph */}
@@ -164,25 +209,66 @@ export function WinScreen({
           {personalize(puzzle.win, playerName)}
         </p>
 
-        {/* Personalized stats bar */}
-        <p className="win-stats-bar">
+        {/* Stats bar */}
+        <p
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: "0.58rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: accent.dim,
+            opacity: 0.9,
+            textAlign: "center",
+            margin: 0,
+          }}
+        >
           {playerName} · Shard {puzzle.id} of {PUZZLES.length} · {moves} moves · {formatTime(elapsed)}
         </p>
 
         {/* Points earned */}
         {puzzlePoints > 0 && (
-          <p className="win-points-earned">✦ {puzzlePoints} Points</p>
+          <p
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: "0.85rem",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: accent.primary,
+              margin: "8px 0 2px",
+              textAlign: "center",
+              textShadow: `0 0 20px ${accent.glow}`,
+            }}
+          >
+            ✦ {puzzlePoints} Points
+          </p>
         )}
 
+        {/* Action buttons */}
         <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-          <button className="win-btn" onClick={handlePlayAgain}>
+          <button
+            className="win-btn"
+            onClick={handlePlayAgain}
+            style={{
+              color: accent.primary,
+              border: `1px solid ${accent.dim}`,
+            }}
+          >
             Play Again
           </button>
-          <button className="win-btn win-btn-primary" onClick={handleNextShard}>
+          <button
+            className="win-btn win-btn-primary"
+            onClick={handleNextShard}
+            style={{
+              background: `linear-gradient(135deg, ${accent.primary} 0%, ${accent.primary}bb 100%)`,
+              borderColor: accent.primary,
+              color: "#0a0806",
+            }}
+          >
             {puzzleIdx >= PUZZLES.length - 1 ? "View Map →" : "Next Shard →"}
           </button>
         </div>
 
+        {/* View map link */}
         <button
           onClick={handleViewMap}
           style={{
@@ -193,14 +279,14 @@ export function WinScreen({
             fontFamily: "'Crimson Text', serif",
             fontStyle: "italic",
             fontSize: "0.82rem",
-            color: accent.primary,
-            opacity: 0.45,
+            color: accent.dim,
+            opacity: 0.9,
             letterSpacing: "0.04em",
             transition: "opacity 0.2s",
             padding: "2px 0",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.45")}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.9")}
         >
           View Chapter Map
         </button>
