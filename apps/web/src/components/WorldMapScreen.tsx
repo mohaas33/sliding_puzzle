@@ -291,22 +291,20 @@ export function WorldMapScreen({
   }
 
   function getStatus(chapterId: number): ChapterStatus {
+    if (!builtChapters.includes(chapterId)) {
+      return isPremium ? "coming" : "paywalled";
+    }
     if (chapterId === 1) {
       const { completed } = chapterStats(puzzleProgress, 1, CHAPTERS[0].puzzleCount);
       return completed >= CHAPTERS[0].puzzleCount ? "complete" : "unlocked";
     }
-    if (!builtChapters.includes(chapterId)) {
-      return isPremium ? "coming" : "paywalled";
-    }
-    // Built chapter > 1: check unlock chain
+    // Built chapter > 1
     const chapter = CHAPTERS.find((c) => c.id === chapterId)!;
     const { completed } = chapterStats(puzzleProgress, chapterId, chapter.puzzleCount);
+    if (completed >= chapter.puzzleCount) return "complete";
+    if (isPremium) return "unlocked";
     const prev = chapterStats(puzzleProgress, chapterId - 1, CHAPTERS[chapterId - 2]!.puzzleCount);
-    if (prev.completed < CHAPTERS[chapterId - 2]!.puzzleCount) {
-      // Previous chapter not fully complete — gate it
-      return isPremium ? "locked" : "paywalled";
-    }
-    return completed >= chapter.puzzleCount ? "complete" : "unlocked";
+    return prev.completed > 0 ? "unlocked" : "paywalled";
   }
 
   let totalStars = 0, totalMaxStars = 0;
@@ -391,11 +389,11 @@ export function WorldMapScreen({
               : status === "unlocked"               ? "rgba(200,169,110,0.2)"
               : isPaywalled                         ? "rgba(200,169,110,0.22)"
               : status === "locked"                 ? "rgba(200,169,110,0.05)"
-              : "rgba(200,169,110,0.04)";
+              : "rgba(200,169,110,0.03)";
 
             const borderColor = isHovered ? `${chapter.accentColor}80` : baseBorder;
 
-            const baseOpacity = status === "locked" ? 0.28 : status === "coming" ? 0.22 : 1;
+            const baseOpacity = status === "locked" ? 0.28 : status === "coming" ? 0.2 : 1;
 
             return (
               // Outer wrapper: hover lift only (separate transform so it doesn't interfere with entrance)
@@ -424,7 +422,7 @@ export function WorldMapScreen({
                     cursor: isClickable || isPaywalled ? "pointer" : "default",
                     // Entrance: fade + slide up; hover: border-color + box-shadow via same transition
                     opacity: mounted ? baseOpacity : 0,
-                    filter: (status === "locked" || status === "coming") ? "grayscale(0.6)" : undefined,
+                    filter: status === "coming" ? "grayscale(0.75)" : status === "locked" ? "grayscale(0.6)" : undefined,
                     transform: mounted ? "translateY(0)" : "translateY(16px)",
                     boxShadow: isHovered
                       ? `0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px ${chapter.accentColor}33`
