@@ -6,7 +6,7 @@ import {
   NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY,
   RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
   VISION_MAX, VISION_DURATION_MS,
-  PUZZLES, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
+  PUZZLES, CHAPTERS, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
   DIFFICULTY_INFO,
 } from "../constants";
 import {
@@ -23,6 +23,7 @@ export interface ChapterProgress {
 export interface GameStateHook {
   n: Difficulty;
   puzzleIdx: number;
+  currentChapterId: number;
   tiles: number[];
   moves: number;
   elapsed: number;
@@ -470,7 +471,7 @@ export function useGameState(): GameStateHook {
   }
 
   return {
-    n, puzzleIdx, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
+    n, puzzleIdx, currentChapterId: Math.ceil((puzzleIdx + 1) / 8), tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
     raLightIdx, raLightUsed, thothUsed, visionUsed, visionActive,
     penaltyKey, lastPenalty, moveLocked, imageLoaded,
     hasShuffled, screen, startDifficulty, cinematicReady, puzzleProgress, chapterProgress, mapKey,

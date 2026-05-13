@@ -8,7 +8,7 @@ import { GameMenu } from "./components/GameMenu";
 import { MissionCard } from "./components/MissionCard";
 import { ScoreBreakdown } from "./components/ScoreBreakdown";
 import {
-  DEV_MODE, CHAPTER_LABEL, DIFFICULTY_INFO,
+  DEV_MODE, CHAPTER_LABEL, CHAPTERS, DIFFICULTY_INFO,
   RA_LIGHT_MAX, THOTH_HAND_MAX, VISION_MAX,
 } from "./constants";
 import { formatTime } from "./utils/solver";
@@ -208,24 +208,12 @@ export function App() {
           >
             ← Back
           </button>
-          <p className="cinematic-label">{CHAPTER_LABEL}</p>
+          <p className="cinematic-label">{CHAPTERS[game.currentChapterId]?.label ?? CHAPTER_LABEL}</p>
           <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 
           <div className="cinematic-body">
-            <p className="cinematic-p1">
-              You are <em>{game.playerName}</em>, scribe of the Temple of Karnak.
-              On the night of the spring flood, a tomb robber broke through
-              the walls you were sworn to protect.
-            </p>
-            <p className="cinematic-p2">
-              Ra has gone blind. The Nile has stopped. The dead wander lost.
-            </p>
-            <p className="cinematic-p3">
-              Anubis has spoken your judgment: restore every shattered shard before the
-              next eclipse — or your soul will be weighed against a stone, not a feather.
-            </p>
-            <p className="cinematic-p4">
-              Begin, <em>{game.playerName}</em>.
+            <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520 }}>
+              {CHAPTERS[game.currentChapterId]?.introNarration ?? ""}
             </p>
           </div>
 
@@ -246,7 +234,7 @@ export function App() {
         <WorldMapScreen
           key={game.mapKey}
           puzzleProgress={game.puzzleProgress}
-          builtChapters={[1]}
+          builtChapters={[1, 2]}
           onSelectChapter={(chapterId) => game.handleMapSelect(chapterId)}
           onResetRequest={game.handleResetRequest}
         />
