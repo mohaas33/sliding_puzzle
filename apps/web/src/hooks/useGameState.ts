@@ -234,7 +234,7 @@ export function useGameState(): GameStateHook {
   useEffect(() => {
     if (screen !== "cinematic") return;
     setCinematicReady(false);
-    const t = setTimeout(() => setCinematicReady(true), 2500);
+    const t = setTimeout(() => setCinematicReady(true), 2200);
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
