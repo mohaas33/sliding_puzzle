@@ -322,6 +322,10 @@ export function WorldMapScreen({
           from { transform: translateX(-100%); }
           to   { transform: translateX(250%); }
         }
+        @keyframes activePulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(200,169,110,0.0), 0 0 6px rgba(200,169,110,0.3); }
+          50%       { box-shadow: 0 0 0 4px rgba(200,169,110,0.12), 0 0 12px rgba(200,169,110,0.5); }
+        }
       `}</style>
 
       {/* Centered content column */}
@@ -491,7 +495,8 @@ export function WorldMapScreen({
                         </span>
                       )}
                       {status === "unlocked" && (
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(200,169,110,0.12)", color: "#c8a96e", fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(200,169,110,0.12)", color: "#c8a96e", fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: "1px solid rgba(200,169,110,0.5)", animation: "activePulse 2.4s ease-in-out infinite", display: "flex", alignItems: "center" }}>
+                          <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#c8a96e", marginRight: 6, animation: "activePulse 2.4s ease-in-out infinite", animationDelay: "1.2s" }} />
                           Active
                         </span>
                       )}
