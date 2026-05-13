@@ -141,7 +141,7 @@ export function StartScreen({
         </div>
       </div>
 
-      <p className="start-chapter-footer">Five chapters · Five civilizations</p>
+      <p className="start-chapter-footer">Chapter I · Ancient Egypt</p>
     </div>
   );
 }

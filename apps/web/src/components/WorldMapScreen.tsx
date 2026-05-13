@@ -367,11 +367,9 @@ export function WorldMapScreen({
               ✦ Premium
             </p>
           )}
-          {totalStars > 0 && (
-            <p style={{ fontSize: 13, color: "rgba(200,169,110,0.6)", margin: 0, fontFamily: "'Cinzel', serif", letterSpacing: "0.04em" }}>
-              ★ {totalStars} / {totalMaxStars} stars collected
-            </p>
-          )}
+          <p style={{ fontSize: 12, color: totalStars > 0 ? "rgba(200,169,110,0.65)" : "rgba(200,169,110,0.25)", margin: 0, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textAlign: "center" }}>
+            ★ {totalStars} / {totalMaxStars > 0 ? totalMaxStars : CHAPTERS[0]!.puzzleCount * 3 * builtChapters.length} stars collected
+          </p>
         </div>
 
         {/* Chapter cards */}
