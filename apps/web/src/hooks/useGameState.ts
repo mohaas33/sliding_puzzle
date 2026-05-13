@@ -406,7 +406,9 @@ export function useGameState(): GameStateHook {
 
   function handleViewMap() {
     saveWinProgress();
-    setWinPhase("none"); // clear win overlay before showing map
+    setWinPhase("none");
+    setTimerActive(false);
+    setMenuOpen(false);
     setMapKey((k) => k + 1);
     setScreen("map");
   }

@@ -252,7 +252,7 @@ export function App() {
       )}
 
       {/* Win screen */}
-      {game.winPhase === "lore" && (
+      {game.winPhase === "lore" && game.screen === "game" && (
         <WinScreen
           puzzle={game.puzzle}
           puzzleIdx={game.puzzleIdx}
@@ -271,7 +271,7 @@ export function App() {
       )}
 
       {/* Score breakdown */}
-      {game.winPhase === "reveal" && (
+      {game.winPhase === "reveal" && game.screen === "game" && (
         <ScoreBreakdown
           stars={game.stars}
           moves={game.moves}
