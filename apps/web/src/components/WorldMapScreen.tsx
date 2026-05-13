@@ -388,11 +388,12 @@ export function WorldMapScreen({
             const baseBorder = status === "complete" ? "rgba(200,169,110,0.4)"
               : status === "unlocked"               ? "rgba(200,169,110,0.2)"
               : isPaywalled                         ? "rgba(200,169,110,0.22)"
-              : "rgba(200,169,110,0.08)";
+              : status === "locked"                 ? "rgba(200,169,110,0.05)"
+              : "rgba(200,169,110,0.04)";
 
             const borderColor = isHovered ? `${chapter.accentColor}80` : baseBorder;
 
-            const baseOpacity = status === "locked" ? 0.45 : status === "coming" ? 0.35 : 1;
+            const baseOpacity = status === "locked" ? 0.28 : status === "coming" ? 0.22 : 1;
 
             return (
               // Outer wrapper: hover lift only (separate transform so it doesn't interfere with entrance)
@@ -421,6 +422,7 @@ export function WorldMapScreen({
                     cursor: isClickable || isPaywalled ? "pointer" : "default",
                     // Entrance: fade + slide up; hover: border-color + box-shadow via same transition
                     opacity: mounted ? baseOpacity : 0,
+                    filter: (status === "locked" || status === "coming") ? "grayscale(0.6)" : undefined,
                     transform: mounted ? "translateY(0)" : "translateY(16px)",
                     boxShadow: isHovered
                       ? `0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px ${chapter.accentColor}33`
