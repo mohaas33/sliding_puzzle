@@ -76,7 +76,7 @@ export function StartScreen({
           {/* ── Narrator ── */}
           {/* ── Player name ── */}
           <div className="start-option-group">
-            <span className="start-option-label">Your name in the Book of the Dead</span>
+            <span className="start-option-label">Your name</span>
             <input
               type="text"
               className="name-input"
