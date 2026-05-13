@@ -21,7 +21,6 @@ interface WinScreenProps {
   thothUsed: number;
   visionUsed: number;
   puzzlePoints: number;
-  chapterId?: number;
   handlePlayAgain: () => void;
   handleNextShard: () => void;
   handleViewMap: () => void;
@@ -59,12 +58,13 @@ export function WinScreen({
   thothUsed,
   visionUsed,
   puzzlePoints,
-  chapterId = 1,
   handlePlayAgain,
   handleNextShard,
   handleViewMap,
 }: WinScreenProps) {
+  const chapterId = Math.ceil((puzzleIdx + 1) / 8);
   const accent = CHAPTER_ACCENT[chapterId] ?? CHAPTER_ACCENT[1]!;
+  console.log('[WinScreen] chapterId:', chapterId, 'accent.primary:', accent.primary);
 
   return (
     <div className="win-overlay" onClick={(e) => e.stopPropagation()}>

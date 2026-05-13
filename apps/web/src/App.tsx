@@ -264,7 +264,6 @@ export function App() {
           thothUsed={game.thothUsed}
           visionUsed={game.visionUsed}
           puzzlePoints={game.lastPuzzlePoints.total}
-          chapterId={Math.ceil((game.puzzleIdx + 1) / 8)}
           handlePlayAgain={game.handlePlayAgain}
           handleNextShard={game.handleNextShard}
           handleViewMap={game.handleViewMap}
