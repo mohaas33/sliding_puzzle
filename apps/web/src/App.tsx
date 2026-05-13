@@ -189,6 +189,25 @@ export function App() {
       {/* Cinematic screen */}
       {game.screen === "cinematic" && (
         <div className="cinematic-overlay" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={game.handleBackToStart}
+            style={{
+              position: "absolute",
+              top: 16,
+              left: 20,
+              fontFamily: "'Cinzel', serif",
+              fontSize: "0.65rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "rgba(200,169,110,0.35)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: "6px 4px",
+            }}
+          >
+            ← Back
+          </button>
           <p className="cinematic-label">{CHAPTER_LABEL}</p>
           <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 

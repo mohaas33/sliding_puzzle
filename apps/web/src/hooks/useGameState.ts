@@ -73,6 +73,7 @@ export interface GameStateHook {
   handleNewGame: () => void;
   handleBeginJourney: () => void;
   handleCinematicContinue: () => void;
+  handleBackToStart: () => void;
   handleShowMap: () => void;
   handleMapSelect: (chapterId: number) => void;
   handleToggleHintGlow: () => void;
@@ -430,6 +431,10 @@ export function useGameState(): GameStateHook {
     setScreen("map");
   }
 
+  function handleBackToStart() {
+    setScreen("start");
+  }
+
   function handleShowMap() {
     if (winPhase === "lore") saveWinProgress(); // save if navigating away from win screen
     setWinPhase("none");
@@ -475,7 +480,7 @@ export function useGameState(): GameStateHook {
     startPuzzle, handlePointerDown, handlePointerUp,
     handleRaLight, handleThothHand, handleVisionOfOsiris, handleDevSolve,
     handleDifficultyChange, handlePlayAgain, handleNextShard,
-    handleViewMap, handleNewGame, handleBeginJourney, handleCinematicContinue,
+    handleViewMap, handleNewGame, handleBeginJourney, handleCinematicContinue, handleBackToStart,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
     handleResetConfirm, handleDismissMission, handleExpandMission,
     playerName, handleSetPlayerName, lastPuzzlePoints,
