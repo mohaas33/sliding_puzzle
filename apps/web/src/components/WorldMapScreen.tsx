@@ -298,11 +298,15 @@ export function WorldMapScreen({
     if (!builtChapters.includes(chapterId)) {
       return isPremium ? "coming" : "paywalled";
     }
+    // Built chapter > 1: check unlock chain
     const chapter = CHAPTERS.find((c) => c.id === chapterId)!;
     const { completed } = chapterStats(puzzleProgress, chapterId, chapter.puzzleCount);
-    if (completed >= chapter.puzzleCount) return "complete";
     const prev = chapterStats(puzzleProgress, chapterId - 1, CHAPTERS[chapterId - 2]!.puzzleCount);
-    return prev.completed > 0 ? "unlocked" : "locked";
+    if (prev.completed < CHAPTERS[chapterId - 2]!.puzzleCount) {
+      // Previous chapter not fully complete — gate it
+      return isPremium ? "locked" : "paywalled";
+    }
+    return completed >= chapter.puzzleCount ? "complete" : "unlocked";
   }
 
   let totalStars = 0, totalMaxStars = 0;
