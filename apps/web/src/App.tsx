@@ -27,6 +27,7 @@ export function App() {
     <main
       className="flex min-h-screen flex-col items-center justify-center gap-4 px-4"
       style={{ paddingTop: 16, paddingBottom: 24 }}
+      data-chapter={String(Math.ceil((game.puzzleIdx + 1) / 8))}
       onPointerUp={() => game.setPressedIdx(null)}
     >
       {/* Top bar — only during active gameplay */}
