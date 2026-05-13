@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { Difficulty } from "../types";
+import type { ChapterTheme } from "../theme";
 import { CHAPTER_LABEL, DIFFICULTY_INFO } from "../constants";
 
 interface GameMenuProps {
@@ -10,6 +11,7 @@ interface GameMenuProps {
   hintGlow: boolean;
   currentDifficulty: Difficulty;
   musicMuted: boolean;
+  theme: ChapterTheme;
   handleShowMap: () => void;
   handleRestartPuzzle: () => void;
   handleResetRequest: () => void;
@@ -27,6 +29,7 @@ export function GameMenu({
   hintGlow,
   currentDifficulty,
   musicMuted,
+  theme,
   handleShowMap,
   handleRestartPuzzle,
   handleResetRequest,
@@ -62,10 +65,10 @@ export function GameMenu({
             fontSize: "0.65rem",
             letterSpacing: "0.25em",
             textTransform: "uppercase",
-            color: "#c8a96e",
+            color: theme.primary,
             opacity: 0.55,
             padding: "0 24px 16px",
-            borderBottom: "1px solid rgba(200,169,110,0.15)",
+            borderBottom: `1px solid ${theme.primaryFaint}`,
             marginBottom: 8,
           }}
         >
@@ -83,7 +86,7 @@ export function GameMenu({
         {/* Change Difficulty */}
         <div className="drawer-diff-section">
           <p className="drawer-diff-label">
-            Difficulty · <span style={{ color: "#c8a96e" }}>{currentInfo.label}</span>
+            Difficulty · <span style={{ color: theme.primary }}>{currentInfo.label}</span>
           </p>
           <div className="drawer-diff-buttons">
             {([3, 4, 5] as const).map((dn) => {
@@ -104,7 +107,7 @@ export function GameMenu({
 
         <button
           className="drawer-item"
-          style={{ color: "rgba(200,169,110,0.4)" }}
+          style={{ color: theme.primaryBorderBright }}
           onClick={() => {
             setMenuOpen(false);
             if (window.confirm("Reset all progress in Chapter I? This cannot be undone.")) {
@@ -140,7 +143,7 @@ export function GameMenu({
                 fontSize: "0.7rem",
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#c8a96e",
+                color: theme.primary,
                 marginBottom: 16,
               }}
             >
@@ -158,14 +161,22 @@ export function GameMenu({
                 marginBottom: 24,
               }}
             >
-              Switch to <strong style={{ color: "#c8a96e" }}>{DIFFICULTY_INFO[pendingDiff].label}</strong>?
+              Switch to <strong style={{ color: theme.primary }}>{DIFFICULTY_INFO[pendingDiff].label}</strong>?
               <br />This will restart the current puzzle.
             </p>
             <div style={{ display: "flex", gap: 12 }}>
-              <button className="win-btn" onClick={() => setPendingDiff(null)}>
+              <button
+                className="win-btn"
+                onClick={() => setPendingDiff(null)}
+                style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}` }}
+              >
                 Cancel
               </button>
-              <button className="win-btn win-btn-primary" onClick={() => confirmDiffChange(pendingDiff)}>
+              <button
+                className="win-btn win-btn-primary"
+                onClick={() => confirmDiffChange(pendingDiff)}
+                style={{ background: theme.gradient, borderColor: theme.primary, color: "#0a0806" }}
+              >
                 Continue
               </button>
             </div>
@@ -183,7 +194,7 @@ export function GameMenu({
                 fontSize: "0.7rem",
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#c8a96e",
+                color: theme.primary,
                 marginBottom: 16,
               }}
             >
@@ -205,7 +216,11 @@ export function GameMenu({
               <br />Are you sure?
             </p>
             <div style={{ display: "flex", gap: 12 }}>
-              <button className="win-btn" onClick={() => setShowResetConfirm(false)}>
+              <button
+                className="win-btn"
+                onClick={() => setShowResetConfirm(false)}
+                style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}` }}
+              >
                 Cancel
               </button>
               <button

@@ -1,14 +1,7 @@
 import type { PuzzleData } from "../types";
+import type { ChapterTheme } from "../theme";
 import { PUZZLES } from "../constants";
 import { formatTime, personalize } from "../utils/solver";
-
-const CHAPTER_ACCENT: Record<number, { primary: string; dim: string; bg: string; glow: string }> = {
-  1: { primary: "#c8a96e", dim: "rgba(200,169,110,0.5)",  bg: "rgba(200,169,110,0.08)", glow: "rgba(200,169,110,0.3)"  },
-  2: { primary: "#7eb8e8", dim: "rgba(126,184,232,0.5)",  bg: "rgba(126,184,232,0.08)", glow: "rgba(126,184,232,0.3)"  },
-  3: { primary: "#5dcaa5", dim: "rgba(93,202,165,0.5)",   bg: "rgba(93,202,165,0.08)",  glow: "rgba(93,202,165,0.3)"   },
-  4: { primary: "#ef9f27", dim: "rgba(239,159,39,0.5)",   bg: "rgba(239,159,39,0.08)",  glow: "rgba(239,159,39,0.3)"   },
-  5: { primary: "#afa9ec", dim: "rgba(175,169,236,0.5)",  bg: "rgba(175,169,236,0.08)", glow: "rgba(175,169,236,0.3)"  },
-};
 
 interface WinScreenProps {
   puzzle: PuzzleData;
@@ -21,6 +14,7 @@ interface WinScreenProps {
   thothUsed: number;
   visionUsed: number;
   puzzlePoints: number;
+  theme: ChapterTheme;
   handlePlayAgain: () => void;
   handleNextShard: () => void;
   handleViewMap: () => void;
@@ -58,14 +52,11 @@ export function WinScreen({
   thothUsed,
   visionUsed,
   puzzlePoints,
+  theme,
   handlePlayAgain,
   handleNextShard,
   handleViewMap,
 }: WinScreenProps) {
-  const chapterId = Math.ceil((puzzleIdx + 1) / 8);
-  const accent = CHAPTER_ACCENT[chapterId] ?? CHAPTER_ACCENT[1]!;
-  console.log('[WinScreen] chapterId:', chapterId, 'accent.primary:', accent.primary);
-
   return (
     <div className="win-overlay" onClick={(e) => e.stopPropagation()}>
       <div className="win-card">
@@ -92,7 +83,7 @@ export function WinScreen({
             fontSize: "0.65rem",
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: accent.primary,
+            color: theme.primary,
             opacity: 0.7,
             marginBottom: 10,
             textAlign: "center",
@@ -103,12 +94,12 @@ export function WinScreen({
 
         {/* Chapter progress bar */}
         <div style={{ width: "100%", marginBottom: 6 }}>
-          <div style={{ height: 3, borderRadius: 2, background: accent.bg, overflow: "hidden" }}>
+          <div style={{ height: 3, borderRadius: 2, background: theme.primaryBg, overflow: "hidden" }}>
             <div
               style={{
                 height: "100%",
                 width: `${(puzzle.id / PUZZLES.length) * 100}%`,
-                background: `linear-gradient(90deg, ${accent.dim}, ${accent.primary})`,
+                background: `linear-gradient(90deg, ${theme.primaryDim}, ${theme.primary})`,
                 borderRadius: 2,
                 transition: "width 0.6s ease",
               }}
@@ -117,19 +108,19 @@ export function WinScreen({
         </div>
 
         {/* Stars */}
-        <div style={{ fontSize: "1.6rem", letterSpacing: "0.2em", color: accent.primary, margin: "10px 0 6px" }}>
+        <div style={{ fontSize: "1.6rem", letterSpacing: "0.2em", color: theme.primary, margin: "10px 0 6px" }}>
           {Array.from({ length: 3 }, (_, i) => (
             <span key={i} style={{ opacity: i < stars ? 1 : 0.18 }}>★</span>
           ))}
         </div>
 
-        {/* Anubis + divine favor — converted from CSS classes to inline */}
+        {/* Anubis commentary */}
         <p
           style={{
             fontFamily: "'Crimson Text', serif",
             fontStyle: "italic",
             fontSize: "0.88rem",
-            color: accent.primary,
+            color: theme.primary,
             opacity: 0.75,
             margin: "0 0 8px",
             textAlign: "center",
@@ -138,12 +129,14 @@ export function WinScreen({
         >
           {anubisComment(stars, playerName)}
         </p>
+
+        {/* Divine favor */}
         <p
           style={{
             fontFamily: "'Crimson Text', serif",
             fontStyle: "italic",
             fontSize: "0.78rem",
-            color: accent.dim,
+            color: theme.primaryDim,
             opacity: 0.9,
             margin: "0 0 4px",
             textAlign: "center",
@@ -155,36 +148,33 @@ export function WinScreen({
 
         {/* Restored image */}
         <div className="win-image-section">
-          {/* "RESTORED" label */}
           <p
             style={{
               fontFamily: "'Cinzel', serif",
               fontSize: "0.5rem",
               letterSpacing: "0.3em",
               textTransform: "uppercase",
-              color: accent.dim,
+              color: theme.primaryDim,
               margin: 0,
             }}
           >
             Restored
           </p>
-          {/* Image frame */}
           <div
             className="win-image-frame"
             style={{
-              border: `2px solid ${accent.primary}`,
-              boxShadow: `0 0 0 1px ${accent.bg}, 0 0 20px ${accent.glow}, 0 0 50px ${accent.bg}`,
+              border: `2px solid ${theme.primary}`,
+              boxShadow: `0 0 0 1px ${theme.primaryBg}, 0 0 20px ${theme.primaryBorder}, 0 0 50px ${theme.primaryBg}`,
             }}
           >
             <img src={puzzle.imageUrl} alt={puzzle.name} />
           </div>
-          {/* Puzzle name below frame */}
           <p
             style={{
               fontFamily: "'Crimson Text', serif",
               fontStyle: "italic",
               fontSize: "0.82rem",
-              color: accent.primary,
+              color: theme.primary,
               opacity: 0.6,
               margin: 0,
               letterSpacing: "0.04em",
@@ -216,7 +206,7 @@ export function WinScreen({
             fontSize: "0.58rem",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            color: accent.dim,
+            color: theme.primaryDim,
             opacity: 0.9,
             textAlign: "center",
             margin: 0,
@@ -233,10 +223,10 @@ export function WinScreen({
               fontSize: "0.85rem",
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: accent.primary,
+              color: theme.primary,
               margin: "8px 0 2px",
               textAlign: "center",
-              textShadow: `0 0 20px ${accent.glow}`,
+              textShadow: `0 0 20px ${theme.primaryDim}`,
             }}
           >
             ✦ {puzzlePoints} Points
@@ -248,10 +238,7 @@ export function WinScreen({
           <button
             className="win-btn"
             onClick={handlePlayAgain}
-            style={{
-              color: accent.primary,
-              border: `1px solid ${accent.dim}`,
-            }}
+            style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}` }}
           >
             Play Again
           </button>
@@ -259,8 +246,8 @@ export function WinScreen({
             className="win-btn win-btn-primary"
             onClick={handleNextShard}
             style={{
-              background: `linear-gradient(135deg, ${accent.primary} 0%, ${accent.primary}bb 100%)`,
-              borderColor: accent.primary,
+              background: theme.gradient,
+              borderColor: theme.primary,
               color: "#0a0806",
             }}
           >
@@ -279,7 +266,7 @@ export function WinScreen({
             fontFamily: "'Crimson Text', serif",
             fontStyle: "italic",
             fontSize: "0.82rem",
-            color: accent.dim,
+            color: theme.primaryDim,
             opacity: 0.9,
             letterSpacing: "0.04em",
             transition: "opacity 0.2s",

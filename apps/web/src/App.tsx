@@ -11,11 +11,13 @@ import {
   DEV_MODE, CHAPTER_LABEL, CHAPTERS, DIFFICULTY_INFO,
   RA_LIGHT_MAX, THOTH_HAND_MAX, VISION_MAX,
 } from "./constants";
+import { getTheme } from "./theme";
 import { formatTime } from "./utils/solver";
 
 export function App() {
   const game = useGameState();
   const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed, n: game.n });
+  const theme = getTheme(game.puzzleIdx);
 
   const totalScore = Object.values(game.puzzleProgress).reduce(
     (sum, p) => sum + (p.points ?? 0), 0,
@@ -50,7 +52,7 @@ export function App() {
                 fontSize: "9px",
                 letterSpacing: "1px",
                 textTransform: "uppercase",
-                color: "#c8a96e",
+                color: theme.primary,
                 opacity: 0.6,
               }}>Moves</span>
               <div style={{ position: "relative" }}>
@@ -87,6 +89,7 @@ export function App() {
           phase="bar"
           puzzle={game.puzzle}
           playerName={game.playerName}
+          theme={theme}
           onDismiss={game.handleDismissMission}
           onExpand={game.handleExpandMission}
         />
@@ -158,9 +161,9 @@ export function App() {
             fontSize: "0.65rem",
             letterSpacing: "0.12em",
             textTransform: "uppercase",
-            color: "#c8a96e",
-            background: "rgba(200, 169, 110, 0.08)",
-            border: "1px solid rgba(200, 169, 110, 0.25)",
+            color: theme.primary,
+            background: theme.primaryBg,
+            border: `1px solid ${theme.primaryBorder}`,
             borderRadius: 4,
             padding: "6px 12px",
             cursor: "pointer",
@@ -199,7 +202,7 @@ export function App() {
               fontSize: "0.65rem",
               letterSpacing: "0.1em",
               textTransform: "uppercase",
-              color: "rgba(200,169,110,0.35)",
+              color: theme.primaryBorderBright,
               background: "transparent",
               border: "none",
               cursor: "pointer",
@@ -221,7 +224,12 @@ export function App() {
             <button
               className="win-btn win-btn-primary cinematic-continue"
               onClick={game.handleCinematicContinue}
-              style={{ animation: "fadeIn 0.5s ease" }}
+              style={{
+                animation: "fadeIn 0.5s ease",
+                background: theme.gradient,
+                borderColor: theme.primary,
+                color: "#0a0806",
+              }}
             >
               Enter the Chapter →
             </button>
@@ -246,6 +254,7 @@ export function App() {
           phase={game.missionPhase as "full" | "exiting"}
           puzzle={game.puzzle}
           playerName={game.playerName}
+          theme={theme}
           onDismiss={game.handleDismissMission}
           onExpand={game.handleExpandMission}
         />
@@ -264,6 +273,7 @@ export function App() {
           thothUsed={game.thothUsed}
           visionUsed={game.visionUsed}
           puzzlePoints={game.lastPuzzlePoints.total}
+          theme={theme}
           handlePlayAgain={game.handlePlayAgain}
           handleNextShard={game.handleNextShard}
           handleViewMap={game.handleViewMap}
@@ -278,6 +288,7 @@ export function App() {
           elapsed={game.elapsed}
           raLightUsed={game.raLightUsed}
           thothUsed={game.thothUsed}
+          theme={theme}
         />
       )}
 
@@ -289,6 +300,7 @@ export function App() {
         hintGlow={game.hintGlow}
         currentDifficulty={game.n}
         musicMuted={audio.isMuted}
+        theme={theme}
         handleShowMap={game.handleShowMap}
         handleRestartPuzzle={() => { game.startPuzzle(game.puzzleIdx); game.setMenuOpen(false); }}
         handleResetRequest={game.handleResetRequest}

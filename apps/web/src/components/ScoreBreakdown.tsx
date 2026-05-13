@@ -1,12 +1,15 @@
+import type { ChapterTheme } from "../theme";
+
 interface ScoreBreakdownProps {
   stars: number;
   moves: number;
   elapsed: number;
   raLightUsed: number;
   thothUsed: number;
+  theme: ChapterTheme;
 }
 
-export function ScoreBreakdown({ stars, moves, elapsed, raLightUsed, thothUsed }: ScoreBreakdownProps) {
+export function ScoreBreakdown({ stars, moves, elapsed, raLightUsed, thothUsed, theme }: ScoreBreakdownProps) {
   const moveCost = moves * 10;
   const base = Math.max(100, 1000 - moveCost);
   const speedBonus = elapsed < 30 ? 200 : elapsed < 60 ? 100 : 0;
@@ -35,9 +38,22 @@ export function ScoreBreakdown({ stars, moves, elapsed, raLightUsed, thothUsed }
           </div>
         ))}
 
-        <div className="score-breakdown-divider" style={{ animationDelay: "1.75s" }} />
+        <div
+          className="score-breakdown-divider"
+          style={{
+            animationDelay: "1.75s",
+            background: `linear-gradient(90deg, transparent, ${theme.primaryDim}, transparent)`,
+          }}
+        />
 
-        <div className="score-breakdown-total" style={{ animationDelay: "2s" }}>
+        <div
+          className="score-breakdown-total"
+          style={{
+            animationDelay: "2s",
+            color: theme.primary,
+            textShadow: `0 0 24px ${theme.primaryBorder}`,
+          }}
+        >
           ✦ {total} POINTS
         </div>
       </div>
