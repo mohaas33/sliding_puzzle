@@ -103,14 +103,18 @@ export function StartScreen({
 
         {/* ── Actions ── */}
         <div className="start-bottom">
-          <button className="start-begin-btn" onClick={handleBeginJourney}>
+          {hasProgress && (
+            <button className="start-begin-btn" onClick={handleContinue}>
+              Continue →
+            </button>
+          )}
+          <button
+            className={hasProgress ? "start-new-game-link" : "start-begin-btn"}
+            onClick={handleBeginJourney}
+          >
             Begin Journey
           </button>
-          {hasProgress ? (
-            <button className="start-new-game-link" onClick={handleContinue}>
-              Continue
-            </button>
-          ) : (
+          {!hasProgress && (
             <p className="start-save-hint">Your progress is saved automatically</p>
           )}
           <button className="start-new-game-link" onClick={handleShowLeaderboard}>

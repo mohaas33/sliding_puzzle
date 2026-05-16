@@ -443,6 +443,7 @@ export function useGameState(): GameStateHook {
   function handleContinue() {
     persistDifficulty(startDifficulty);
     const completedIds = Object.keys(puzzleProgress).map(Number);
+    // puzzle IDs are 1-based; highest completed ID == next puzzleIdx (0-based)
     const nextIdx = completedIds.length > 0
       ? Math.min(Math.max(...completedIds), PUZZLES.length - 1)
       : 0;
