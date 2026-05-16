@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type { PuzzleData } from "../types";
 import type { ChapterTheme } from "../theme";
 import { PUZZLES } from "../constants";
@@ -57,6 +58,19 @@ export function WinScreen({
   handleNextShard,
   handleViewMap,
 }: WinScreenProps) {
+  const winText = personalize(puzzle.win, playerName);
+  const winSentences = winText.split(". ").filter(Boolean);
+  const [revealed, setRevealed] = useState(0);
+
+  useEffect(() => {
+    setRevealed(0);
+    const timers = winSentences.map((_, i) =>
+      setTimeout(() => setRevealed(i + 1), 300 + i * 900),
+    );
+    return () => timers.forEach(clearTimeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzle.id]);
+
   return (
     <div className="win-overlay" onClick={(e) => e.stopPropagation()}>
       <div className="win-card">
@@ -184,7 +198,7 @@ export function WinScreen({
           </p>
         </div>
 
-        {/* Win paragraph */}
+        {/* Win paragraph — staggered sentence reveal */}
         <p
           style={{
             fontFamily: "'Crimson Text', serif",
@@ -196,7 +210,20 @@ export function WinScreen({
             textAlign: "center",
           }}
         >
-          {personalize(puzzle.win, playerName)}
+          {winSentences.map((sentence, i) => (
+            <span
+              key={i}
+              style={{
+                display: "block",
+                marginBottom: "0.25em",
+                opacity: revealed > i ? 1 : 0,
+                transform: revealed > i ? "translateY(0)" : "translateY(8px)",
+                transition: "opacity 0.6s ease, transform 0.6s ease",
+              }}
+            >
+              {sentence}
+            </span>
+          ))}
         </p>
 
         {/* Stats bar */}

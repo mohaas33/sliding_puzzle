@@ -4,6 +4,7 @@ import { StartScreen } from "./components/StartScreen";
 import { NameScreen } from "./components/NameScreen";
 import { AuthScreen } from "./components/AuthScreen";
 import { LeaderboardScreen } from "./components/LeaderboardScreen";
+import { CinematicScreen } from "./components/CinematicScreen";
 import { WorldMapScreen } from "./components/WorldMapScreen";
 import { GameBoard } from "./components/GameBoard";
 import { WinScreen } from "./components/WinScreen";
@@ -11,7 +12,7 @@ import { GameMenu } from "./components/GameMenu";
 import { MissionCard } from "./components/MissionCard";
 import { ScoreBreakdown } from "./components/ScoreBreakdown";
 import {
-  DEV_MODE, CHAPTER_LABEL, CHAPTERS, DIFFICULTY_INFO,
+  DEV_MODE, DIFFICULTY_INFO,
   RA_LIGHT_MAX, THOTH_HAND_MAX, VISION_MAX,
 } from "./constants";
 import { getTheme } from "./theme";
@@ -223,50 +224,12 @@ export function App() {
 
       {/* Cinematic screen */}
       {game.screen === "cinematic" && (
-        <div className="cinematic-overlay" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={game.handleBackToStart}
-            style={{
-              position: "absolute",
-              top: 16,
-              left: 20,
-              fontFamily: "'Cinzel', serif",
-              fontSize: "0.65rem",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              color: theme.primaryBorderBright,
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: "6px 4px",
-            }}
-          >
-            ← Back
-          </button>
-          <p className="cinematic-label">{CHAPTERS[game.currentChapterId]?.label ?? CHAPTER_LABEL}</p>
-          <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
-
-          <div className="cinematic-body">
-            <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520 }}>
-              {CHAPTERS[game.currentChapterId]?.introNarration ?? ""}
-            </p>
-          </div>
-
-          {game.cinematicReady && (
-            <button
-              className="win-btn win-btn-primary cinematic-continue"
-              onClick={game.handleCinematicContinue}
-              style={{
-                animation: "fadeIn 0.5s ease",
-                background: theme.gradient,
-                borderColor: theme.primary,
-                color: "#0a0806",
-              }}
-            >
-              Enter the Chapter →
-            </button>
-          )}
-        </div>
+        <CinematicScreen
+          currentChapterId={game.currentChapterId}
+          theme={theme}
+          onBack={game.handleBackToStart}
+          onContinue={game.handleCinematicContinue}
+        />
       )}
 
       {/* World map */}
