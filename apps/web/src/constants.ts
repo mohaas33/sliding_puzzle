@@ -16,6 +16,7 @@ export const NARRATION_KEY = "shards_of_time_narration";
 export const VOICE_GENDER_KEY = "shards_of_time_voice_gender";
 export const NARRATOR_KEY = "shards_of_time_narrator";
 export const PLAYER_NAME_KEY = "shards_of_time_player_name";
+export const AUTH_PROVIDER_KEY = "auth_provider";
 export const DEFAULT_PLAYER_NAME = "Kha";
 
 export const CHAPTER_LABEL = "Chapter I · Ancient Egypt";

@@ -2,6 +2,7 @@ import { useGameState } from "./hooks/useGameState";
 import { useAudio } from "./hooks/useAudio";
 import { StartScreen } from "./components/StartScreen";
 import { NameScreen } from "./components/NameScreen";
+import { AuthScreen } from "./components/AuthScreen";
 import { WorldMapScreen } from "./components/WorldMapScreen";
 import { GameBoard } from "./components/GameBoard";
 import { WinScreen } from "./components/WinScreen";
@@ -186,6 +187,7 @@ export function App() {
           setStartDifficulty={game.setStartDifficulty}
           handleBeginJourney={game.handleBeginJourney}
           handleContinue={game.handleContinue}
+          handleShowAuth={game.handleShowAuth}
           isMuted={audio.isMuted}
           onToggleMute={audio.toggleMute}
         />
@@ -196,6 +198,14 @@ export function App() {
         <NameScreen
           onPlayerNameChange={game.handleSetPlayerName}
           onConfirm={game.handleNameConfirm}
+          onBack={game.handleBackToStart}
+        />
+      )}
+
+      {/* Auth screen */}
+      {game.screen === "auth" && (
+        <AuthScreen
+          onSkip={game.handleSkipAuth}
           onBack={game.handleBackToStart}
         />
       )}

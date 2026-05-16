@@ -1,14 +1,21 @@
 import type { Difficulty } from "../types";
-import { DIFFICULTY_INFO, PUZZLES, PARTICLES } from "../constants";
+import { DIFFICULTY_INFO, PUZZLES, PARTICLES, AUTH_PROVIDER_KEY } from "../constants";
 import { loadProgress } from "../utils/storage";
 
 const DIFFICULTIES: (3 | 4 | 5)[] = [3, 4, 5];
+
+const PROVIDER_LABELS: Record<string, string> = {
+  google: "Google",
+  facebook: "Facebook",
+  email: "Email",
+};
 
 interface StartScreenProps {
   startDifficulty: Difficulty;
   setStartDifficulty: (n: Difficulty) => void;
   handleBeginJourney: () => void;
   handleContinue: () => void;
+  handleShowAuth: () => void;
   isMuted: boolean;
   onToggleMute: () => void;
 }
@@ -39,10 +46,12 @@ export function StartScreen({
   setStartDifficulty,
   handleBeginJourney,
   handleContinue,
+  handleShowAuth,
   isMuted,
   onToggleMute,
 }: StartScreenProps) {
   const hasProgress = Object.keys(loadProgress()).length > 0;
+  const authProvider = localStorage.getItem(AUTH_PROVIDER_KEY);
 
   return (
     <div className="start-screen" onClick={(e) => e.stopPropagation()}>
@@ -102,6 +111,11 @@ export function StartScreen({
           ) : (
             <p className="start-save-hint">Your progress is saved automatically</p>
           )}
+          <button className="start-new-game-link" onClick={handleShowAuth}>
+            {authProvider && authProvider !== "guest"
+              ? `${PROVIDER_LABELS[authProvider] ?? authProvider} ✓`
+              : "Sign In"}
+          </button>
         </div>
       </div>
 

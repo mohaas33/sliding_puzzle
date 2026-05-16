@@ -6,7 +6,7 @@ import {
   NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY,
   RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
   VISION_MAX, VISION_DURATION_MS,
-  PUZZLES, CHAPTERS, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME,
+  PUZZLES, CHAPTERS, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME, AUTH_PROVIDER_KEY,
   DIFFICULTY_INFO,
 } from "../constants";
 import {
@@ -75,6 +75,9 @@ export interface GameStateHook {
   handleBeginJourney: () => void;
   handleContinue: () => void;
   handleNameConfirm: () => void;
+  handleAuthComplete: () => void;
+  handleSkipAuth: () => void;
+  handleShowAuth: () => void;
   handleCinematicContinue: () => void;
   handleBackToStart: () => void;
   handleShowMap: () => void;
@@ -133,6 +136,7 @@ export function useGameState(): GameStateHook {
   const raLightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const visionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moveLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const authOriginRef = useRef<"journey" | "menu">("menu");
 
   const empty = n * n - 1;
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
@@ -444,12 +448,35 @@ export function useGameState(): GameStateHook {
   }
 
   function handleNameConfirm() {
+    authOriginRef.current = "journey";
+    setScreen("auth");
+  }
+
+  function _proceedAfterAuth() {
+    if (authOriginRef.current === "menu") {
+      setScreen("start");
+      return;
+    }
     if (localStorage.getItem(CINEMATIC_SEEN_KEY)) {
       setMapKey((k) => k + 1);
       setScreen("map");
     } else {
       setScreen("cinematic");
     }
+  }
+
+  function handleAuthComplete() {
+    _proceedAfterAuth();
+  }
+
+  function handleSkipAuth() {
+    localStorage.setItem(AUTH_PROVIDER_KEY, "guest");
+    _proceedAfterAuth();
+  }
+
+  function handleShowAuth() {
+    authOriginRef.current = "menu";
+    setScreen("auth");
   }
 
   function handleCinematicContinue() {
@@ -491,7 +518,7 @@ export function useGameState(): GameStateHook {
   function handleResetConfirm() {
     [
       INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, PROGRESS_KEY_2, DIFFICULTY_KEY, HINT_GLOW_KEY,
-      NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY, PLAYER_NAME_KEY,
+      NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY, PLAYER_NAME_KEY, AUTH_PROVIDER_KEY,
       saveKeyFor(3), saveKeyFor(4), saveKeyFor(5),
     ].forEach((k) => localStorage.removeItem(k));
     window.location.reload();
@@ -508,7 +535,8 @@ export function useGameState(): GameStateHook {
     startPuzzle, handlePointerDown, handlePointerUp,
     handleRaLight, handleThothHand, handleVisionOfOsiris, handleDevSolve,
     handleDifficultyChange, handlePlayAgain, handleNextShard,
-    handleViewMap, handleNewGame, handleBeginJourney, handleContinue, handleNameConfirm, handleCinematicContinue, handleBackToStart,
+    handleViewMap, handleNewGame, handleBeginJourney, handleContinue, handleNameConfirm,
+    handleAuthComplete, handleSkipAuth, handleShowAuth, handleCinematicContinue, handleBackToStart,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
     handleResetConfirm, handleDismissMission, handleExpandMission,
     nameSet, playerName, handleSetPlayerName, lastPuzzlePoints,
