@@ -56,6 +56,7 @@ export interface GameStateHook {
   solved: boolean;
   frozen: boolean;
   stars: number;
+  setScreen: React.Dispatch<React.SetStateAction<Screen>>;
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setShowResetConfirm: React.Dispatch<React.SetStateAction<boolean>>;
   setStartDifficulty: React.Dispatch<React.SetStateAction<Difficulty>>;
@@ -545,7 +546,7 @@ export function useGameState(): GameStateHook {
     hasShuffled, screen, startDifficulty, cinematicReady, puzzleProgress, chapterProgress, mapKey,
     menuOpen, showResetConfirm, hintGlow, missionPhase,
     puzzle, emptyIdx, movable, solved, frozen, stars,
-    setMenuOpen, setShowResetConfirm, setStartDifficulty, setPressedIdx,
+    setScreen, setMenuOpen, setShowResetConfirm, setStartDifficulty, setPressedIdx,
     startPuzzle, handlePointerDown, handlePointerUp,
     handleRaLight, handleThothHand, handleVisionOfOsiris, handleDevSolve,
     handleDifficultyChange, handlePlayAgain, handleNextShard,

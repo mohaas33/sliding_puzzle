@@ -278,6 +278,7 @@ export function App() {
           onSelectChapter={(chapterId) => game.handleMapSelect(chapterId)}
           onResetRequest={game.handleResetRequest}
           onShowLeaderboard={game.handleShowLeaderboard}
+          onBack={() => game.setScreen("start")}
         />
       )}
 

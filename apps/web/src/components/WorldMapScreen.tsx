@@ -26,6 +26,7 @@ interface Props {
   onSelectChapter: (chapterId: number) => void;
   onResetRequest: () => void;
   onShowLeaderboard?: () => void;
+  onBack?: () => void;
 }
 
 function chapterStats(
@@ -266,6 +267,7 @@ export function WorldMapScreen({
   onSelectChapter,
   onResetRequest,
   onShowLeaderboard,
+  onBack,
 }: Props) {
   const [isPremium, setIsPremium] = useState(() => localStorage.getItem(IS_PREMIUM_KEY) === "1");
   const [modalOpen, setModalOpen] = useState(false);
@@ -320,6 +322,29 @@ export function WorldMapScreen({
 
   return (
     <div className="world-map-screen" style={{ position: "relative", width: "100%", minHeight: "100vh" }}>
+
+      {onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            position: "absolute",
+            top: 16,
+            left: 20,
+            fontFamily: "'Cinzel', serif",
+            fontSize: "0.65rem",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "rgba(200,169,110,0.6)",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: "6px 4px",
+            zIndex: 2,
+          }}
+        >
+          ← Menu
+        </button>
+      )}
 
       {/* Shimmer keyframe injected once */}
       <style>{`
