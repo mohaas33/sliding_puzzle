@@ -305,8 +305,9 @@ export function WorldMapScreen({
     const { completed } = chapterStats(puzzleProgress, chapterId, chapter.puzzleCount);
     if (completed >= chapter.puzzleCount) return "complete";
     if (isPremium) return "unlocked";
-    const prev = chapterStats(puzzleProgress, chapterId - 1, CHAPTERS[chapterId - 2]!.puzzleCount);
-    return prev.completed > 0 ? "unlocked" : "paywalled";
+    const prevChapter = CHAPTERS[chapterId - 2]!;
+    const prev = chapterStats(puzzleProgress, chapterId - 1, prevChapter.puzzleCount);
+    return prev.completed >= prevChapter.puzzleCount ? "unlocked" : "locked";
   }
 
   let totalStars = 0, totalMaxStars = 0;
