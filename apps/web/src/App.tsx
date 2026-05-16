@@ -1,6 +1,7 @@
 import { useGameState } from "./hooks/useGameState";
 import { useAudio } from "./hooks/useAudio";
 import { StartScreen } from "./components/StartScreen";
+import { NameScreen } from "./components/NameScreen";
 import { WorldMapScreen } from "./components/WorldMapScreen";
 import { GameBoard } from "./components/GameBoard";
 import { WinScreen } from "./components/WinScreen";
@@ -184,9 +185,18 @@ export function App() {
           startDifficulty={game.startDifficulty}
           setStartDifficulty={game.setStartDifficulty}
           handleBeginJourney={game.handleBeginJourney}
-          handleNewGame={game.handleResetRequest}
-          playerName={game.playerName}
+          handleContinue={game.handleContinue}
+          isMuted={audio.isMuted}
+          onToggleMute={audio.toggleMute}
+        />
+      )}
+
+      {/* Name screen */}
+      {game.screen === "name" && (
+        <NameScreen
           onPlayerNameChange={game.handleSetPlayerName}
+          onConfirm={game.handleNameConfirm}
+          onBack={game.handleBackToStart}
         />
       )}
 

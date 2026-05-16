@@ -2,22 +2,15 @@ import type { Difficulty } from "../types";
 import { DIFFICULTY_INFO, PUZZLES, PARTICLES } from "../constants";
 import { loadProgress } from "../utils/storage";
 
-const NAME_PRESETS = [
-  { name: "Kha",       meaning: "To Rise · Scribe"            },
-  { name: "Neferu",    meaning: "Beautiful One · Noble"        },
-  { name: "Amenhotep", meaning: "Amun is Satisfied · Pharaoh" },
-  { name: "Merit",     meaning: "Beloved · Priestess"          },
-];
-
 const DIFFICULTIES: (3 | 4 | 5)[] = [3, 4, 5];
 
 interface StartScreenProps {
   startDifficulty: Difficulty;
   setStartDifficulty: (n: Difficulty) => void;
   handleBeginJourney: () => void;
-  handleNewGame: () => void;
-  playerName: string;
-  onPlayerNameChange: (name: string) => void;
+  handleContinue: () => void;
+  isMuted: boolean;
+  onToggleMute: () => void;
 }
 
 function Particles() {
@@ -45,9 +38,9 @@ export function StartScreen({
   startDifficulty,
   setStartDifficulty,
   handleBeginJourney,
-  handleNewGame,
-  playerName,
-  onPlayerNameChange,
+  handleContinue,
+  isMuted,
+  onToggleMute,
 }: StartScreenProps) {
   const hasProgress = Object.keys(loadProgress()).length > 0;
 
@@ -69,40 +62,11 @@ export function StartScreen({
           <div className="gold-sep" />
           <h1 className="start-title">Shards of Time</h1>
           <div className="gold-sep" />
-          <p className="start-tagline">Piece history back together, one shard at a time.</p>
+          <p className="start-tagline">Restore the fragments of history</p>
         </div>
 
+        {/* ── Difficulty ── */}
         <div className="start-options">
-          {/* ── Narrator ── */}
-          {/* ── Player name ── */}
-          <div className="start-option-group">
-            <span className="start-option-label">Your name</span>
-            <input
-              type="text"
-              className="name-input"
-              value={playerName}
-              maxLength={20}
-              placeholder="Enter your name"
-              onChange={(e) => onPlayerNameChange(e.target.value)}
-              spellCheck={false}
-              autoComplete="off"
-            />
-            <div className="name-presets">
-              {NAME_PRESETS.map(({ name, meaning }) => (
-                <button
-                  key={name}
-                  className={`name-preset-btn${playerName === name ? " name-preset-btn-active" : ""}`}
-                  onClick={() => onPlayerNameChange(name)}
-                  title={meaning}
-                >
-                  <span className="name-preset-name">{name}</span>
-                  <span className="name-preset-meaning">{meaning}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Difficulty ── */}
           <div className="start-option-group">
             <span className="start-option-label">Difficulty</span>
             <div className="difficulty-rows">
@@ -126,14 +90,14 @@ export function StartScreen({
           </div>
         </div>
 
-        {/* ── Begin ── */}
+        {/* ── Actions ── */}
         <div className="start-bottom">
           <button className="start-begin-btn" onClick={handleBeginJourney}>
-            {hasProgress ? "Continue Your Journey" : "Begin Your Journey"}
+            Begin Journey
           </button>
           {hasProgress ? (
-            <button className="start-new-game-link" onClick={handleNewGame}>
-              Start New Game
+            <button className="start-new-game-link" onClick={handleContinue}>
+              Continue
             </button>
           ) : (
             <p className="start-save-hint">Your progress is saved automatically</p>
@@ -141,7 +105,15 @@ export function StartScreen({
         </div>
       </div>
 
-      <p className="start-chapter-footer">Chapter I · Ancient Egypt</p>
+      <button
+        className="narration-btn"
+        onClick={onToggleMute}
+        title={isMuted ? "Unmute music" : "Mute music"}
+        aria-label={isMuted ? "Unmute music" : "Mute music"}
+        style={{ position: "absolute", bottom: 20, right: 20 }}
+      >
+        {isMuted ? "🔇" : "🔊"}
+      </button>
     </div>
   );
 }

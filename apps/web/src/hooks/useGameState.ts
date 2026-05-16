@@ -73,6 +73,8 @@ export interface GameStateHook {
   handleViewMap: () => void;
   handleNewGame: () => void;
   handleBeginJourney: () => void;
+  handleContinue: () => void;
+  handleNameConfirm: () => void;
   handleCinematicContinue: () => void;
   handleBackToStart: () => void;
   handleShowMap: () => void;
@@ -82,6 +84,7 @@ export interface GameStateHook {
   handleResetConfirm: () => void;
   handleDismissMission: () => void;
   handleExpandMission: () => void;
+  nameSet: boolean;
   playerName: string;
   handleSetPlayerName: (name: string) => void;
   lastPuzzlePoints: PointsResult;
@@ -121,6 +124,7 @@ export function useGameState(): GameStateHook {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [hintGlow, setHintGlow] = useState(() => localStorage.getItem(HINT_GLOW_KEY) !== "0");
   const [missionPhase, setMissionPhase] = useState<MissionPhase>(null);
+  const [nameSet, setNameSet] = useState(() => localStorage.getItem(PLAYER_NAME_KEY) !== null);
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem(PLAYER_NAME_KEY) ?? DEFAULT_PLAYER_NAME,
   );
@@ -179,6 +183,7 @@ export function useGameState(): GameStateHook {
     const cleaned = raw.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 20);
     setPlayerName(cleaned);
     localStorage.setItem(PLAYER_NAME_KEY, cleaned);
+    setNameSet(true);
   }
 
   function handleDismissMission() {
@@ -418,8 +423,28 @@ export function useGameState(): GameStateHook {
   function handleBeginJourney() {
     persistDifficulty(startDifficulty);
     setN(startDifficulty);
+    if (localStorage.getItem(PLAYER_NAME_KEY) === null) {
+      setScreen("name");
+    } else if (localStorage.getItem(CINEMATIC_SEEN_KEY)) {
+      setMapKey((k) => k + 1);
+      setScreen("map");
+    } else {
+      setScreen("cinematic");
+    }
+  }
+
+  function handleContinue() {
+    persistDifficulty(startDifficulty);
+    const completedIds = Object.keys(puzzleProgress).map(Number);
+    const nextIdx = completedIds.length > 0
+      ? Math.min(Math.max(...completedIds), PUZZLES.length - 1)
+      : 0;
+    startPuzzle(nextIdx, startDifficulty);
+    setScreen("game");
+  }
+
+  function handleNameConfirm() {
     if (localStorage.getItem(CINEMATIC_SEEN_KEY)) {
-      // Cinematic already played — go straight to the world map
       setMapKey((k) => k + 1);
       setScreen("map");
     } else {
@@ -483,9 +508,9 @@ export function useGameState(): GameStateHook {
     startPuzzle, handlePointerDown, handlePointerUp,
     handleRaLight, handleThothHand, handleVisionOfOsiris, handleDevSolve,
     handleDifficultyChange, handlePlayAgain, handleNextShard,
-    handleViewMap, handleNewGame, handleBeginJourney, handleCinematicContinue, handleBackToStart,
+    handleViewMap, handleNewGame, handleBeginJourney, handleContinue, handleNameConfirm, handleCinematicContinue, handleBackToStart,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
     handleResetConfirm, handleDismissMission, handleExpandMission,
-    playerName, handleSetPlayerName, lastPuzzlePoints,
+    nameSet, playerName, handleSetPlayerName, lastPuzzlePoints,
   };
 }
