@@ -295,21 +295,12 @@ export function WorldMapScreen({
   }
 
   function getStatus(chapterId: number): ChapterStatus {
-    if (!builtChapters.includes(chapterId)) {
-      return isPremium ? "coming" : "paywalled";
-    }
-    if (chapterId === 1) {
-      const { completed } = chapterStats(puzzleProgress, 1, CHAPTERS[0].puzzleCount);
-      return completed >= CHAPTERS[0].puzzleCount ? "complete" : "unlocked";
-    }
-    // Built chapter > 1
+    // Unbuilt chapters are always "coming soon" — no paywall for content that doesn't exist yet
+    if (!builtChapters.includes(chapterId)) return "coming";
+    // Built chapters: complete or active
     const chapter = CHAPTERS.find((c) => c.id === chapterId)!;
     const { completed } = chapterStats(puzzleProgress, chapterId, chapter.puzzleCount);
-    if (completed >= chapter.puzzleCount) return "complete";
-    if (isPremium) return "unlocked";
-    const prevChapter = CHAPTERS[chapterId - 2]!;
-    const prev = chapterStats(puzzleProgress, chapterId - 1, prevChapter.puzzleCount);
-    return prev.completed >= prevChapter.puzzleCount ? "unlocked" : "locked";
+    return completed >= chapter.puzzleCount ? "complete" : "unlocked";
   }
 
   let totalStars = 0, totalMaxStars = 0;
