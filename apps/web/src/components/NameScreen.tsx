@@ -57,9 +57,9 @@ export function NameScreen({ onPlayerNameChange, onConfirm, onBack }: NameScreen
           className="name-input"
           value={inputName}
           maxLength={20}
-          placeholder={DEFAULT_PLAYER_NAME}
+          placeholder="Your name"
           onChange={(e) => setInputName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+          onKeyDown={(e) => e.key === "Enter" && inputName.trim().length > 0 && handleConfirm()}
           spellCheck={false}
           autoComplete="off"
           style={{ maxWidth: 300 }}
