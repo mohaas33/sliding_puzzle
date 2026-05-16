@@ -142,6 +142,7 @@ export function useGameState(): GameStateHook {
   const authOriginRef = useRef<"journey" | "menu">("menu");
   const prevScreenRef = useRef<Screen>("start");
 
+  const currentChapterId = Math.ceil((puzzleIdx + 1) / 8);
   const empty = n * n - 1;
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
   const emptyIdx = tiles.indexOf(empty);
@@ -433,11 +434,9 @@ export function useGameState(): GameStateHook {
     setN(startDifficulty);
     if (localStorage.getItem(PLAYER_NAME_KEY) === null) {
       setScreen("name");
-    } else if (localStorage.getItem(CINEMATIC_SEEN_KEY)) {
+    } else {
       setMapKey((k) => k + 1);
       setScreen("map");
-    } else {
-      setScreen("cinematic");
     }
   }
 
@@ -462,12 +461,8 @@ export function useGameState(): GameStateHook {
       setScreen("start");
       return;
     }
-    if (localStorage.getItem(CINEMATIC_SEEN_KEY)) {
-      setMapKey((k) => k + 1);
-      setScreen("map");
-    } else {
-      setScreen("cinematic");
-    }
+    setMapKey((k) => k + 1);
+    setScreen("map");
   }
 
   function handleAuthComplete() {
@@ -495,10 +490,11 @@ export function useGameState(): GameStateHook {
   }
 
   function handleCinematicContinue() {
-    localStorage.setItem(INTRO_KEY, "1");
-    localStorage.setItem(CINEMATIC_SEEN_KEY, "1");
-    setMapKey((k) => k + 1);
-    setScreen("map");
+    const cinematicKey = `shards_cinematic_seen_ch_${currentChapterId}`;
+    localStorage.setItem(cinematicKey, "1");
+    localStorage.setItem(CINEMATIC_SEEN_KEY, "1"); // backwards compat
+    startPuzzle((currentChapterId - 1) * 8);
+    setScreen("game");
   }
 
   function handleBackToStart() {
@@ -515,9 +511,14 @@ export function useGameState(): GameStateHook {
   }
 
   function handleMapSelect(chapterId: number) {
-    const idx = (chapterId - 1) * 8;
-    startPuzzle(idx);
-    setScreen("game");
+    const cinematicKey = `shards_cinematic_seen_ch_${chapterId}`;
+    if (!localStorage.getItem(cinematicKey)) {
+      setPuzzleIdx((chapterId - 1) * 8);
+      setScreen("cinematic");
+    } else {
+      startPuzzle((chapterId - 1) * 8);
+      setScreen("game");
+    }
   }
 
   function handleToggleHintGlow() {
@@ -540,7 +541,7 @@ export function useGameState(): GameStateHook {
   }
 
   return {
-    n, puzzleIdx, currentChapterId: Math.ceil((puzzleIdx + 1) / 8), tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
+    n, puzzleIdx, currentChapterId, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
     raLightIdx, raLightUsed, thothUsed, visionUsed, visionActive,
     penaltyKey, lastPenalty, moveLocked, imageLoaded,
     hasShuffled, screen, startDifficulty, cinematicReady, puzzleProgress, chapterProgress, mapKey,
