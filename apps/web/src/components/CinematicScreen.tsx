@@ -68,7 +68,7 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
       <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 
       <div className="cinematic-body">
-        <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520 }}>
+        <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520, animation: "none" }}>
           {words.map((word, i) => (
             <span
               key={i}
