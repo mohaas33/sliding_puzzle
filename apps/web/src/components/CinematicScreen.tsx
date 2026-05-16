@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ChapterTheme } from "../theme";
 import { CHAPTERS, CHAPTER_LABEL } from "../constants";
 
@@ -11,19 +11,36 @@ interface CinematicScreenProps {
 
 export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }: CinematicScreenProps) {
   const loreText = CHAPTERS[currentChapterId]?.introNarration ?? "";
-  const sentences = loreText.split(". ").filter(Boolean);
-  const [revealed, setRevealed] = useState(0);
+  const words = loreText.split(" ");
+  const [revealedWords, setRevealedWords] = useState(0);
+  const [buttonVisible, setButtonVisible] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const buttonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setRevealed(0);
-    const timers = sentences.map((_, i) =>
-      setTimeout(() => setRevealed(i + 1), 300 + i * 900),
-    );
-    return () => timers.forEach(clearTimeout);
+    setRevealedWords(0);
+    setButtonVisible(false);
+
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (buttonTimerRef.current) clearTimeout(buttonTimerRef.current);
+
+    let count = 0;
+    intervalRef.current = setInterval(() => {
+      count += 1;
+      setRevealedWords(count);
+      if (count >= words.length) {
+        clearInterval(intervalRef.current!);
+        intervalRef.current = null;
+        buttonTimerRef.current = setTimeout(() => setButtonVisible(true), 500);
+      }
+    }, 80);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (buttonTimerRef.current) clearTimeout(buttonTimerRef.current);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChapterId]);
-
-  const allRevealed = revealed >= sentences.length;
 
   return (
     <div className="cinematic-overlay" onClick={(e) => e.stopPropagation()}>
@@ -52,37 +69,35 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
 
       <div className="cinematic-body">
         <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520 }}>
-          {sentences.map((sentence, i) => (
+          {words.map((word, i) => (
             <span
               key={i}
               style={{
-                display: "block",
-                marginBottom: "0.5em",
-                opacity: revealed > i ? 1 : 0,
-                transform: revealed > i ? "translateY(0)" : "translateY(8px)",
-                transition: "opacity 0.6s ease, transform 0.6s ease",
+                display: "inline",
+                opacity: revealedWords > i ? 1 : 0,
+                transition: "opacity 0.4s ease",
               }}
             >
-              {sentence}
+              {word}{" "}
             </span>
           ))}
         </p>
       </div>
 
-      {allRevealed && (
-        <button
-          className="win-btn win-btn-primary cinematic-continue"
-          onClick={onContinue}
-          style={{
-            animation: "fadeIn 0.5s ease",
-            background: theme.gradient,
-            borderColor: theme.primary,
-            color: "#0a0806",
-          }}
-        >
-          Enter the Chapter →
-        </button>
-      )}
+      <button
+        className="win-btn win-btn-primary cinematic-continue"
+        onClick={onContinue}
+        style={{
+          opacity: buttonVisible ? 1 : 0,
+          transition: "opacity 0.6s ease",
+          pointerEvents: buttonVisible ? "auto" : "none",
+          background: theme.gradient,
+          borderColor: theme.primary,
+          color: "#0a0806",
+        }}
+      >
+        Enter the Chapter →
+      </button>
     </div>
   );
 }
