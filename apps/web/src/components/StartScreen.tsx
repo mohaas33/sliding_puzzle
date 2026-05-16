@@ -16,6 +16,7 @@ interface StartScreenProps {
   handleBeginJourney: () => void;
   handleContinue: () => void;
   handleShowAuth: () => void;
+  handleShowLeaderboard: () => void;
   isMuted: boolean;
   onToggleMute: () => void;
 }
@@ -47,6 +48,7 @@ export function StartScreen({
   handleBeginJourney,
   handleContinue,
   handleShowAuth,
+  handleShowLeaderboard,
   isMuted,
   onToggleMute,
 }: StartScreenProps) {
@@ -111,6 +113,9 @@ export function StartScreen({
           ) : (
             <p className="start-save-hint">Your progress is saved automatically</p>
           )}
+          <button className="start-new-game-link" onClick={handleShowLeaderboard}>
+            🏆 Leaderboard
+          </button>
           <button className="start-new-game-link" onClick={handleShowAuth}>
             {authProvider && authProvider !== "guest"
               ? `${PROVIDER_LABELS[authProvider] ?? authProvider} ✓`

@@ -13,6 +13,7 @@ interface GameMenuProps {
   musicMuted: boolean;
   theme: ChapterTheme;
   handleShowMap: () => void;
+  handleShowLeaderboard: () => void;
   handleRestartPuzzle: () => void;
   handleResetRequest: () => void;
   handleResetConfirm: () => void;
@@ -31,6 +32,7 @@ export function GameMenu({
   musicMuted,
   theme,
   handleShowMap,
+  handleShowLeaderboard,
   handleRestartPuzzle,
   handleResetRequest,
   handleResetConfirm,
@@ -77,6 +79,10 @@ export function GameMenu({
 
         <button className="drawer-item" onClick={handleShowMap}>
           <span className="drawer-icon">📜</span> Chapter Map
+        </button>
+
+        <button className="drawer-item" onClick={handleShowLeaderboard}>
+          <span className="drawer-icon">🏆</span> Leaderboard
         </button>
 
         <button className="drawer-item" onClick={handleRestartPuzzle}>

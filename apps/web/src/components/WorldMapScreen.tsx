@@ -25,6 +25,7 @@ interface Props {
   builtChapters?: number[];
   onSelectChapter: (chapterId: number) => void;
   onResetRequest: () => void;
+  onShowLeaderboard?: () => void;
 }
 
 function chapterStats(
@@ -264,6 +265,7 @@ export function WorldMapScreen({
   builtChapters = [1],
   onSelectChapter,
   onResetRequest,
+  onShowLeaderboard,
 }: Props) {
   const [isPremium, setIsPremium] = useState(() => localStorage.getItem(IS_PREMIUM_KEY) === "1");
   const [modalOpen, setModalOpen] = useState(false);
@@ -532,12 +534,22 @@ export function WorldMapScreen({
           <p style={{ fontSize: 12, color: "rgba(200,169,110,0.3)", fontFamily: "'Cinzel', serif", letterSpacing: "0.04em" }}>
             Complete a chapter to unlock the next era
           </p>
-          <button
-            onClick={onResetRequest}
-            style={{ fontFamily: "'Cinzel', serif", fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(200,169,110,0.35)", background: "transparent", border: "1px solid rgba(200,169,110,0.12)", borderRadius: 4, padding: "6px 14px", cursor: "pointer" }}
-          >
-            New Game
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            {onShowLeaderboard && (
+              <button
+                onClick={onShowLeaderboard}
+                style={{ fontFamily: "'Cinzel', serif", fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(200,169,110,0.5)", background: "transparent", border: "1px solid rgba(200,169,110,0.18)", borderRadius: 4, padding: "6px 14px", cursor: "pointer" }}
+              >
+                🏆 Leaderboard
+              </button>
+            )}
+            <button
+              onClick={onResetRequest}
+              style={{ fontFamily: "'Cinzel', serif", fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(200,169,110,0.35)", background: "transparent", border: "1px solid rgba(200,169,110,0.12)", borderRadius: 4, padding: "6px 14px", cursor: "pointer" }}
+            >
+              New Game
+            </button>
+          </div>
         </div>
       </div>
 

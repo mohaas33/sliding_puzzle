@@ -78,6 +78,8 @@ export interface GameStateHook {
   handleAuthComplete: () => void;
   handleSkipAuth: () => void;
   handleShowAuth: () => void;
+  handleShowLeaderboard: () => void;
+  handleBackFromLeaderboard: () => void;
   handleCinematicContinue: () => void;
   handleBackToStart: () => void;
   handleShowMap: () => void;
@@ -137,6 +139,7 @@ export function useGameState(): GameStateHook {
   const visionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const moveLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const authOriginRef = useRef<"journey" | "menu">("menu");
+  const prevScreenRef = useRef<Screen>("start");
 
   const empty = n * n - 1;
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
@@ -479,6 +482,16 @@ export function useGameState(): GameStateHook {
     setScreen("auth");
   }
 
+  function handleShowLeaderboard() {
+    prevScreenRef.current = screen;
+    setMenuOpen(false);
+    setScreen("leaderboard");
+  }
+
+  function handleBackFromLeaderboard() {
+    setScreen(prevScreenRef.current);
+  }
+
   function handleCinematicContinue() {
     localStorage.setItem(INTRO_KEY, "1");
     localStorage.setItem(CINEMATIC_SEEN_KEY, "1");
@@ -536,7 +549,7 @@ export function useGameState(): GameStateHook {
     handleRaLight, handleThothHand, handleVisionOfOsiris, handleDevSolve,
     handleDifficultyChange, handlePlayAgain, handleNextShard,
     handleViewMap, handleNewGame, handleBeginJourney, handleContinue, handleNameConfirm,
-    handleAuthComplete, handleSkipAuth, handleShowAuth, handleCinematicContinue, handleBackToStart,
+    handleAuthComplete, handleSkipAuth, handleShowAuth, handleShowLeaderboard, handleBackFromLeaderboard, handleCinematicContinue, handleBackToStart,
     handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
     handleResetConfirm, handleDismissMission, handleExpandMission,
     nameSet, playerName, handleSetPlayerName, lastPuzzlePoints,

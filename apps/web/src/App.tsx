@@ -3,6 +3,7 @@ import { useAudio } from "./hooks/useAudio";
 import { StartScreen } from "./components/StartScreen";
 import { NameScreen } from "./components/NameScreen";
 import { AuthScreen } from "./components/AuthScreen";
+import { LeaderboardScreen } from "./components/LeaderboardScreen";
 import { WorldMapScreen } from "./components/WorldMapScreen";
 import { GameBoard } from "./components/GameBoard";
 import { WinScreen } from "./components/WinScreen";
@@ -188,6 +189,7 @@ export function App() {
           handleBeginJourney={game.handleBeginJourney}
           handleContinue={game.handleContinue}
           handleShowAuth={game.handleShowAuth}
+          handleShowLeaderboard={game.handleShowLeaderboard}
           isMuted={audio.isMuted}
           onToggleMute={audio.toggleMute}
         />
@@ -207,6 +209,15 @@ export function App() {
         <AuthScreen
           onSkip={game.handleSkipAuth}
           onBack={game.handleBackToStart}
+        />
+      )}
+
+      {/* Leaderboard screen */}
+      {game.screen === "leaderboard" && (
+        <LeaderboardScreen
+          puzzleProgress={game.puzzleProgress}
+          playerName={game.playerName}
+          onBack={game.handleBackFromLeaderboard}
         />
       )}
 
@@ -266,6 +277,7 @@ export function App() {
           builtChapters={[1, 2]}
           onSelectChapter={(chapterId) => game.handleMapSelect(chapterId)}
           onResetRequest={game.handleResetRequest}
+          onShowLeaderboard={game.handleShowLeaderboard}
         />
       )}
 
@@ -323,6 +335,7 @@ export function App() {
         musicMuted={audio.isMuted}
         theme={theme}
         handleShowMap={game.handleShowMap}
+        handleShowLeaderboard={game.handleShowLeaderboard}
         handleRestartPuzzle={() => { game.startPuzzle(game.puzzleIdx); game.setMenuOpen(false); }}
         handleResetRequest={game.handleResetRequest}
         handleResetConfirm={game.handleResetConfirm}
