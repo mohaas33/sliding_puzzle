@@ -10,6 +10,9 @@ interface CinematicScreenProps {
 }
 
 export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }: CinematicScreenProps) {
+  console.log("CHAPTERS:", CHAPTERS, "type:", typeof CHAPTERS,
+              "isArray:", Array.isArray(CHAPTERS),
+              "key 2:", CHAPTERS[2]);
   const chapterId = Number(currentChapterId);
   const textColor = currentChapterId === 2 ? "#c8dff0" : "#d4b896";
 
@@ -22,10 +25,12 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
   const buttonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (words.length === 0) return;
+    const text = CHAPTERS[Number(currentChapterId)]?.introNarration ?? "";
+    const wordList = text.split(" ").filter(Boolean);
+    if (wordList.length === 0) return;
+
     setRevealedWords(0);
     setButtonVisible(false);
-
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (buttonTimerRef.current) clearTimeout(buttonTimerRef.current);
 
@@ -33,7 +38,7 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
     intervalRef.current = setInterval(() => {
       count += 1;
       setRevealedWords(count);
-      if (count >= words.length) {
+      if (count >= wordList.length) {
         clearInterval(intervalRef.current!);
         intervalRef.current = null;
         buttonTimerRef.current = setTimeout(() => setButtonVisible(true), 500);
@@ -44,14 +49,7 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (buttonTimerRef.current) clearTimeout(buttonTimerRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChapterId]);
-
-  if (words.length === 0) return (
-    <div className="cinematic-overlay">
-      <p style={{ color: "white" }}>Loading...</p>
-    </div>
-  );
 
   return (
     <div className="cinematic-overlay" onClick={(e) => e.stopPropagation()}>
@@ -79,20 +77,24 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
       <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 
       <div className="cinematic-body">
-        <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520, animation: "none", color: textColor }}>
-          {words.map((word, i) => (
-            <span
-              key={i}
-              style={{
-                display: "inline",
-                opacity: revealedWords > i ? 1 : 0,
-                transition: "opacity 0.4s ease",
-              }}
-            >
-              {word}{" "}
-            </span>
-          ))}
-        </p>
+        {words.length === 0 ? (
+          <p style={{ color: textColor, opacity: 0.5, fontStyle: "italic" }}>Loading…</p>
+        ) : (
+          <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520, animation: "none", color: textColor }}>
+            {words.map((word, i) => (
+              <span
+                key={i}
+                style={{
+                  display: "inline",
+                  opacity: revealedWords > i ? 1 : 0,
+                  transition: "opacity 0.4s ease",
+                }}
+              >
+                {word}{" "}
+              </span>
+            ))}
+          </p>
+        )}
       </div>
 
       <button
