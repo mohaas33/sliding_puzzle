@@ -388,11 +388,11 @@ export function WorldMapScreen({
               ✦ Premium
             </p>
           )}
-          <p style={{ fontSize: 12, color: "rgba(200,169,110,0.25)", margin: 0, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textAlign: "center" }}>
-            {totalStars > 0
-              ? `★ ${totalStars} / ${totalMaxStars} stars collected`
-              : "— stars collected"}
-          </p>
+          {totalStars > 0 && (
+            <p style={{ fontSize: 12, color: "rgba(200,169,110,0.25)", margin: 0, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textAlign: "center" }}>
+              ★ {totalStars} / {totalMaxStars} stars collected
+            </p>
+          )}
         </div>
 
         {/* Chapter cards */}
@@ -414,7 +414,7 @@ export function WorldMapScreen({
 
             const borderColor = isHovered ? `${chapter.accentColor}80` : baseBorder;
 
-            const baseOpacity = status === "locked" ? 0.28 : status === "coming" ? 0.2 : 1;
+            const baseOpacity = status === "locked" ? 0.28 : status === "coming" ? 0.45 : 1;
 
             return (
               // Outer wrapper: hover lift only (separate transform so it doesn't interfere with entrance)
@@ -532,7 +532,7 @@ export function WorldMapScreen({
                         </span>
                       )}
                       {status === "coming" && (
-                        <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 20, background: "rgba(200,169,110,0.06)", color: "rgba(200,169,110,0.35)", fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                        <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 20, background: "transparent", color: `${chapter.accentColor}60`, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}20` }}>
                           Soon
                         </span>
                       )}
