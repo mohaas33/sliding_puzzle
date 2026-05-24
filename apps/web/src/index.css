@@ -321,13 +321,7 @@ body {
     box-shadow: 0 0 12px rgba(200, 169, 110, 0.3);
   }
 
-  .win-btn-primary {
-    background: rgba(200, 169, 110, 0.1);
-    border-color: rgba(200, 169, 110, 0.7);
-  }
-
   .win-btn-primary:hover {
-    background: rgba(200, 169, 110, 0.2);
     box-shadow: 0 0 18px rgba(200, 169, 110, 0.38);
   }
 
@@ -1255,12 +1249,8 @@ body {
     font-size: 0.85rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: #0a0806;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 70%, black), var(--gold) 50%, color-mix(in srgb, var(--gold) 70%, white));
-    border: none;
     border-radius: 6px;
     cursor: pointer;
-    box-shadow: 0 0 32px rgba(200, 169, 110, 0.35);
     transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
     animation: fadeIn 0.5s 0.5s ease both;
   }
