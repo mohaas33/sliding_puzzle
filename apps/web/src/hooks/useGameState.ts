@@ -143,6 +143,8 @@ export function useGameState(): GameStateHook {
   const prevScreenRef = useRef<Screen>("start");
 
   const currentChapterId = Math.ceil((puzzleIdx + 1) / 8);
+  const currentChapterIdRef = useRef(currentChapterId);
+  useEffect(() => { currentChapterIdRef.current = currentChapterId; }, [currentChapterId]);
   const empty = n * n - 1;
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
   const emptyIdx = tiles.indexOf(empty);
@@ -490,10 +492,12 @@ export function useGameState(): GameStateHook {
   }
 
   function handleCinematicContinue() {
-    const cinematicKey = `shards_cinematic_seen_ch_${currentChapterId}`;
+    const chId = currentChapterIdRef.current;
+    console.log("handleCinematicContinue chapterId:", chId);
+    const cinematicKey = `shards_cinematic_seen_ch_${chId}`;
     localStorage.setItem(cinematicKey, "1");
     localStorage.setItem(CINEMATIC_SEEN_KEY, "1"); // backwards compat
-    startPuzzle((currentChapterId - 1) * 8);
+    startPuzzle((chId - 1) * 8);
     setScreen("game");
   }
 
@@ -513,7 +517,9 @@ export function useGameState(): GameStateHook {
   function handleMapSelect(chapterId: number) {
     const cinematicKey = `shards_cinematic_seen_ch_${chapterId}`;
     if (!localStorage.getItem(cinematicKey)) {
-      setPuzzleIdx((chapterId - 1) * 8);
+      const targetIdx = (chapterId - 1) * 8;
+      setPuzzleIdx(targetIdx);
+      currentChapterIdRef.current = chapterId;
       setScreen("cinematic");
     } else {
       startPuzzle((chapterId - 1) * 8);

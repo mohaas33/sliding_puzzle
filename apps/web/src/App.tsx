@@ -22,6 +22,7 @@ export function App() {
   const game = useGameState();
   const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed, n: game.n });
   const theme = getTheme(game.puzzleIdx);
+  console.log("puzzleIdx:", game.puzzleIdx, "theme.primary:", theme.primary);
 
   const totalScore = Object.values(game.puzzleProgress).reduce(
     (sum, p) => sum + (p.points ?? 0), 0,
