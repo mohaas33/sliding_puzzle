@@ -44,12 +44,12 @@ function chapterStats(
   return { stars, completed };
 }
 
-function StarRow({ earned, max }: { earned: number; max: number }) {
+function StarRow({ earned, max, accentColor }: { earned: number; max: number; accentColor: string }) {
   if (max === 0) return null;
   return (
     <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
       {Array.from({ length: max }).map((_, i) => (
-        <span key={i} style={{ fontSize: 11, color: i < earned ? "#c8a96e" : "rgba(200,169,110,0.2)", lineHeight: 1 }}>★</span>
+        <span key={i} style={{ fontSize: 11, color: i < earned ? accentColor : "rgba(200,169,110,0.2)", lineHeight: 1 }}>★</span>
       ))}
       <span style={{ fontSize: 11, color: "rgba(200,169,110,0.5)", marginLeft: 4, fontFamily: "'Cinzel', serif", letterSpacing: "0.05em" }}>
         {earned}/{max}
@@ -489,18 +489,18 @@ export function WorldMapScreen({
 
                     {/* Meta */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(200,169,110,0.4)", margin: "0 0 2px" }}>
+                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: `${chapter.accentColor}73`, margin: "0 0 2px" }}>
                         Chapter {chapter.id}
                       </p>
                       <p style={{ fontFamily: "'Cinzel', serif", fontSize: "15px", fontWeight: 700, color: chapter.accentColor, margin: "0 0 3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {chapter.name}
                       </p>
-                      <p style={{ fontSize: 12, color: "rgba(200,169,110,0.5)", margin: "0 0 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <p style={{ fontSize: 12, color: `${chapter.accentColor}80`, margin: "0 0 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {chapter.tagline}
                       </p>
 
                       {completedPuzzles > 0 && (
-                        <StarRow earned={earnedStars} max={completedPuzzles * 3} />
+                        <StarRow earned={earnedStars} max={completedPuzzles * 3} accentColor={chapter.accentColor} />
                       )}
 
                       {(status === "complete" || status === "unlocked") && (
@@ -513,13 +513,13 @@ export function WorldMapScreen({
                     {/* Right badge */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
                       {status === "complete" && (
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(29,158,117,0.15)", color: "#5dcaa5", fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}20`, color: chapter.accentColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}80` }}>
                           Complete
                         </span>
                       )}
                       {status === "unlocked" && (
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: "rgba(200,169,110,0.12)", color: "#c8a96e", fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: "1px solid rgba(200,169,110,0.5)", animation: "activePulse 2.4s ease-in-out infinite", display: "flex", alignItems: "center" }}>
-                          <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "#c8a96e", marginRight: 6, animation: "activePulse 2.4s ease-in-out infinite", animationDelay: "1.2s" }} />
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}20`, color: chapter.accentColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}80`, animation: "activePulse 2.4s ease-in-out infinite", display: "flex", alignItems: "center" }}>
+                          <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: chapter.accentColor, marginRight: 6, animation: "activePulse 2.4s ease-in-out infinite", animationDelay: "1.2s" }} />
                           Active
                         </span>
                       )}
@@ -536,7 +536,7 @@ export function WorldMapScreen({
                           Soon
                         </span>
                       )}
-                      <span style={{ fontSize: 11, color: "rgba(200,169,110,0.35)", fontFamily: "'Cinzel', serif" }}>
+                      <span style={{ fontSize: 11, color: `${chapter.accentColor}59`, fontFamily: "'Cinzel', serif" }}>
                         {completedPuzzles}/{chapter.puzzleCount}
                       </span>
                     </div>
