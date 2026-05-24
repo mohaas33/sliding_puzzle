@@ -41,7 +41,9 @@ export function MissionCard({ puzzle, phase, playerName, theme, onDismiss, onExp
           className="mission-begin-btn"
           onClick={onDismiss}
           style={{
-            background: theme.gradient,
+            background: theme.primaryBg,
+            border: `1px solid ${theme.primaryBorderBright}`,
+            color: theme.primary,
             boxShadow: `0 0 32px ${theme.primaryBorder}`,
           }}
         >

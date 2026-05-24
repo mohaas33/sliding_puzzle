@@ -91,9 +91,9 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
           opacity: buttonVisible ? 1 : 0,
           transition: "opacity 0.6s ease",
           pointerEvents: buttonVisible ? "auto" : "none",
-          background: theme.gradient,
-          borderColor: theme.primary,
-          color: "#0a0806",
+          background: theme.primaryBg,
+          borderColor: theme.primaryBorderBright,
+          color: theme.primary,
         }}
       >
         Enter the Chapter →

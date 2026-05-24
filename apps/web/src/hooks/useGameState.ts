@@ -238,8 +238,8 @@ export function useGameState(): GameStateHook {
     img.src = puzzle.imageUrl;
     if (img.complete) { setImageLoaded(true); return; }
     setImageLoaded(false);
-    img.onload = () => setImageLoaded(true);
-    img.onerror = () => setImageLoaded(true); // show board even on error
+    img.onload = () => { console.log("[imageLoaded] loaded:", img.src); setImageLoaded(true); };
+    img.onerror = () => { console.warn("[imageLoaded] failed to load:", img.src); setImageLoaded(true); };
     return () => { img.onload = null; img.onerror = null; };
   }, [puzzle.imageUrl]);
 
