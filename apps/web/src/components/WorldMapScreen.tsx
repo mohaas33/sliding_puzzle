@@ -489,13 +489,13 @@ export function WorldMapScreen({
 
                     {/* Meta */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: `${chapter.accentColor}73`, margin: "0 0 2px" }}>
+                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: `${chapter.accentColor}60`, margin: "0 0 2px" }}>
                         Chapter {chapter.id}
                       </p>
-                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "15px", fontWeight: 700, color: chapter.accentColor, margin: "0 0 3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "15px", fontWeight: 700, color: chapter.accentColor, margin: "0 0 3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", opacity: (status === "locked" || status === "coming") ? 0.4 : undefined }}>
                         {chapter.name}
                       </p>
-                      <p style={{ fontSize: 12, color: `${chapter.accentColor}80`, margin: "0 0 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <p style={{ fontSize: 12, color: `${chapter.accentColor}70`, margin: "0 0 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {chapter.tagline}
                       </p>
 
@@ -518,7 +518,7 @@ export function WorldMapScreen({
                         </span>
                       )}
                       {status === "unlocked" && (
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}20`, color: chapter.accentColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}80`, animation: "activePulse 2.4s ease-in-out infinite", display: "flex", alignItems: "center" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}20`, color: chapter.accentColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}70`, animation: "activePulse 2.4s ease-in-out infinite", display: "flex", alignItems: "center" }}>
                           <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: chapter.accentColor, marginRight: 6, animation: "activePulse 2.4s ease-in-out infinite", animationDelay: "1.2s" }} />
                           Active
                         </span>
@@ -532,11 +532,11 @@ export function WorldMapScreen({
                         </span>
                       )}
                       {status === "coming" && (
-                        <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 20, background: "transparent", color: `${chapter.accentColor}60`, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}20` }}>
+                        <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}08`, color: `${chapter.accentColor}55`, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}25` }}>
                           Soon
                         </span>
                       )}
-                      <span style={{ fontSize: 11, color: `${chapter.accentColor}59`, fontFamily: "'Cinzel', serif" }}>
+                      <span style={{ fontSize: 11, color: `${chapter.accentColor}50`, fontFamily: "'Cinzel', serif" }}>
                         {completedPuzzles}/{chapter.puzzleCount}
                       </span>
                     </div>
