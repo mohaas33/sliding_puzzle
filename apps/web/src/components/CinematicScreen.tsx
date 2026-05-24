@@ -13,29 +13,16 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
   const chapterId = Number(currentChapterId);
   const textColor = currentChapterId === 2 ? "#c8dff0" : "#d4b896";
 
-  const NARRATION_FALLBACK: Record<number, string> = {
-    1: "3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh. " +
-       "In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets. " +
-       "The gods fell silent. The Nile stopped flooding. Time itself cracked. " +
-       "You are the Restorer — chosen to piece history back together, one shard at a time.",
-    2: "Two thousand years before your birth, a hero shattered the mirror of Athena " +
-       "and scattered its fragments across the Aegean. The gods fell to quarreling. " +
-       "Heroes lost their way. Troy burns for the wrong reasons. " +
-       "You are the Restorer — called now to the land of marble and myth.",
-  };
+  const loreText = CHAPTERS[Number(currentChapterId)]?.introNarration ?? "";
+  const words = loreText.split(" ").filter(Boolean);
 
-  const loreText = CHAPTERS[chapterId]?.introNarration
-    ?? NARRATION_FALLBACK[chapterId]
-    ?? "";
-
-  console.log("loreText:", loreText, "currentChapterId:", currentChapterId, "CHAPTERS keys:", Object.keys(CHAPTERS));
-  const words = loreText.split(" ");
   const [revealedWords, setRevealedWords] = useState(0);
   const [buttonVisible, setButtonVisible] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const buttonTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (words.length === 0) return;
     setRevealedWords(0);
     setButtonVisible(false);
 
@@ -59,6 +46,12 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentChapterId]);
+
+  if (words.length === 0) return (
+    <div className="cinematic-overlay">
+      <p style={{ color: "white" }}>Loading...</p>
+    </div>
+  );
 
   return (
     <div className="cinematic-overlay" onClick={(e) => e.stopPropagation()}>
