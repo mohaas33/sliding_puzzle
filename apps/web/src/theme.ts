@@ -63,6 +63,17 @@ export const CHAPTER_THEMES: Record<number, ChapterTheme> = {
 };
 
 export function getTheme(puzzleIdx: number): ChapterTheme {
-  const chapterId = Math.ceil((puzzleIdx + 1) / 8);
-  return CHAPTER_THEMES[chapterId] ?? CHAPTER_THEMES[1]!;
+  if (puzzleIdx >= 8) {
+    return {
+      primary:             "#7eb8e8",
+      primaryDim:          "#5a9fd4",
+      primaryFaint:        "rgba(126,184,232,0.1)",
+      primaryBg:           "rgba(126,184,232,0.08)",
+      primaryBorder:       "rgba(126,184,232,0.15)",
+      primaryBorderBright: "rgba(126,184,232,0.5)",
+      gradient:            "linear-gradient(135deg, #7eb8e8 0%, #4a8bbf 100%)",
+      gradientDim:         "#4a8bbf",
+    };
+  }
+  return CHAPTER_THEMES[1]!;
 }
