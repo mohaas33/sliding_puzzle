@@ -11,9 +11,23 @@ interface CinematicScreenProps {
 
 export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }: CinematicScreenProps) {
   const chapterId = Number(currentChapterId);
+
+  const NARRATION_FALLBACK: Record<number, string> = {
+    1: "3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh. " +
+       "In his greed, he shattered the enchanted tiles that held Egypt's greatest secrets. " +
+       "The gods fell silent. The Nile stopped flooding. Time itself cracked. " +
+       "You are the Restorer — chosen to piece history back together, one shard at a time.",
+    2: "Two thousand years before your birth, a hero shattered the mirror of Athena " +
+       "and scattered its fragments across the Aegean. The gods fell to quarreling. " +
+       "Heroes lost their way. Troy burns for the wrong reasons. " +
+       "You are the Restorer — called now to the land of marble and myth.",
+  };
+
   const loreText = CHAPTERS[chapterId]?.introNarration
-    ?? "The ancient world awaits. Piece together history, one shard at a time.";
-  console.log("CinematicScreen currentChapterId:", currentChapterId, "CHAPTERS:", CHAPTERS, "loreText:", loreText);
+    ?? NARRATION_FALLBACK[chapterId]
+    ?? "";
+
+  console.log("loreText:", loreText, "currentChapterId:", currentChapterId, "CHAPTERS keys:", Object.keys(CHAPTERS));
   const words = loreText.split(" ");
   const [revealedWords, setRevealedWords] = useState(0);
   const [buttonVisible, setButtonVisible] = useState(false);
