@@ -249,7 +249,7 @@ export function WinScreen({
             margin: 0,
           }}
         >
-          {playerName} · Shard {puzzle.id} of {PUZZLES.length} · {moves} moves · {formatTime(elapsed)}
+          {playerName} · {chapter === 2 ? "Fragment" : "Shard"} {puzzle.id} of {PUZZLES.length} · {moves} moves · {formatTime(elapsed)}
         </p>
 
         {/* Points earned */}
