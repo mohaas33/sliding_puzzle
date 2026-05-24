@@ -123,32 +123,40 @@ export function App() {
           {!game.frozen && (
             <div className="favor-panel">
               <span className="favor-panel-label">Favor of the Gods</span>
-              <div className="favor-btn-row">
-                <button
-                  className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
-                  onClick={game.handleRaLight}
-                  disabled={game.raLightUsed >= RA_LIGHT_MAX}
-                  title={game.raLightUsed >= RA_LIGHT_MAX ? "The gods are silent" : "+2 moves"}
-                >
-                  ✦ Ra's Light ({RA_LIGHT_MAX - game.raLightUsed})
-                </button>
-                <button
-                  className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
-                  onClick={game.handleThothHand}
-                  disabled={game.thothUsed >= THOTH_HAND_MAX}
-                  title={game.thothUsed >= THOTH_HAND_MAX ? "The gods are silent" : "+5 moves"}
-                >
-                  𓂀 Thoth's Hand ({THOTH_HAND_MAX - game.thothUsed})
-                </button>
-                <button
-                  className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
-                  onClick={game.handleVisionOfOsiris}
-                  disabled={game.visionUsed >= VISION_MAX}
-                  title={game.visionUsed >= VISION_MAX ? "The gods are silent" : "Free — no move cost"}
-                >
-                  ◈ Vision ({VISION_MAX - game.visionUsed})
-                </button>
-              </div>
+              {(() => {
+                const chapter = game.puzzleIdx < 8 ? 1 : 2;
+                const silent = chapter === 2 ? "The gods are silent" : "The gods are silent";
+                const raLabel = chapter === 2 ? "⚡ Apollo's Light" : "✦ Ra's Light";
+                const thothLabel = chapter === 2 ? "🦉 Athena's Hand" : "𓂀 Thoth's Hand";
+                return (
+                  <div className="favor-btn-row">
+                    <button
+                      className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
+                      onClick={game.handleRaLight}
+                      disabled={game.raLightUsed >= RA_LIGHT_MAX}
+                      title={game.raLightUsed >= RA_LIGHT_MAX ? silent : "+2 moves"}
+                    >
+                      {raLabel} ({RA_LIGHT_MAX - game.raLightUsed})
+                    </button>
+                    <button
+                      className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
+                      onClick={game.handleThothHand}
+                      disabled={game.thothUsed >= THOTH_HAND_MAX}
+                      title={game.thothUsed >= THOTH_HAND_MAX ? silent : "+5 moves"}
+                    >
+                      {thothLabel} ({THOTH_HAND_MAX - game.thothUsed})
+                    </button>
+                    <button
+                      className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
+                      onClick={game.handleVisionOfOsiris}
+                      disabled={game.visionUsed >= VISION_MAX}
+                      title={game.visionUsed >= VISION_MAX ? silent : "Free — no move cost"}
+                    >
+                      ◈ Vision ({VISION_MAX - game.visionUsed})
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

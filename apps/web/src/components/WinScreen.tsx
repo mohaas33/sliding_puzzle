@@ -21,13 +21,24 @@ interface WinScreenProps {
   handleViewMap: () => void;
 }
 
-function anubisComment(stars: number, name: string): string {
+function starComment(stars: number, name: string, chapter: number): string {
+  if (chapter === 2) {
+    if (stars === 3) return `Athena nods. "Your mind is sharp, ${name}."`;
+    if (stars === 2) return `The Olympians watched in silence.`;
+    return `Apollo frowns. "Even a mortal should do better."`;
+  }
   if (stars === 3) return `Anubis nods. "Worthy of a scribe, ${name}."`;
-  if (stars === 2) return `Anubis tilts his head. "Acceptable. Barely."`;
+  if (stars === 2) return `The gods watched. You needed no help.`;
   return `Anubis sighs. "The feather outweighs your effort."`;
 }
 
-function divineFavorLine(raLightUsed: number, thothUsed: number, visionUsed: number): string {
+function divineFavorLine(raLightUsed: number, thothUsed: number, visionUsed: number, chapter: number): string {
+  if (chapter === 2) {
+    if (thothUsed > 0) return `Athena lent her wisdom ${thothUsed} time${thothUsed === 1 ? "" : "s"}. Olympus is watching.`;
+    if (raLightUsed > 0) return `Apollo guided your hand ${raLightUsed} time${raLightUsed === 1 ? "" : "s"}. The gods noted this.`;
+    if (visionUsed > 0) return `You sought only vision, not intervention. Wise.`;
+    return `The Olympians watched in silence.`;
+  }
   if (thothUsed > 0) {
     const times = thothUsed === 1 ? "once" : `${thothUsed} times`;
     return `Thoth guided your hand ${times}. The scales reflect this.`;
@@ -36,9 +47,7 @@ function divineFavorLine(raLightUsed: number, thothUsed: number, visionUsed: num
     const steps = raLightUsed === 1 ? "1 step" : `${raLightUsed} steps`;
     return `Ra illuminated ${steps} of your path.`;
   }
-  if (visionUsed > 0) {
-    return `You sought only vision, not intervention. Wise.`;
-  }
+  if (visionUsed > 0) return `You sought only vision, not intervention. Wise.`;
   return `The gods watched in silence — you needed no help.`;
 }
 
@@ -58,6 +67,7 @@ export function WinScreen({
   handleNextShard,
   handleViewMap,
 }: WinScreenProps) {
+  const chapter = puzzleIdx < 8 ? 1 : 2;
   const winText = personalize(puzzle.win, playerName);
   const winSentences = winText.split(". ").filter(Boolean);
   const [revealed, setRevealed] = useState(0);
@@ -87,7 +97,7 @@ export function WinScreen({
             textAlign: "center",
           }}
         >
-          Shard Restored
+          {chapter === 2 ? "Fragment Restored" : "Shard Restored"}
         </h2>
 
         {/* N of Total */}
@@ -141,7 +151,7 @@ export function WinScreen({
             letterSpacing: "0.02em",
           }}
         >
-          {anubisComment(stars, playerName)}
+          {starComment(stars, playerName, chapter)}
         </p>
 
         {/* Divine favor */}
@@ -157,7 +167,7 @@ export function WinScreen({
             letterSpacing: "0.01em",
           }}
         >
-          {divineFavorLine(raLightUsed, thothUsed, visionUsed)}
+          {divineFavorLine(raLightUsed, thothUsed, visionUsed, chapter)}
         </p>
 
         {/* Restored image */}
@@ -273,9 +283,9 @@ export function WinScreen({
             className="win-btn win-btn-primary"
             onClick={handleNextShard}
             style={{
-              background: theme.gradient,
-              borderColor: theme.primary,
-              color: "#0a0806",
+              background: theme.primaryBg,
+              borderColor: theme.primaryBorderBright,
+              color: theme.primary,
             }}
           >
             {puzzleIdx >= PUZZLES.length - 1 ? "View Map →" : "Next Shard →"}
