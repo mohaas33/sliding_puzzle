@@ -71,6 +71,8 @@ export function WinScreen({
   const winText = personalize(puzzle.win, playerName);
   const winSentences = winText.split(". ").filter(Boolean);
   const [revealed, setRevealed] = useState(0);
+  const [imageExpanded, setImageExpanded] = useState(false);
+  const [imageHovered, setImageHovered] = useState(false);
 
   useEffect(() => {
     setRevealed(0);
@@ -186,13 +188,61 @@ export function WinScreen({
           </p>
           <div
             className="win-image-frame"
+            onClick={() => setImageExpanded(true)}
+            onMouseEnter={() => setImageHovered(true)}
+            onMouseLeave={() => setImageHovered(false)}
             style={{
               border: `2px solid ${theme.primary}`,
               boxShadow: `0 0 0 1px ${theme.primaryBg}, 0 0 20px ${theme.primaryBorder}, 0 0 50px ${theme.primaryBg}`,
+              cursor: "pointer",
+              transform: imageHovered ? "scale(1.04)" : "scale(1)",
+              transition: "transform 0.2s ease",
             }}
           >
             <img src={puzzle.imageUrl} alt={puzzle.name} />
           </div>
+
+          {imageExpanded && (
+            <div
+              onClick={() => setImageExpanded(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 100,
+                background: "rgba(0,0,0,0.85)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 16,
+                animation: "lightboxIn 0.25s ease both",
+              }}
+            >
+              <img
+                src={puzzle.imageUrl}
+                alt={puzzle.name}
+                style={{
+                  maxWidth: "90vw",
+                  maxHeight: "85vh",
+                  objectFit: "contain",
+                  border: `2px solid ${theme.primary}`,
+                  boxShadow: `0 0 40px ${theme.primaryBorder}`,
+                }}
+              />
+              <p
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: "0.6rem",
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: theme.primaryDim,
+                  margin: 0,
+                }}
+              >
+                Click anywhere to close
+              </p>
+            </div>
+          )}
           <p
             style={{
               fontFamily: "'Crimson Text', serif",
