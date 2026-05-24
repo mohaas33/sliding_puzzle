@@ -136,7 +136,7 @@ export function WinScreen({
         {/* Stars */}
         <div style={{ fontSize: "1.6rem", letterSpacing: "0.2em", color: theme.primary, margin: "10px 0 6px" }}>
           {Array.from({ length: 3 }, (_, i) => (
-            <span key={i} style={{ opacity: i < stars ? 1 : 0.18 }}>★</span>
+            <span key={i} style={{ opacity: i < stars ? 1 : 0.18, color: theme.primary }}>★</span>
           ))}
         </div>
 

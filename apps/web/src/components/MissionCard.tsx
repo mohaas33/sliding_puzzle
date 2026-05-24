@@ -29,7 +29,7 @@ export function MissionCard({ puzzle, phase, playerName, theme, onDismiss, onExp
       className={`mission-overlay${phase === "exiting" ? " mission-overlay-exit" : ""}`}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="mission-bg" style={{ backgroundImage: `url(${puzzle.imageUrl})` }} />
+      <div className="mission-bg" style={{ backgroundImage: `url(${puzzle.imageUrl})`, backgroundColor: theme.primaryBg }} />
       <div className="mission-dim" />
 
       <div className="mission-content">

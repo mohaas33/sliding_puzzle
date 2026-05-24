@@ -313,17 +313,11 @@ body {
     font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--gold);
     background: transparent;
-    border: 1px solid rgba(200, 169, 110, 0.45);
+    border: 1px solid transparent;
     border-radius: 4px;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  }
-
-  .win-btn:hover {
-    border-color: var(--gold);
-    box-shadow: 0 0 12px rgba(200, 169, 110, 0.3);
   }
 
   .win-btn-primary:hover {
