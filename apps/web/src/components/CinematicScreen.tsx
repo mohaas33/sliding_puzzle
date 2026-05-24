@@ -10,7 +10,10 @@ interface CinematicScreenProps {
 }
 
 export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }: CinematicScreenProps) {
-  const loreText = CHAPTERS[currentChapterId]?.introNarration ?? "";
+  const chapterId = Number(currentChapterId);
+  const loreText = CHAPTERS[chapterId]?.introNarration
+    ?? "The ancient world awaits. Piece together history, one shard at a time.";
+  console.log("CinematicScreen currentChapterId:", currentChapterId, "CHAPTERS:", CHAPTERS, "loreText:", loreText);
   const words = loreText.split(" ");
   const [revealedWords, setRevealedWords] = useState(0);
   const [buttonVisible, setButtonVisible] = useState(false);
@@ -64,7 +67,7 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
         ← Back
       </button>
 
-      <p className="cinematic-label">{CHAPTERS[currentChapterId]?.label ?? CHAPTER_LABEL}</p>
+      <p className="cinematic-label">{CHAPTERS[chapterId]?.label ?? CHAPTER_LABEL}</p>
       <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 
       <div className="cinematic-body">
