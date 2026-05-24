@@ -11,6 +11,7 @@ interface CinematicScreenProps {
 
 export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }: CinematicScreenProps) {
   const chapterId = Number(currentChapterId);
+  const textColor = currentChapterId === 2 ? "#c8dff0" : "#d4b896";
 
   const NARRATION_FALLBACK: Record<number, string> = {
     1: "3,350 years ago, a tomb robber broke into the sacred chamber of a forgotten pharaoh. " +
@@ -81,11 +82,11 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
         ← Back
       </button>
 
-      <p className="cinematic-label">{CHAPTERS[chapterId]?.label ?? CHAPTER_LABEL}</p>
+      <p className="cinematic-label" style={{ color: theme.primary }}>{CHAPTERS[chapterId]?.label ?? CHAPTER_LABEL}</p>
       <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 
       <div className="cinematic-body">
-        <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520, animation: "none" }}>
+        <p className="cinematic-p1" style={{ fontStyle: "italic", textAlign: "center", maxWidth: 520, animation: "none", color: textColor }}>
           {words.map((word, i) => (
             <span
               key={i}

@@ -598,7 +598,6 @@ body {
     font-style: italic;
     font-size: 20px;
     line-height: 1.8;
-    color: #c8b090;
     margin: 0;
     animation: slideUp 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   }
