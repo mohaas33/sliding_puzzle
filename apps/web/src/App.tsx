@@ -234,7 +234,7 @@ export function App() {
       {/* Cinematic screen */}
       {game.screen === "cinematic" && (
         <CinematicScreen
-          currentChapterId={game.currentChapterId}
+          currentChapterId={game.cinematicChapterId}
           theme={theme}
           onBack={game.handleBackToStart}
           onContinue={game.handleCinematicContinue}

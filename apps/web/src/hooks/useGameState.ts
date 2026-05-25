@@ -24,6 +24,7 @@ export interface GameStateHook {
   n: Difficulty;
   puzzleIdx: number;
   currentChapterId: number;
+  cinematicChapterId: number;
   tiles: number[];
   moves: number;
   elapsed: number;
@@ -124,6 +125,7 @@ export function useGameState(): GameStateHook {
     localStorage.getItem(DIFFICULTY_KEY) ? loadDifficulty() : 3,
   );
   const [cinematicReady, setCinematicReady] = useState(false);
+  const [cinematicChapterId, setCinematicChapterId] = useState(1);
   const [puzzleProgress, setPuzzleProgress] = useState<Record<number, PuzzleProgress>>(loadProgress);
   const [mapKey, setMapKey] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -517,9 +519,9 @@ export function useGameState(): GameStateHook {
   function handleMapSelect(chapterId: number) {
     const cinematicKey = `shards_cinematic_seen_ch_${chapterId}`;
     if (!localStorage.getItem(cinematicKey)) {
-      const targetIdx = (chapterId - 1) * 8;
-      setPuzzleIdx(targetIdx);
+      setCinematicChapterId(chapterId);
       currentChapterIdRef.current = chapterId;
+      setPuzzleIdx((chapterId - 1) * 8);
       setScreen("cinematic");
     } else {
       startPuzzle((chapterId - 1) * 8);
@@ -541,13 +543,14 @@ export function useGameState(): GameStateHook {
     [
       INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, PROGRESS_KEY_2, DIFFICULTY_KEY, HINT_GLOW_KEY,
       NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY, PLAYER_NAME_KEY, AUTH_PROVIDER_KEY,
+      'shards_cinematic_seen_ch_1', 'shards_cinematic_seen_ch_2',
       saveKeyFor(3), saveKeyFor(4), saveKeyFor(5),
     ].forEach((k) => localStorage.removeItem(k));
     window.location.reload();
   }
 
   return {
-    n, puzzleIdx, currentChapterId, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
+    n, puzzleIdx, currentChapterId, cinematicChapterId, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
     raLightIdx, raLightUsed, thothUsed, visionUsed, visionActive,
     penaltyKey, lastPenalty, moveLocked, imageLoaded,
     hasShuffled, screen, startDifficulty, cinematicReady, puzzleProgress, chapterProgress, mapKey,
