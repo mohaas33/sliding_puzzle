@@ -1,3 +1,4 @@
+import type React from "react";
 import type { WinPhase, PuzzleData, Difficulty } from "../types";
 import { BOARD_PX, GAP_PX } from "../constants";
 
@@ -35,20 +36,33 @@ export function GameBoard({
   onPointerUp,
 }: GameBoardProps) {
   const empty = n * n - 1;
+  const boardSize = Math.min(BOARD_PX, window.innerWidth - 32);
+
+  const boardWrap: React.CSSProperties = {
+    width: "100%",
+    maxWidth: "min(344px, 100vw - 32px)",
+    margin: "0 auto",
+    boxSizing: "border-box",
+  };
 
   if (!imageLoaded) {
-    return <div className="board-shimmer" style={{ width: BOARD_PX, height: BOARD_PX }} />;
+    return (
+      <div style={boardWrap}>
+        <div className="board-shimmer" style={{ width: boardSize, height: boardSize }} />
+      </div>
+    );
   }
 
   return (
+    <div style={boardWrap}>
     <div
       style={{
         position: "relative",
         display: "grid",
         gridTemplateColumns: `repeat(${n}, 1fr)`,
         gap: GAP_PX,
-        width: BOARD_PX,
-        height: BOARD_PX,
+        width: boardSize,
+        height: boardSize,
         pointerEvents: frozen || moveLocked ? "none" : undefined,
       }}
     >
@@ -127,6 +141,7 @@ export function GameBoard({
           }}
         />
       )}
+    </div>
     </div>
   );
 }

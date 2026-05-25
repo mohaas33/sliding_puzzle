@@ -325,7 +325,7 @@ export function WinScreen({
           <button
             className="win-btn"
             onClick={handlePlayAgain}
-            style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}`, minWidth: 130, flex: "1 1 130px" }}
+            style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}`, minWidth: "120px", flex: "1 1 120px" }}
           >
             Play Again
           </button>

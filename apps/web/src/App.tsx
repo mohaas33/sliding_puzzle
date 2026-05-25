@@ -122,7 +122,7 @@ export function App() {
           />
 
           {!game.frozen && (
-            <div className="favor-panel">
+            <div className="favor-panel" style={{ maxWidth: "min(344px, 100vw - 32px)", overflowX: "hidden" }}>
               <span className="favor-panel-label">Favor of the Gods</span>
               {(() => {
                 const chapter = game.puzzleIdx < 8 ? 1 : 2;

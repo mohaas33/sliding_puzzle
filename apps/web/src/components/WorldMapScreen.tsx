@@ -361,6 +361,7 @@ export function WorldMapScreen({
           paddingBottom: 48,
           paddingRight: 16,
           overflowX: "hidden",
+          boxSizing: "border-box",
         }}
       >
         {/* Header */}
@@ -472,7 +473,7 @@ export function WorldMapScreen({
                     />
                   )}
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", position: "relative", zIndex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 12px", position: "relative", zIndex: 1 }}>
 
                     {/* Era icon + SVG progress ring */}
                     <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
@@ -496,7 +497,7 @@ export function WorldMapScreen({
                       <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: `${chapter.accentColor}60`, margin: "0 0 2px" }}>
                         Chapter {chapter.id}
                       </p>
-                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "15px", fontWeight: 700, color: chapter.accentColor, margin: "0 0 3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", opacity: (status === "locked" || status === "coming") ? 0.4 : undefined }}>
+                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "14px", fontWeight: 700, color: chapter.accentColor, margin: "0 0 3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", opacity: (status === "locked" || status === "coming") ? 0.4 : undefined }}>
                         {chapter.name}
                       </p>
                       <p style={{ fontSize: 12, color: `${chapter.accentColor}70`, margin: "0 0 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -515,7 +516,7 @@ export function WorldMapScreen({
                     </div>
 
                     {/* Right badge */}
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0, minWidth: 60 }}>
                       {status === "complete" && (
                         <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}20`, color: chapter.accentColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}80` }}>
                           Complete
