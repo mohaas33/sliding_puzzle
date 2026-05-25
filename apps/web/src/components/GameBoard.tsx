@@ -1,4 +1,3 @@
-import type React from "react";
 import type { WinPhase, PuzzleData, Difficulty } from "../types";
 import { BOARD_PX, GAP_PX } from "../constants";
 
@@ -37,32 +36,22 @@ export function GameBoard({
 }: GameBoardProps) {
   const empty = n * n - 1;
   const boardSize = Math.min(BOARD_PX, window.innerWidth - 32);
-
-  const boardWrap: React.CSSProperties = {
-    width: "100%",
-    maxWidth: "min(344px, 100vw - 32px)",
-    margin: "0 auto",
-    boxSizing: "border-box",
-  };
+  const tileSize = Math.floor((boardSize - (n - 1) * GAP_PX) / n);
 
   if (!imageLoaded) {
-    return (
-      <div style={boardWrap}>
-        <div className="board-shimmer" style={{ width: boardSize, height: boardSize }} />
-      </div>
-    );
+    return <div className="board-shimmer" style={{ width: boardSize, height: boardSize, margin: "0 auto" }} />;
   }
 
   return (
-    <div style={boardWrap}>
     <div
       style={{
         position: "relative",
         display: "grid",
-        gridTemplateColumns: `repeat(${n}, 1fr)`,
+        gridTemplateColumns: `repeat(${n}, ${tileSize}px)`,
         gap: GAP_PX,
         width: boardSize,
         height: boardSize,
+        margin: "0 auto",
         pointerEvents: frozen || moveLocked ? "none" : undefined,
       }}
     >
@@ -99,8 +88,10 @@ export function GameBoard({
             className={tileClass}
             style={
               isEmpty
-                ? undefined
+                ? { width: tileSize, height: tileSize, visibility: "hidden" }
                 : {
+                    width: tileSize,
+                    height: tileSize,
                     backgroundImage: `url(${puzzle.imageUrl})`,
                     backgroundSize: `calc(100% * ${n}) calc(100% * ${n})`,
                     backgroundPosition: `calc(${imgCol} * -100%) calc(${imgRow} * -100%)`,
@@ -141,7 +132,6 @@ export function GameBoard({
           }}
         />
       )}
-    </div>
     </div>
   );
 }
