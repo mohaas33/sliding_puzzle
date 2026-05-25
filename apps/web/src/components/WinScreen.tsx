@@ -321,11 +321,11 @@ export function WinScreen({
         )}
 
         {/* Action buttons */}
-        <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 20 }}>
           <button
             className="win-btn"
             onClick={handlePlayAgain}
-            style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}` }}
+            style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}`, minWidth: 130, flex: "1 1 130px" }}
           >
             Play Again
           </button>
@@ -336,6 +336,8 @@ export function WinScreen({
               background: theme.primaryBg,
               borderColor: theme.primaryBorderBright,
               color: theme.primary,
+              minWidth: 130,
+              flex: "1 1 130px",
             }}
           >
             {puzzleIdx >= PUZZLES.length - 1 ? "View Map →" : "Next Shard →"}

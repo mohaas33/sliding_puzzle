@@ -359,6 +359,8 @@ export function WorldMapScreen({
           flexDirection: "column",
           gap: 0,
           paddingBottom: 48,
+          paddingRight: 16,
+          overflowX: "hidden",
         }}
       >
         {/* Header */}
@@ -426,6 +428,8 @@ export function WorldMapScreen({
                   transform: isHovered ? "translateY(-3px)" : "translateY(0)",
                   transition: "transform 0.18s ease",
                   borderRadius: 12,
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
                 }}
               >
                 {/* Inner card: entrance animation, border, background, shimmer container */}
