@@ -1,5 +1,10 @@
 import type { Difficulty } from "../types";
-import { DIFFICULTY_INFO, PUZZLES, PARTICLES, AUTH_PROVIDER_KEY } from "../constants";
+import {
+  DIFFICULTY_INFO,
+  PUZZLES,
+  PARTICLES,
+  AUTH_PROVIDER_KEY,
+} from "../constants";
 import { loadProgress } from "../utils/storage";
 
 const DIFFICULTIES: (3 | 4 | 5)[] = [3, 4, 5];
@@ -64,7 +69,10 @@ export function StartScreen({
           filter: "blur(12px) brightness(0.15) saturate(0.5)",
         }}
       />
-      <div className="start-overlay" style={{ background: "rgba(10,8,6,0.85)" }} />
+      <div
+        className="start-overlay"
+        style={{ background: "rgba(10,8,6,0.85)" }}
+      />
       <Particles />
 
       <div className="start-content">
@@ -115,9 +123,14 @@ export function StartScreen({
             Begin Journey
           </button>
           {!hasProgress && (
-            <p className="start-save-hint">Your progress is saved automatically</p>
+            <p className="start-save-hint">
+              Your progress is saved automatically
+            </p>
           )}
-          <button className="start-new-game-link" onClick={handleShowLeaderboard}>
+          <button
+            className="start-new-game-link"
+            onClick={handleShowLeaderboard}
+          >
             🏆 Leaderboard
           </button>
           <button className="start-new-game-link" onClick={handleShowAuth}>

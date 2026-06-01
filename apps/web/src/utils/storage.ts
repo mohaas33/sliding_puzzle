@@ -8,7 +8,8 @@ export function saveKeyFor(n: Difficulty): string {
 
 export function loadDifficulty(): Difficulty {
   const raw = localStorage.getItem(DIFFICULTY_KEY);
-  if (raw === "3" || raw === "4" || raw === "5") return Number(raw) as Difficulty;
+  if (raw === "3" || raw === "4" || raw === "5")
+    return Number(raw) as Difficulty;
   return 5;
 }
 
@@ -35,7 +36,8 @@ export function loadSave(n: Difficulty): SaveState | null {
     if (!raw) return null;
     const data = JSON.parse(raw) as Partial<SaveState>;
     if (!Array.isArray(data.tiles) || data.tiles.length !== n * n) return null;
-    if (typeof data.moves !== "number" || typeof data.elapsed !== "number") return null;
+    if (typeof data.moves !== "number" || typeof data.elapsed !== "number")
+      return null;
     // Discard a solved save — restoring it would trigger the win screen immediately
     if (isSolved(data.tiles)) return null;
     return {

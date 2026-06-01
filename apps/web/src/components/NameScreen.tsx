@@ -7,7 +7,11 @@ interface NameScreenProps {
   onBack: () => void;
 }
 
-export function NameScreen({ onPlayerNameChange, onConfirm, onBack }: NameScreenProps) {
+export function NameScreen({
+  onPlayerNameChange,
+  onConfirm,
+  onBack,
+}: NameScreenProps) {
   const [inputName, setInputName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -17,7 +21,10 @@ export function NameScreen({ onPlayerNameChange, onConfirm, onBack }: NameScreen
   }, []);
 
   function handleConfirm() {
-    const cleaned = inputName.replace(/[^a-zA-Z0-9 ]/g, "").slice(0, 20).trim();
+    const cleaned = inputName
+      .replace(/[^a-zA-Z0-9 ]/g, "")
+      .slice(0, 20)
+      .trim();
     onPlayerNameChange(cleaned || DEFAULT_PLAYER_NAME);
     onConfirm();
   }
@@ -59,7 +66,9 @@ export function NameScreen({ onPlayerNameChange, onConfirm, onBack }: NameScreen
           maxLength={20}
           placeholder="Your name"
           onChange={(e) => setInputName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && inputName.trim().length > 0 && handleConfirm()}
+          onKeyDown={(e) =>
+            e.key === "Enter" && inputName.trim().length > 0 && handleConfirm()
+          }
           spellCheck={false}
           autoComplete="off"
           style={{ maxWidth: 300 }}

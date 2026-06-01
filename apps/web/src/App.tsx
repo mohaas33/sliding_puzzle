@@ -12,20 +12,27 @@ import { GameMenu } from "./components/GameMenu";
 import { MissionCard } from "./components/MissionCard";
 import { ScoreBreakdown } from "./components/ScoreBreakdown";
 import {
-  DEV_MODE, DIFFICULTY_INFO,
-  RA_LIGHT_MAX, THOTH_HAND_MAX, VISION_MAX,
+  DEV_MODE,
+  DIFFICULTY_INFO,
+  RA_LIGHT_MAX,
+  THOTH_HAND_MAX,
+  VISION_MAX,
 } from "./constants";
 import { getTheme } from "./theme";
 import { formatTime } from "./utils/solver";
 
 export function App() {
   const game = useGameState();
-  const audio = useAudio({ screen: game.screen, winPhase: game.winPhase, elapsed: game.elapsed, n: game.n });
+  const audio = useAudio({
+    screen: game.screen,
+    winPhase: game.winPhase,
+    elapsed: game.elapsed,
+    n: game.n,
+  });
   const theme = getTheme(game.puzzleIdx);
-  console.log("puzzleIdx:", game.puzzleIdx, "primary:", theme.primary);
-
   const totalScore = Object.values(game.puzzleProgress).reduce(
-    (sum, p) => sum + (p.points ?? 0), 0,
+    (sum, p) => sum + (p.points ?? 0),
+    0,
   );
 
   return (
@@ -43,28 +50,47 @@ export function App() {
             className="hamburger-btn"
             aria-label="Open menu"
           >
-            <span /><span /><span />
+            <span />
+            <span />
+            <span />
           </button>
 
           <p className="top-bar-name">
             {game.puzzle.name}
-            <span className="diff-badge">{DIFFICULTY_INFO[game.n].starsSymbol}</span>
+            <span className="diff-badge">
+              {DIFFICULTY_INFO[game.n].starsSymbol}
+            </span>
           </p>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flexShrink: 0,
+            }}
+          >
             <div className="top-bar-stats">
-              <span style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: "9px",
-                letterSpacing: "1px",
-                textTransform: "uppercase",
-                color: theme.primary,
-                opacity: 0.6,
-              }}>Moves</span>
+              <span
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: "9px",
+                  letterSpacing: "1px",
+                  textTransform: "uppercase",
+                  color: theme.primary,
+                  opacity: 0.6,
+                }}
+              >
+                Moves
+              </span>
               <div style={{ position: "relative" }}>
-                <span style={{ fontWeight: 700, fontSize: "1.2rem" }}>{game.moves}</span>
+                <span style={{ fontWeight: 700, fontSize: "1.2rem" }}>
+                  {game.moves}
+                </span>
                 {game.penaltyKey > 0 && (
-                  <span key={game.penaltyKey} className="penalty-pop">+{game.lastPenalty}</span>
+                  <span key={game.penaltyKey} className="penalty-pop">
+                    +{game.lastPenalty}
+                  </span>
                 )}
               </div>
               <span style={{ opacity: 0.3 }}>·</span>
@@ -90,16 +116,18 @@ export function App() {
       )}
 
       {/* Mission bar — only during active gameplay */}
-      {game.screen === "game" && game.missionPhase === "bar" && !game.frozen && (
-        <MissionCard
-          phase="bar"
-          puzzle={game.puzzle}
-          playerName={game.playerName}
-          theme={theme}
-          onDismiss={game.handleDismissMission}
-          onExpand={game.handleExpandMission}
-        />
-      )}
+      {game.screen === "game" &&
+        game.missionPhase === "bar" &&
+        !game.frozen && (
+          <MissionCard
+            phase="bar"
+            puzzle={game.puzzle}
+            playerName={game.playerName}
+            theme={theme}
+            onDismiss={game.handleDismissMission}
+            onExpand={game.handleExpandMission}
+          />
+        )}
 
       {/* Board + Favor panel — only during active gameplay */}
       {game.screen === "game" && (
@@ -122,36 +150,63 @@ export function App() {
           />
 
           {!game.frozen && (
-            <div className="favor-panel" style={{ maxWidth: "min(344px, 100vw - 32px)", overflowX: "hidden" }}>
+            <div
+              className="favor-panel"
+              style={{
+                maxWidth: "min(344px, 100vw - 32px)",
+                overflowX: "hidden",
+              }}
+            >
               <span className="favor-panel-label">Favor of the Gods</span>
               {(() => {
                 const chapter = game.puzzleIdx < 8 ? 1 : 2;
-                const silent = chapter === 2 ? "The gods are silent" : "The gods are silent";
-                const raLabel = chapter === 2 ? "⚡ Apollo's Light" : "✦ Ra's Light";
-                const thothLabel = chapter === 2 ? "🦉 Athena's Hand" : "𓂀 Thoth's Hand";
+                const silent =
+                  chapter === 2 ? "The gods are silent" : "The gods are silent";
+                const raLabel =
+                  chapter === 2 ? "⚡ Apollo's Light" : "✦ Ra's Light";
+                const thothLabel =
+                  chapter === 2 ? "🦉 Athena's Hand" : "𓂀 Thoth's Hand";
                 return (
                   <div className="favor-btn-row">
                     <button
                       className={`favor-btn${game.raLightUsed >= RA_LIGHT_MAX ? " favor-btn-spent" : ""}`}
                       onClick={game.handleRaLight}
-                      disabled={game.raLightUsed >= RA_LIGHT_MAX}
-                      title={game.raLightUsed >= RA_LIGHT_MAX ? silent : "+2 moves"}
+                      disabled={
+                        game.raLightUsed >= RA_LIGHT_MAX || game.raLightLoading
+                      }
+                      aria-label={`Ra's Light hint, ${RA_LIGHT_MAX - game.raLightUsed} uses remaining`}
+                      title={
+                        game.raLightUsed >= RA_LIGHT_MAX ? silent : "+2 moves"
+                      }
                     >
-                      {raLabel} ({RA_LIGHT_MAX - game.raLightUsed})
+                      {game.raLightLoading
+                        ? "..."
+                        : `${raLabel} (${RA_LIGHT_MAX - game.raLightUsed})`}
                     </button>
                     <button
                       className={`favor-btn${game.thothUsed >= THOTH_HAND_MAX ? " favor-btn-spent" : ""}`}
                       onClick={game.handleThothHand}
-                      disabled={game.thothUsed >= THOTH_HAND_MAX}
-                      title={game.thothUsed >= THOTH_HAND_MAX ? silent : "+5 moves"}
+                      disabled={
+                        game.thothUsed >= THOTH_HAND_MAX || game.thothLoading
+                      }
+                      aria-label={`Thoth's Hand hint, ${THOTH_HAND_MAX - game.thothUsed} uses remaining`}
+                      title={
+                        game.thothUsed >= THOTH_HAND_MAX ? silent : "+5 moves"
+                      }
                     >
-                      {thothLabel} ({THOTH_HAND_MAX - game.thothUsed})
+                      {game.thothLoading
+                        ? "..."
+                        : `${thothLabel} (${THOTH_HAND_MAX - game.thothUsed})`}
                     </button>
                     <button
                       className={`favor-btn${game.visionUsed >= VISION_MAX ? " favor-btn-spent" : ""}`}
                       onClick={game.handleVisionOfOsiris}
                       disabled={game.visionUsed >= VISION_MAX}
-                      title={game.visionUsed >= VISION_MAX ? silent : "Free — no move cost"}
+                      title={
+                        game.visionUsed >= VISION_MAX
+                          ? silent
+                          : "Free — no move cost"
+                      }
                     >
                       ◈ Vision ({VISION_MAX - game.visionUsed})
                     </button>
@@ -255,16 +310,18 @@ export function App() {
       )}
 
       {/* Mission overlay */}
-      {game.screen === "game" && (game.missionPhase === "full" || game.missionPhase === "exiting") && !game.frozen && (
-        <MissionCard
-          phase={game.missionPhase as "full" | "exiting"}
-          puzzle={game.puzzle}
-          playerName={game.playerName}
-          theme={theme}
-          onDismiss={game.handleDismissMission}
-          onExpand={game.handleExpandMission}
-        />
-      )}
+      {game.screen === "game" &&
+        (game.missionPhase === "full" || game.missionPhase === "exiting") &&
+        !game.frozen && (
+          <MissionCard
+            phase={game.missionPhase as "full" | "exiting"}
+            puzzle={game.puzzle}
+            playerName={game.playerName}
+            theme={theme}
+            onDismiss={game.handleDismissMission}
+            onExpand={game.handleExpandMission}
+          />
+        )}
 
       {/* Win screen */}
       {game.winPhase === "lore" && game.screen === "game" && (
@@ -298,6 +355,23 @@ export function App() {
         />
       )}
 
+      {/* Session expired banner */}
+      {game.sessionExpired && (
+        <div
+          role="alert"
+          className="fixed bottom-0 left-0 right-0 flex items-center justify-center bg-red-900 px-4 py-3 text-center text-sm text-white"
+        >
+          Your session has expired. Please reload to continue.
+          <button
+            className="ml-4 underline"
+            onClick={() => window.location.reload()}
+            aria-label="Reload page to restore session"
+          >
+            Reload
+          </button>
+        </div>
+      )}
+
       <GameMenu
         menuOpen={game.menuOpen}
         setMenuOpen={game.setMenuOpen}
@@ -309,11 +383,17 @@ export function App() {
         theme={theme}
         handleShowMap={game.handleShowMap}
         handleShowLeaderboard={game.handleShowLeaderboard}
-        handleRestartPuzzle={() => { game.startPuzzle(game.puzzleIdx); game.setMenuOpen(false); }}
+        handleRestartPuzzle={() => {
+          game.startPuzzle(game.puzzleIdx);
+          game.setMenuOpen(false);
+        }}
         handleResetRequest={game.handleResetRequest}
         handleResetConfirm={game.handleResetConfirm}
         handleToggleHintGlow={game.handleToggleHintGlow}
-        onChangeDifficulty={(newN) => { game.handleDifficultyChange(newN); game.setMenuOpen(false); }}
+        onChangeDifficulty={(newN) => {
+          game.handleDifficultyChange(newN);
+          game.setMenuOpen(false);
+        }}
         onToggleMusic={audio.toggleMute}
       />
     </main>

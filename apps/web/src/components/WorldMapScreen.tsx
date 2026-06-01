@@ -2,11 +2,51 @@ import { useState, useEffect } from "react";
 import type { PuzzleProgress } from "../types";
 
 const CHAPTERS = [
-  { id: 1, name: "Ancient Egypt",     tagline: "Gods, pharaohs & the Nile",           emoji: "🏺", accentBg: "#3d2a0a", accentColor: "#c8a96e", puzzleCount: 8 },
-  { id: 2, name: "Ancient Greece",    tagline: "Myths, gods & marble temples",         emoji: "🏛️", accentBg: "#0a1f3d", accentColor: "#7eb8e8", puzzleCount: 8 },
-  { id: 3, name: "Imperial China",    tagline: "Dynasties, dragons & the Silk Road",  emoji: "🐉", accentBg: "#0d2e1a", accentColor: "#5dcaa5", puzzleCount: 8 },
-  { id: 4, name: "Medieval Europe",   tagline: "Knights, cathedrals & manuscripts",   emoji: "⚔️", accentBg: "#2e1a0d", accentColor: "#ef9f27", puzzleCount: 8 },
-  { id: 5, name: "Maya Civilization", tagline: "Calendars, temples & astronomy",      emoji: "🌿", accentBg: "#1a0d2e", accentColor: "#afa9ec", puzzleCount: 8 },
+  {
+    id: 1,
+    name: "Ancient Egypt",
+    tagline: "Gods, pharaohs & the Nile",
+    emoji: "🏺",
+    accentBg: "#3d2a0a",
+    accentColor: "#c8a96e",
+    puzzleCount: 8,
+  },
+  {
+    id: 2,
+    name: "Ancient Greece",
+    tagline: "Myths, gods & marble temples",
+    emoji: "🏛️",
+    accentBg: "#0a1f3d",
+    accentColor: "#7eb8e8",
+    puzzleCount: 8,
+  },
+  {
+    id: 3,
+    name: "Imperial China",
+    tagline: "Dynasties, dragons & the Silk Road",
+    emoji: "🐉",
+    accentBg: "#0d2e1a",
+    accentColor: "#5dcaa5",
+    puzzleCount: 8,
+  },
+  {
+    id: 4,
+    name: "Medieval Europe",
+    tagline: "Knights, cathedrals & manuscripts",
+    emoji: "⚔️",
+    accentBg: "#2e1a0d",
+    accentColor: "#ef9f27",
+    puzzleCount: 8,
+  },
+  {
+    id: 5,
+    name: "Maya Civilization",
+    tagline: "Calendars, temples & astronomy",
+    emoji: "🌿",
+    accentBg: "#1a0d2e",
+    accentColor: "#afa9ec",
+    puzzleCount: 8,
+  },
 ] as const;
 
 const IS_PREMIUM_KEY = "isPremium";
@@ -18,7 +58,12 @@ const RING_C = 2 * Math.PI * RING_R; // ≈ 163.36
 // Staggered entrance delays per card index
 const CARD_DELAYS = [0, 60, 120, 180, 240];
 
-type ChapterStatus = "complete" | "unlocked" | "locked" | "coming" | "paywalled";
+type ChapterStatus =
+  | "complete"
+  | "unlocked"
+  | "locked"
+  | "coming"
+  | "paywalled";
 
 interface Props {
   puzzleProgress: Record<number, PuzzleProgress>;
@@ -35,23 +80,52 @@ function chapterStats(
   puzzleCount: number,
 ): { stars: number; completed: number } {
   const first = (chapterId - 1) * puzzleCount + 1;
-  const last  = chapterId * puzzleCount;
-  let stars = 0, completed = 0;
+  const last = chapterId * puzzleCount;
+  let stars = 0,
+    completed = 0;
   for (let id = first; id <= last; id++) {
     const p = puzzleProgress[id];
-    if (p) { stars += p.stars ?? 0; completed++; }
+    if (p) {
+      stars += p.stars ?? 0;
+      completed++;
+    }
   }
   return { stars, completed };
 }
 
-function StarRow({ earned, max, accentColor }: { earned: number; max: number; accentColor: string }) {
+function StarRow({
+  earned,
+  max,
+  accentColor,
+}: {
+  earned: number;
+  max: number;
+  accentColor: string;
+}) {
   if (max === 0) return null;
   return (
     <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
       {Array.from({ length: max }).map((_, i) => (
-        <span key={i} style={{ fontSize: 11, color: i < earned ? accentColor : "rgba(200,169,110,0.2)", lineHeight: 1 }}>★</span>
+        <span
+          key={i}
+          style={{
+            fontSize: 11,
+            color: i < earned ? accentColor : "rgba(200,169,110,0.2)",
+            lineHeight: 1,
+          }}
+        >
+          ★
+        </span>
       ))}
-      <span style={{ fontSize: 11, color: "rgba(200,169,110,0.5)", marginLeft: 4, fontFamily: "'Cinzel', serif", letterSpacing: "0.05em" }}>
+      <span
+        style={{
+          fontSize: 11,
+          color: "rgba(200,169,110,0.5)",
+          marginLeft: 4,
+          fontFamily: "'Cinzel', serif",
+          letterSpacing: "0.05em",
+        }}
+      >
         {earned}/{max}
       </span>
     </div>
@@ -80,12 +154,17 @@ function ProgressRing({
         pointerEvents: "none",
         transform: "rotate(-90deg)",
         overflow: "visible",
-        filter: mounted && pct >= 1 ? `drop-shadow(0 0 4px ${accentColor})` : undefined,
+        filter:
+          mounted && pct >= 1
+            ? `drop-shadow(0 0 4px ${accentColor})`
+            : undefined,
       }}
     >
       {/* Track */}
       <circle
-        cx={28} cy={28} r={RING_R}
+        cx={28}
+        cy={28}
+        r={RING_R}
         fill="none"
         stroke="rgba(255,255,255,0.06)"
         strokeWidth={2.5}
@@ -93,7 +172,9 @@ function ProgressRing({
       {/* Fill arc — only when there is progress */}
       {pct > 0 && (
         <circle
-          cx={28} cy={28} r={RING_R}
+          cx={28}
+          cy={28}
+          r={RING_R}
           fill="none"
           stroke={accentColor}
           strokeWidth={2.5}
@@ -160,8 +241,11 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
           position: "relative",
           boxSizing: "border-box",
           opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0) scale(1)" : "translateY(16px) scale(0.97)",
-          transition: "opacity 220ms ease, transform 220ms cubic-bezier(0.34,1.56,0.64,1)",
+          transform: visible
+            ? "translateY(0) scale(1)"
+            : "translateY(16px) scale(0.97)",
+          transition:
+            "opacity 220ms ease, transform 220ms cubic-bezier(0.34,1.56,0.64,1)",
         }}
       >
         {/* Close X */}
@@ -185,30 +269,102 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         </button>
 
         {/* Top divider */}
-        <div style={{ width: 48, height: 1, background: "rgba(200,169,110,0.4)", margin: "0 auto 22px" }} />
+        <div
+          style={{
+            width: 48,
+            height: 1,
+            background: "rgba(200,169,110,0.4)",
+            margin: "0 auto 22px",
+          }}
+        />
 
-        <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: "1.25rem", fontWeight: 700, color: "#c8a96e", textAlign: "center", margin: "0 0 8px", letterSpacing: "0.05em" }}>
+        <h2
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: "1.25rem",
+            fontWeight: 700,
+            color: "#c8a96e",
+            textAlign: "center",
+            margin: "0 0 8px",
+            letterSpacing: "0.05em",
+          }}
+        >
           Unlock All Chapters
         </h2>
-        <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", color: "rgba(200,169,110,0.5)", textAlign: "center", letterSpacing: "0.07em", textTransform: "uppercase", margin: "0 0 26px" }}>
+        <p
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: "10px",
+            color: "rgba(200,169,110,0.5)",
+            textAlign: "center",
+            letterSpacing: "0.07em",
+            textTransform: "uppercase",
+            margin: "0 0 26px",
+          }}
+        >
           Five chapters · 40 puzzles · Five ancient civilizations
         </p>
 
-        <ul style={{ listStyle: "none", margin: "0 0 26px", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+        <ul
+          style={{
+            listStyle: "none",
+            margin: "0 0 26px",
+            padding: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
           {bullets.map((item) => (
-            <li key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 13, color: "rgba(200,169,110,0.8)", lineHeight: 1.5 }}>
-              <span style={{ color: "#c8a96e", flexShrink: 0, marginTop: 2 }}>✦</span>
+            <li
+              key={item}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
+                fontSize: 13,
+                color: "rgba(200,169,110,0.8)",
+                lineHeight: 1.5,
+              }}
+            >
+              <span style={{ color: "#c8a96e", flexShrink: 0, marginTop: 2 }}>
+                ✦
+              </span>
               {item}
             </li>
           ))}
         </ul>
 
-        <div style={{ height: 1, background: "rgba(200,169,110,0.12)", margin: "0 0 22px" }} />
+        <div
+          style={{
+            height: 1,
+            background: "rgba(200,169,110,0.12)",
+            margin: "0 0 22px",
+          }}
+        />
 
-        <p style={{ textAlign: "center", fontFamily: "'Cinzel', serif", fontSize: "1.15rem", fontWeight: 700, color: "#c8a96e", margin: "0 0 4px", letterSpacing: "0.04em" }}>
+        <p
+          style={{
+            textAlign: "center",
+            fontFamily: "'Cinzel', serif",
+            fontSize: "1.15rem",
+            fontWeight: 700,
+            color: "#c8a96e",
+            margin: "0 0 4px",
+            letterSpacing: "0.04em",
+          }}
+        >
           $4.99
         </p>
-        <p style={{ textAlign: "center", fontSize: 11, color: "rgba(200,169,110,0.4)", margin: "0 0 22px", letterSpacing: "0.04em" }}>
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: 11,
+            color: "rgba(200,169,110,0.4)",
+            margin: "0 0 22px",
+            letterSpacing: "0.04em",
+          }}
+        >
           One-time purchase · No subscription
         </p>
 
@@ -269,10 +425,12 @@ export function WorldMapScreen({
   onShowLeaderboard,
   onBack,
 }: Props) {
-  const [isPremium, setIsPremium] = useState(() => localStorage.getItem(IS_PREMIUM_KEY) === "1");
+  const [isPremium, setIsPremium] = useState(
+    () => localStorage.getItem(IS_PREMIUM_KEY) === "1",
+  );
   const [modalOpen, setModalOpen] = useState(false);
-  const [tapCount,  setTapCount]  = useState(0);
-  const [mounted,   setMounted]   = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
   // Trigger entrance animations one frame after mount
@@ -299,21 +457,32 @@ export function WorldMapScreen({
     if (!builtChapters.includes(chapterId)) return "coming";
     // Built chapters: complete or active
     const chapter = CHAPTERS.find((c) => c.id === chapterId)!;
-    const { completed } = chapterStats(puzzleProgress, chapterId, chapter.puzzleCount);
+    const { completed } = chapterStats(
+      puzzleProgress,
+      chapterId,
+      chapter.puzzleCount,
+    );
     return completed >= chapter.puzzleCount ? "complete" : "unlocked";
   }
 
-  let totalStars = 0, totalMaxStars = 0;
+  let totalStars = 0,
+    totalMaxStars = 0;
   for (const ch of CHAPTERS) {
     if (!builtChapters.includes(ch.id)) continue;
-    const { stars, completed } = chapterStats(puzzleProgress, ch.id, ch.puzzleCount);
+    const { stars, completed } = chapterStats(
+      puzzleProgress,
+      ch.id,
+      ch.puzzleCount,
+    );
     totalStars += stars;
     totalMaxStars += completed * 3;
   }
 
   return (
-    <div className="world-map-screen" style={{ position: "relative", width: "100%", minHeight: "100vh" }}>
-
+    <div
+      className="world-map-screen"
+      style={{ position: "relative", width: "100%", minHeight: "100vh" }}
+    >
       {onBack && (
         <button
           onClick={onBack}
@@ -366,7 +535,16 @@ export function WorldMapScreen({
       >
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(200,169,110,0.5)", margin: "0 0 6px" }}>
+          <p
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: "10px",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "rgba(200,169,110,0.5)",
+              margin: "0 0 6px",
+            }}
+          >
             Shards of Time
           </p>
           <h1
@@ -385,14 +563,39 @@ export function WorldMapScreen({
             World Map
           </h1>
           {/* Decorative separator */}
-          <div style={{ width: 48, height: 1, background: "rgba(200,169,110,0.4)", margin: "10px auto 16px" }} />
+          <div
+            style={{
+              width: 48,
+              height: 1,
+              background: "rgba(200,169,110,0.4)",
+              margin: "10px auto 16px",
+            }}
+          />
           {isPremium && (
-            <p style={{ fontSize: 10, color: "rgba(200,169,110,0.35)", fontFamily: "'Cinzel', serif", letterSpacing: "0.07em", textTransform: "uppercase", margin: "0 0 4px" }}>
+            <p
+              style={{
+                fontSize: 10,
+                color: "rgba(200,169,110,0.35)",
+                fontFamily: "'Cinzel', serif",
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                margin: "0 0 4px",
+              }}
+            >
               ✦ Premium
             </p>
           )}
           {totalStars > 0 && (
-            <p style={{ fontSize: 12, color: "rgba(200,169,110,0.25)", margin: 0, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textAlign: "center" }}>
+            <p
+              style={{
+                fontSize: 12,
+                color: "rgba(200,169,110,0.25)",
+                margin: 0,
+                fontFamily: "'Cinzel', serif",
+                letterSpacing: "0.06em",
+                textAlign: "center",
+              }}
+            >
               ★ {totalStars} / {totalMaxStars} stars collected
             </p>
           )}
@@ -401,23 +604,32 @@ export function WorldMapScreen({
         {/* Chapter cards */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {CHAPTERS.map((chapter, idx) => {
-            const status         = getStatus(chapter.id);
-            const { stars: earnedStars, completed: completedPuzzles } = chapterStats(puzzleProgress, chapter.id, chapter.puzzleCount);
-            const isClickable    = status === "unlocked" || status === "complete";
-            const isPaywalled    = status === "paywalled";
-            const isHovered      = hoveredId === chapter.id && isClickable;
-            const delay          = CARD_DELAYS[idx] ?? 0;
-            const pct            = completedPuzzles / chapter.puzzleCount;
+            const status = getStatus(chapter.id);
+            const { stars: earnedStars, completed: completedPuzzles } =
+              chapterStats(puzzleProgress, chapter.id, chapter.puzzleCount);
+            const isClickable = status === "unlocked" || status === "complete";
+            const isPaywalled = status === "paywalled";
+            const isHovered = hoveredId === chapter.id && isClickable;
+            const delay = CARD_DELAYS[idx] ?? 0;
+            const pct = completedPuzzles / chapter.puzzleCount;
 
-            const baseBorder = status === "complete" ? "rgba(200,169,110,0.4)"
-              : status === "unlocked"               ? "rgba(200,169,110,0.2)"
-              : isPaywalled                         ? "rgba(200,169,110,0.22)"
-              : status === "locked"                 ? "rgba(200,169,110,0.05)"
-              : "rgba(200,169,110,0.03)";
+            const baseBorder =
+              status === "complete"
+                ? "rgba(200,169,110,0.4)"
+                : status === "unlocked"
+                  ? "rgba(200,169,110,0.2)"
+                  : isPaywalled
+                    ? "rgba(200,169,110,0.22)"
+                    : status === "locked"
+                      ? "rgba(200,169,110,0.05)"
+                      : "rgba(200,169,110,0.03)";
 
-            const borderColor = isHovered ? `${chapter.accentColor}80` : baseBorder;
+            const borderColor = isHovered
+              ? `${chapter.accentColor}80`
+              : baseBorder;
 
-            const baseOpacity = status === "locked" ? 0.28 : status === "coming" ? 0.45 : 1;
+            const baseOpacity =
+              status === "locked" ? 0.28 : status === "coming" ? 0.45 : 1;
 
             return (
               // Outer wrapper: hover lift only (separate transform so it doesn't interfere with entrance)
@@ -448,7 +660,12 @@ export function WorldMapScreen({
                     cursor: isClickable || isPaywalled ? "pointer" : "default",
                     // Entrance: fade + slide up; hover: border-color + box-shadow via same transition
                     opacity: mounted ? baseOpacity : 0,
-                    filter: status === "coming" ? "grayscale(0.75)" : status === "locked" ? "grayscale(0.6)" : undefined,
+                    filter:
+                      status === "coming"
+                        ? "grayscale(0.75)"
+                        : status === "locked"
+                          ? "grayscale(0.6)"
+                          : undefined,
                     transform: mounted ? "translateY(0)" : "translateY(16px)",
                     boxShadow: isHovered
                       ? `0 12px 32px rgba(0,0,0,0.45), 0 0 0 1px ${chapter.accentColor}33`
@@ -473,79 +690,243 @@ export function WorldMapScreen({
                     />
                   )}
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 12px", position: "relative", zIndex: 1 }}>
-
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "12px 12px",
+                      position: "relative",
+                      zIndex: 1,
+                    }}
+                  >
                     {/* Era icon + SVG progress ring */}
-                    <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
-                      <div style={{
-                        position: "absolute",
-                        top: 2, right: 2, bottom: 2, left: 2,
-                        borderRadius: 10,
-                        background: chapter.accentBg,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 24,
-                      }}>
+                    <div
+                      style={{
+                        position: "relative",
+                        width: 56,
+                        height: 56,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 2,
+                          right: 2,
+                          bottom: 2,
+                          left: 2,
+                          borderRadius: 10,
+                          background: chapter.accentBg,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 24,
+                        }}
+                      >
                         {chapter.emoji}
                       </div>
-                      <ProgressRing pct={pct} accentColor={chapter.accentColor} mounted={mounted} />
+                      <ProgressRing
+                        pct={pct}
+                        accentColor={chapter.accentColor}
+                        mounted={mounted}
+                      />
                     </div>
 
                     {/* Meta */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: `${chapter.accentColor}60`, margin: "0 0 2px" }}>
+                      <p
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: "10px",
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          color: `${chapter.accentColor}60`,
+                          margin: "0 0 2px",
+                        }}
+                      >
                         Chapter {chapter.id}
                       </p>
-                      <p style={{ fontFamily: "'Cinzel', serif", fontSize: "14px", fontWeight: 700, color: chapter.accentColor, margin: "0 0 3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", opacity: (status === "locked" || status === "coming") ? 0.4 : undefined }}>
+                      <p
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: "14px",
+                          fontWeight: 700,
+                          color: chapter.accentColor,
+                          margin: "0 0 3px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          opacity:
+                            status === "locked" || status === "coming"
+                              ? 0.4
+                              : undefined,
+                        }}
+                      >
                         {chapter.name}
                       </p>
-                      <p style={{ fontSize: 12, color: `${chapter.accentColor}70`, margin: "0 0 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: `${chapter.accentColor}70`,
+                          margin: "0 0 6px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {chapter.tagline}
                       </p>
 
                       {completedPuzzles > 0 && (
-                        <StarRow earned={earnedStars} max={completedPuzzles * 3} accentColor={chapter.accentColor} />
+                        <StarRow
+                          earned={earnedStars}
+                          max={completedPuzzles * 3}
+                          accentColor={chapter.accentColor}
+                        />
                       )}
 
                       {(status === "complete" || status === "unlocked") && (
-                        <div style={{ height: 2, background: "rgba(200,169,110,0.12)", borderRadius: 2, marginTop: 8 }}>
-                          <div style={{ height: 2, borderRadius: 2, background: chapter.accentColor, width: `${Math.round((completedPuzzles / chapter.puzzleCount) * 100)}%`, transition: "width 0.4s ease" }} />
+                        <div
+                          style={{
+                            height: 2,
+                            background: "rgba(200,169,110,0.12)",
+                            borderRadius: 2,
+                            marginTop: 8,
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: 2,
+                              borderRadius: 2,
+                              background: chapter.accentColor,
+                              width: `${Math.round((completedPuzzles / chapter.puzzleCount) * 100)}%`,
+                              transition: "width 0.4s ease",
+                            }}
+                          />
                         </div>
                       )}
                     </div>
 
                     {/* Right badge */}
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0, minWidth: 60 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        gap: 6,
+                        flexShrink: 0,
+                        minWidth: 60,
+                      }}
+                    >
                       {status === "complete" && (
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}20`, color: chapter.accentColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}80` }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            padding: "3px 8px",
+                            borderRadius: 20,
+                            background: `${chapter.accentColor}20`,
+                            color: chapter.accentColor,
+                            fontFamily: "'Cinzel', serif",
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase",
+                            border: `1px solid ${chapter.accentColor}80`,
+                          }}
+                        >
                           Complete
                         </span>
                       )}
                       {status === "unlocked" && (
-                        <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}20`, color: chapter.accentColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}70`, animation: "activePulse 2.4s ease-in-out infinite", display: "flex", alignItems: "center" }}>
-                          <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: chapter.accentColor, marginRight: 6, animation: "activePulse 2.4s ease-in-out infinite", animationDelay: "1.2s" }} />
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            padding: "3px 8px",
+                            borderRadius: 20,
+                            background: `${chapter.accentColor}20`,
+                            color: chapter.accentColor,
+                            fontFamily: "'Cinzel', serif",
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase",
+                            border: `1px solid ${chapter.accentColor}70`,
+                            animation: "activePulse 2.4s ease-in-out infinite",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "inline-block",
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background: chapter.accentColor,
+                              marginRight: 6,
+                              animation:
+                                "activePulse 2.4s ease-in-out infinite",
+                              animationDelay: "1.2s",
+                            }}
+                          />
                           Active
                         </span>
                       )}
                       {status === "locked" && (
-                        <span style={{ fontSize: 18, color: "rgba(200,169,110,0.3)" }}>🔒</span>
+                        <span
+                          style={{
+                            fontSize: 18,
+                            color: "rgba(200,169,110,0.3)",
+                          }}
+                        >
+                          🔒
+                        </span>
                       )}
                       {isPaywalled && (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 20, background: "rgba(200,169,110,0.14)", color: "#c8a96e", fontFamily: "'Cinzel', serif", letterSpacing: "0.07em", textTransform: "uppercase", border: "1px solid rgba(200,169,110,0.3)", whiteSpace: "nowrap" }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "4px 10px",
+                            borderRadius: 20,
+                            background: "rgba(200,169,110,0.14)",
+                            color: "#c8a96e",
+                            fontFamily: "'Cinzel', serif",
+                            letterSpacing: "0.07em",
+                            textTransform: "uppercase",
+                            border: "1px solid rgba(200,169,110,0.3)",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           🔒 Unlock
                         </span>
                       )}
                       {status === "coming" && (
-                        <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 20, background: `${chapter.accentColor}08`, color: `${chapter.accentColor}55`, fontFamily: "'Cinzel', serif", letterSpacing: "0.06em", textTransform: "uppercase", border: `1px solid ${chapter.accentColor}25` }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            padding: "3px 8px",
+                            borderRadius: 20,
+                            background: `${chapter.accentColor}08`,
+                            color: `${chapter.accentColor}55`,
+                            fontFamily: "'Cinzel', serif",
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase",
+                            border: `1px solid ${chapter.accentColor}25`,
+                          }}
+                        >
                           Soon
                         </span>
                       )}
-                      <span style={{ fontSize: 11, color: `${chapter.accentColor}50`, fontFamily: "'Cinzel', serif" }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          color: `${chapter.accentColor}50`,
+                          fontFamily: "'Cinzel', serif",
+                        }}
+                      >
                         {completedPuzzles}/{chapter.puzzleCount}
                       </span>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -554,22 +935,60 @@ export function WorldMapScreen({
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: "center", marginTop: 28, display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
-          <p style={{ fontSize: 12, color: "rgba(200,169,110,0.3)", fontFamily: "'Cinzel', serif", letterSpacing: "0.04em" }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 28,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            alignItems: "center",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 12,
+              color: "rgba(200,169,110,0.3)",
+              fontFamily: "'Cinzel', serif",
+              letterSpacing: "0.04em",
+            }}
+          >
             Complete a chapter to unlock the next era
           </p>
           <div style={{ display: "flex", gap: 8 }}>
             {onShowLeaderboard && (
               <button
                 onClick={onShowLeaderboard}
-                style={{ fontFamily: "'Cinzel', serif", fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(200,169,110,0.5)", background: "transparent", border: "1px solid rgba(200,169,110,0.18)", borderRadius: 4, padding: "6px 14px", cursor: "pointer" }}
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  color: "rgba(200,169,110,0.5)",
+                  background: "transparent",
+                  border: "1px solid rgba(200,169,110,0.18)",
+                  borderRadius: 4,
+                  padding: "6px 14px",
+                  cursor: "pointer",
+                }}
               >
                 🏆 Leaderboard
               </button>
             )}
             <button
               onClick={onResetRequest}
-              style={{ fontFamily: "'Cinzel', serif", fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(200,169,110,0.35)", background: "transparent", border: "1px solid rgba(200,169,110,0.12)", borderRadius: 4, padding: "6px 14px", cursor: "pointer" }}
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: "0.7rem",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "rgba(200,169,110,0.35)",
+                background: "transparent",
+                border: "1px solid rgba(200,169,110,0.12)",
+                borderRadius: 4,
+                padding: "6px 14px",
+                cursor: "pointer",
+              }}
             >
               New Game
             </button>

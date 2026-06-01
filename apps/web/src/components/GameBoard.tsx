@@ -39,7 +39,12 @@ export function GameBoard({
   const tileSize = Math.floor((boardSize - (n - 1) * GAP_PX) / n);
 
   if (!imageLoaded) {
-    return <div className="board-shimmer" style={{ width: boardSize, height: boardSize, margin: "0 auto" }} />;
+    return (
+      <div
+        className="board-shimmer"
+        style={{ width: boardSize, height: boardSize, margin: "0 auto" }}
+      />
+    );
   }
 
   return (
@@ -48,6 +53,7 @@ export function GameBoard({
         position: "relative",
         display: "grid",
         gridTemplateColumns: `repeat(${n}, ${tileSize}px)`,
+        gridTemplateRows: `repeat(${n}, ${tileSize}px)`,
         gap: GAP_PX,
         width: boardSize,
         height: boardSize,
@@ -69,12 +75,12 @@ export function GameBoard({
           isEmpty
             ? "tile-empty"
             : isRaLight
-            ? "tile-hint"
-            : isPressed
-            ? "tile-pressed"
-            : isMovable
-            ? `tile-movable${hintGlow ? " tile-movable-glow" : ""}`
-            : "",
+              ? "tile-hint"
+              : isPressed
+                ? "tile-pressed"
+                : isMovable
+                  ? `tile-movable${hintGlow ? " tile-movable-glow" : ""}`
+                  : "",
         ]
           .join(" ")
           .trim();

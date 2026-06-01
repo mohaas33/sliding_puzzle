@@ -60,7 +60,10 @@ export function GameMenu({
         />
       )}
 
-      <div ref={drawerRef} className={`game-drawer${menuOpen ? " game-drawer-open" : ""}`}>
+      <div
+        ref={drawerRef}
+        className={`game-drawer${menuOpen ? " game-drawer-open" : ""}`}
+      >
         <div
           style={{
             fontFamily: "'Cinzel', serif",
@@ -92,7 +95,8 @@ export function GameMenu({
         {/* Change Difficulty */}
         <div className="drawer-diff-section">
           <p className="drawer-diff-label">
-            Difficulty · <span style={{ color: theme.primary }}>{currentInfo.label}</span>
+            Difficulty ·{" "}
+            <span style={{ color: theme.primary }}>{currentInfo.label}</span>
           </p>
           <div className="drawer-diff-buttons">
             {([3, 4, 5] as const).map((dn) => {
@@ -116,7 +120,11 @@ export function GameMenu({
           style={{ color: theme.primaryBorderBright }}
           onClick={() => {
             setMenuOpen(false);
-            if (window.confirm("Reset all progress in Chapter I? This cannot be undone.")) {
+            if (
+              window.confirm(
+                "Reset all progress in Chapter I? This cannot be undone.",
+              )
+            ) {
               handleResetConfirm();
             }
           }}
@@ -129,13 +137,17 @@ export function GameMenu({
         <button className="drawer-item" onClick={handleToggleHintGlow}>
           <span className="drawer-icon">💡</span>
           Movable Tile Glow
-          <span className={`drawer-toggle${hintGlow ? " drawer-toggle-on" : ""}`} />
+          <span
+            className={`drawer-toggle${hintGlow ? " drawer-toggle-on" : ""}`}
+          />
         </button>
 
         <button className="drawer-item" onClick={onToggleMusic}>
           <span className="drawer-icon">{musicMuted ? "🔇" : "🔊"}</span>
           Music
-          <span className={`drawer-toggle${!musicMuted ? " drawer-toggle-on" : ""}`} />
+          <span
+            className={`drawer-toggle${!musicMuted ? " drawer-toggle-on" : ""}`}
+          />
         </button>
       </div>
 
@@ -167,21 +179,33 @@ export function GameMenu({
                 marginBottom: 24,
               }}
             >
-              Switch to <strong style={{ color: theme.primary }}>{DIFFICULTY_INFO[pendingDiff].label}</strong>?
-              <br />This will restart the current puzzle.
+              Switch to{" "}
+              <strong style={{ color: theme.primary }}>
+                {DIFFICULTY_INFO[pendingDiff].label}
+              </strong>
+              ?
+              <br />
+              This will restart the current puzzle.
             </p>
             <div style={{ display: "flex", gap: 12 }}>
               <button
                 className="win-btn"
                 onClick={() => setPendingDiff(null)}
-                style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}` }}
+                style={{
+                  color: theme.primary,
+                  border: `1px solid ${theme.primaryDim}`,
+                }}
               >
                 Cancel
               </button>
               <button
                 className="win-btn win-btn-primary"
                 onClick={() => confirmDiffChange(pendingDiff)}
-                style={{ background: theme.gradient, borderColor: theme.primary, color: "#0a0806" }}
+                style={{
+                  background: theme.gradient,
+                  borderColor: theme.primary,
+                  color: "#0a0806",
+                }}
               >
                 Continue
               </button>
@@ -219,13 +243,17 @@ export function GameMenu({
               }}
             >
               This will erase all progress — stars, unlocks, and saves.
-              <br />Are you sure?
+              <br />
+              Are you sure?
             </p>
             <div style={{ display: "flex", gap: 12 }}>
               <button
                 className="win-btn"
                 onClick={() => setShowResetConfirm(false)}
-                style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}` }}
+                style={{
+                  color: theme.primary,
+                  border: `1px solid ${theme.primaryDim}`,
+                }}
               >
                 Cancel
               </button>
@@ -244,8 +272,12 @@ export function GameMenu({
                   cursor: "pointer",
                   transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(220,80,60,0.85)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(180,60,50,0.7)")}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "rgba(220,80,60,0.85)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "rgba(180,60,50,0.7)")
+                }
               >
                 Reset
               </button>

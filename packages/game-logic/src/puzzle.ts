@@ -20,7 +20,10 @@ export function isSolvable(tiles: number[], n: number): boolean {
   for (let i = 0; i < tiles.length; i++) {
     if (tiles[i] === emptyVal) continue;
     for (let j = i + 1; j < tiles.length; j++) {
-      if (tiles[j] !== emptyVal && (tiles[i] as number) > (tiles[j] as number)) {
+      if (
+        tiles[j] !== emptyVal &&
+        (tiles[i] as number) > (tiles[j] as number)
+      ) {
         inversions++;
       }
     }
@@ -40,7 +43,11 @@ export function isSolvable(tiles: number[], n: number): boolean {
  * excluding the empty cell itself. Any of these can be clicked to trigger
  * a group slide.
  */
-export function getMovableTiles(tiles: number[], emptyIdx: number, n: number): number[] {
+export function getMovableTiles(
+  tiles: number[],
+  emptyIdx: number,
+  n: number,
+): number[] {
   const movable: number[] = [];
   const emptyRow = Math.floor(emptyIdx / n);
   const emptyCol = emptyIdx % n;

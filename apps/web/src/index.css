@@ -3,80 +3,141 @@
 @tailwind utilities;
 
 :root {
-  --gold:        #c8a96e;
-  --gold-rgb:    200, 169, 110;
-  --accent:      #c8a96e;
-  --accent-rgb:  200, 169, 110;
-  --gold-dim:    rgba(var(--gold-rgb), 0.27);
-  --gold-glow:   rgba(var(--gold-rgb), 0.5);
-  --cream:       #f0e4c4;
-  --tile-bg:     #1a1108;
-  --tile-text:   #d4b896;
-  --empty-bg:    #0d0b07;
+  --gold: #c8a96e;
+  --gold-rgb: 200, 169, 110;
+  --accent: #c8a96e;
+  --accent-rgb: 200, 169, 110;
+  --gold-dim: rgba(var(--gold-rgb), 0.27);
+  --gold-glow: rgba(var(--gold-rgb), 0.5);
+  --cream: #f0e4c4;
+  --tile-bg: #1a1108;
+  --tile-text: #d4b896;
+  --empty-bg: #0d0b07;
 }
 
-[data-chapter="2"] { --gold: #7eb8e8; --gold-rgb: 126, 184, 232; --accent: #7eb8e8; --accent-rgb: 126, 184, 232; }
-[data-chapter="3"] { --gold: #5dcaa5; --gold-rgb: 93, 202, 165;  --accent: #5dcaa5; --accent-rgb: 93, 202, 165; }
-[data-chapter="4"] { --gold: #ef9f27; --gold-rgb: 239, 159, 39;  --accent: #ef9f27; --accent-rgb: 239, 159, 39; }
-[data-chapter="5"] { --gold: #afa9ec; --gold-rgb: 175, 169, 236; --accent: #afa9ec; --accent-rgb: 175, 169, 236; }
+[data-chapter="2"] {
+  --gold: #7eb8e8;
+  --gold-rgb: 126, 184, 232;
+  --accent: #7eb8e8;
+  --accent-rgb: 126, 184, 232;
+}
+[data-chapter="3"] {
+  --gold: #5dcaa5;
+  --gold-rgb: 93, 202, 165;
+  --accent: #5dcaa5;
+  --accent-rgb: 93, 202, 165;
+}
+[data-chapter="4"] {
+  --gold: #ef9f27;
+  --gold-rgb: 239, 159, 39;
+  --accent: #ef9f27;
+  --accent-rgb: 239, 159, 39;
+}
+[data-chapter="5"] {
+  --gold: #afa9ec;
+  --gold-rgb: 175, 169, 236;
+  --accent: #afa9ec;
+  --accent-rgb: 175, 169, 236;
+}
 
-html, body, #root {
+html,
+body,
+#root {
   min-height: 100vh;
 }
 
 body {
-  background: radial-gradient(ellipse 120% 60% at 50% 0%, #1c1208 0%, #0a0806 60%);
+  background: radial-gradient(
+    ellipse 120% 60% at 50% 0%,
+    #1c1208 0%,
+    #0a0806 60%
+  );
   background-color: #0a0806;
-  font-family: 'Crimson Text', Georgia, serif;
+  font-family: "Crimson Text", Georgia, serif;
   color: var(--cream);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes lightboxIn {
-  from { opacity: 0; transform: scale(0.92); }
-  to   { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulseHint {
-  0%, 100% { box-shadow: 0 0 18px 5px rgba(var(--gold-rgb), 0.75), inset 0 0 0 1px rgba(var(--gold-rgb), 0.4); }
-  50%       { box-shadow: 0 0 30px 10px rgba(var(--gold-rgb), 1), inset 0 0 0 2px rgba(var(--gold-rgb), 0.7); }
+  0%,
+  100% {
+    box-shadow:
+      0 0 18px 5px rgba(var(--gold-rgb), 0.75),
+      inset 0 0 0 1px rgba(var(--gold-rgb), 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 30px 10px rgba(var(--gold-rgb), 1),
+      inset 0 0 0 2px rgba(var(--gold-rgb), 0.7);
+  }
 }
 
 @keyframes floatUp {
-  0%   { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-28px); }
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
 }
 
 @keyframes shimmer {
-  0%   { background-position: -344px 0; }
-  100% { background-position:  344px 0; }
+  0% {
+    background-position: -344px 0;
+  }
+  100% {
+    background-position: 344px 0;
+  }
 }
 
 @layer components {
   .tile {
     @apply rounded select-none;
-    width: 100%;
-    height: 100%;
+    display: block;
+    flex-shrink: 0;
     padding: 0;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     background-color: var(--tile-bg);
     color: var(--tile-text);
-    border: 1px solid var(--gold)44;
+    border: 1px solid var(--gold) 44;
     touch-action: manipulation;
     transition:
-      transform     0.1s ease,
-      opacity       0.1s ease,
-      border-color  0.2s ease,
-      box-shadow    0.2s ease;
+      transform 0.1s ease,
+      opacity 0.1s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .board-shimmer {
@@ -87,13 +148,15 @@ body {
   }
 
   .tile-movable {
-    border-color: var(--gold)44;
+    border-color: var(--gold) 44;
     cursor: pointer;
   }
 
   .tile-movable:hover {
     border-color: rgba(var(--gold-rgb), 0.7);
-    box-shadow: 0 0 10px 2px rgba(var(--gold-rgb), 0.35), inset 0 0 0 1px rgba(var(--gold-rgb), 0.25);
+    box-shadow:
+      0 0 10px 2px rgba(var(--gold-rgb), 0.35),
+      inset 0 0 0 1px rgba(var(--gold-rgb), 0.25);
   }
 
   .tile-movable:active {
@@ -124,7 +187,7 @@ body {
 
   .hint-btn {
     padding: 6px 14px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.68rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -133,7 +196,10 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.35);
     border-radius: 999px;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s,
+      opacity 0.2s;
     opacity: 0.7;
   }
 
@@ -180,7 +246,7 @@ body {
   }
 
   .favor-panel-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 11px;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -198,7 +264,7 @@ body {
   /* Favor of the Gods buttons */
   .favor-btn {
     padding: 5px 10px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 11px;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -207,7 +273,9 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.5);
     border-radius: 20px;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition:
+      background 0.2s,
+      border-color 0.2s;
     white-space: nowrap;
   }
 
@@ -231,7 +299,7 @@ body {
     position: absolute;
     top: -6px;
     right: -22px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.72rem;
     font-weight: bold;
     color: #e8a060;
@@ -247,7 +315,7 @@ body {
 
   .diff-btn {
     padding: 6px 14px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.68rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -256,7 +324,11 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.35);
     border-radius: 999px;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s, color 0.2s, opacity 0.2s;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      color 0.2s,
+      opacity 0.2s;
     opacity: 0.6;
   }
 
@@ -300,19 +372,27 @@ body {
     max-width: 380px;
     width: 100%;
     animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    box-shadow: 0 0 60px rgba(var(--gold-rgb), 0.12), 0 0 0 1px rgba(var(--gold-rgb), 0.08);
+    box-shadow:
+      0 0 60px rgba(var(--gold-rgb), 0.12),
+      0 0 0 1px rgba(var(--gold-rgb), 0.08);
   }
 
   .gold-sep {
     width: 100%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--gold) 30%,
+      var(--gold) 70%,
+      transparent
+    );
     opacity: 0.55;
   }
 
   .win-btn {
     padding: 10px 22px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -320,7 +400,10 @@ body {
     border: 1px solid transparent;
     border-radius: 4px;
     cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s,
+      background 0.2s;
   }
 
   .win-btn-primary:hover {
@@ -330,10 +413,20 @@ body {
   /* ── Start screen ────────────────────────────────────────────── */
 
   @keyframes floatParticle {
-    0%   { transform: translateY(0) translateX(0); opacity: 0; }
-    8%   { opacity: 1; }
-    92%  { opacity: 0.5; }
-    100% { transform: translateY(-85vh) translateX(22px); opacity: 0; }
+    0% {
+      transform: translateY(0) translateX(0);
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    92% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: translateY(-85vh) translateX(22px);
+      opacity: 0;
+    }
   }
 
   .start-screen {
@@ -373,7 +466,11 @@ body {
     position: absolute;
     bottom: -6px;
     border-radius: 50%;
-    background: radial-gradient(circle, var(--gold), color-mix(in srgb, var(--gold) 70%, black));
+    background: radial-gradient(
+      circle,
+      var(--gold),
+      color-mix(in srgb, var(--gold) 70%, black)
+    );
     animation: floatParticle linear infinite;
   }
 
@@ -398,7 +495,7 @@ body {
   }
 
   .start-title {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: clamp(32px, 6vw, 48px);
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -408,7 +505,7 @@ body {
   }
 
   .start-subtitle {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 1rem;
     color: var(--gold);
@@ -417,7 +514,7 @@ body {
   }
 
   .start-tagline {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 1.05rem;
     color: #d4b896;
@@ -448,7 +545,7 @@ body {
   }
 
   .start-option-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 11px;
     letter-spacing: 3px;
     text-transform: uppercase;
@@ -461,7 +558,7 @@ body {
 
   .start-option-label::before,
   .start-option-label::after {
-    content: '';
+    content: "";
     flex: 1;
     height: 1px;
     background: rgba(var(--gold-rgb), 0.22);
@@ -475,7 +572,7 @@ body {
   .start-toggle {
     flex: 1;
     padding: 10px 6px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.66rem;
     letter-spacing: 0.07em;
     text-transform: uppercase;
@@ -484,7 +581,10 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.2);
     border-radius: 6px;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      color 0.2s;
     text-align: center;
   }
 
@@ -508,7 +608,7 @@ body {
   }
 
   .start-toggle-desc {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.6rem;
     letter-spacing: 0;
@@ -528,17 +628,25 @@ body {
   .start-begin-btn {
     width: 100%;
     padding: 16px 24px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.88rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: #0a0806;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 70%, black), var(--gold) 50%, color-mix(in srgb, var(--gold) 70%, white));
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--gold) 70%, black),
+      var(--gold) 50%,
+      color-mix(in srgb, var(--gold) 70%, white)
+    );
     border: none;
     border-radius: 6px;
     cursor: pointer;
     box-shadow: 0 0 32px rgba(var(--gold-rgb), 0.3);
-    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    transition:
+      opacity 0.2s,
+      transform 0.15s,
+      box-shadow 0.2s;
   }
 
   .start-begin-btn:hover {
@@ -552,7 +660,7 @@ body {
   }
 
   .start-save-hint {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.8rem;
     color: var(--gold);
@@ -577,7 +685,7 @@ body {
   }
 
   .cinematic-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.65rem;
     letter-spacing: 0.28em;
     text-transform: uppercase;
@@ -597,7 +705,7 @@ body {
 
   /* Paragraph 1: "You are Kha, scribe…" */
   .cinematic-p1 {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 20px;
     line-height: 1.8;
@@ -607,7 +715,7 @@ body {
 
   /* Paragraph 2: "Ra has gone blind…" */
   .cinematic-p2 {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-size: 18px;
     font-weight: bold;
     font-style: normal;
@@ -619,7 +727,7 @@ body {
 
   /* Paragraph 3: "Anubis has spoken…" */
   .cinematic-p3 {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 18px;
     line-height: 1.8;
@@ -630,7 +738,7 @@ body {
 
   /* Paragraph 4: "Begin, Kha." */
   .cinematic-p4 {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-style: normal;
     font-size: 24px;
     line-height: 1.4;
@@ -668,19 +776,36 @@ body {
     max-width: 480px;
     width: 100%;
     animation: slideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-    box-shadow: 0 0 80px rgba(var(--gold-rgb), 0.1), 0 0 0 1px rgba(var(--gold-rgb), 0.06);
+    box-shadow:
+      0 0 80px rgba(var(--gold-rgb), 0.1),
+      0 0 0 1px rgba(var(--gold-rgb), 0.06);
   }
 
   /* Chapter Map */
 
   @keyframes pulseGoldBorder {
-    0%, 100% { box-shadow: 0 0 10px 3px rgba(var(--gold-rgb), 0.5), inset 0 0 0 1px rgba(var(--gold-rgb), 0.3); }
-    50%       { box-shadow: 0 0 20px 7px rgba(var(--gold-rgb), 0.8), inset 0 0 0 2px rgba(var(--gold-rgb), 0.5); }
+    0%,
+    100% {
+      box-shadow:
+        0 0 10px 3px rgba(var(--gold-rgb), 0.5),
+        inset 0 0 0 1px rgba(var(--gold-rgb), 0.3);
+    }
+    50% {
+      box-shadow:
+        0 0 20px 7px rgba(var(--gold-rgb), 0.8),
+        inset 0 0 0 2px rgba(var(--gold-rgb), 0.5);
+    }
   }
 
   @keyframes cardStagger {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .map-overlay {
@@ -706,7 +831,9 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.2);
     opacity: 0;
     animation: cardStagger 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    transition: border-color 0.2s, transform 0.15s;
+    transition:
+      border-color 0.2s,
+      transform 0.15s;
   }
 
   .map-card:not([style*="cursor: default"]):hover {
@@ -716,8 +843,9 @@ body {
 
   .map-card-current {
     border: 2px solid var(--gold);
-    animation: cardStagger 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-               pulseGoldBorder 2s ease-in-out 0.5s infinite;
+    animation:
+      cardStagger 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+      pulseGoldBorder 2s ease-in-out 0.5s infinite;
   }
 
   /* Top bar */
@@ -732,7 +860,7 @@ body {
   .top-bar-name {
     flex: 1;
     text-align: center;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.82rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -748,7 +876,7 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 1.1rem;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -772,7 +900,9 @@ body {
     border-radius: 5px;
     cursor: pointer;
     padding: 0;
-    transition: border-color 0.2s, background 0.2s;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
   }
 
   .hamburger-btn:hover {
@@ -808,7 +938,9 @@ body {
     font-size: 0.75rem;
     padding: 0;
     flex-shrink: 0;
-    transition: border-color 0.2s, background 0.2s;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
     line-height: 1;
   }
 
@@ -824,8 +956,13 @@ body {
 
   /* Animated waveform */
   @keyframes waveBar {
-    0%, 100% { transform: scaleY(0.25); }
-    50%       { transform: scaleY(1); }
+    0%,
+    100% {
+      transform: scaleY(0.25);
+    }
+    50% {
+      transform: scaleY(1);
+    }
   }
 
   .waveform {
@@ -847,8 +984,12 @@ body {
     animation: waveBar 0.9s ease-in-out infinite;
   }
 
-  .waveform span:nth-child(2) { animation-delay: 0.18s; }
-  .waveform span:nth-child(3) { animation-delay: 0.36s; }
+  .waveform span:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+  .waveform span:nth-child(3) {
+    animation-delay: 0.36s;
+  }
 
   /* Fixed bottom bar */
   .bottom-bar {
@@ -857,7 +998,7 @@ body {
     left: 0;
     right: 0;
     background: #0a0806ee;
-    border-top: 1px solid var(--gold)33;
+    border-top: 1px solid var(--gold) 33;
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
     display: flex;
     flex-direction: column;
@@ -877,7 +1018,7 @@ body {
   }
 
   .bottom-bar-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 9px;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -922,7 +1063,7 @@ body {
     gap: 10px;
     width: 100%;
     padding: 13px 24px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.72rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -972,11 +1113,13 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.3);
     position: relative;
     flex-shrink: 0;
-    transition: background 0.2s, border-color 0.2s;
+    transition:
+      background 0.2s,
+      border-color 0.2s;
   }
 
   .drawer-toggle::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 2px;
     left: 2px;
@@ -984,7 +1127,9 @@ body {
     height: 10px;
     border-radius: 50%;
     background: rgba(var(--gold-rgb), 0.5);
-    transition: transform 0.2s, background 0.2s;
+    transition:
+      transform 0.2s,
+      background 0.2s;
   }
 
   .drawer-toggle-on {
@@ -1006,8 +1151,14 @@ body {
   /* ── Score breakdown overlay (shown during reveal phase) ────── */
 
   @keyframes scoreLineIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .score-breakdown-overlay {
@@ -1034,7 +1185,7 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: 32px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 14px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -1054,14 +1205,19 @@ body {
 
   .score-breakdown-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb),0.5), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(var(--gold-rgb), 0.5),
+      transparent
+    );
     opacity: 0;
     animation: fadeIn 0.35s ease forwards;
     margin: 4px 0;
   }
 
   .score-breakdown-total {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 20px;
     font-weight: 700;
     letter-spacing: 0.15em;
@@ -1076,15 +1232,31 @@ body {
   /* ── Win screen restored image ─────────────────────────────── */
 
   @keyframes winImageReveal {
-    from { opacity: 0; transform: scale(0.85); }
-    to   { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   @keyframes winImageShimmer {
-    0%   { transform: translateX(-160%) skewX(-18deg); opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 1; }
-    100% { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+    0% {
+      transform: translateX(-160%) skewX(-18deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(220%) skewX(-18deg);
+      opacity: 0;
+    }
   }
 
   .win-image-section {
@@ -1096,7 +1268,7 @@ body {
   }
 
   .win-image-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.5rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
@@ -1120,7 +1292,7 @@ body {
   }
 
   .win-image-frame::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(
@@ -1141,7 +1313,7 @@ body {
   }
 
   .win-image-name {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.82rem;
     color: var(--gold);
@@ -1160,13 +1332,25 @@ body {
   /* ── Mission card ───────────────────────────────────────────── */
 
   @keyframes missionSlideUp {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(-36px); }
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-36px);
+    }
   }
 
   @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .mission-overlay {
@@ -1211,7 +1395,7 @@ body {
   }
 
   .mission-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.58rem;
     letter-spacing: 0.38em;
     text-transform: uppercase;
@@ -1221,7 +1405,7 @@ body {
   }
 
   .mission-hook-text {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: clamp(1.25rem, 4.5vw, 1.6rem);
     line-height: 1.6;
@@ -1232,7 +1416,7 @@ body {
   }
 
   .mission-puzzle-name {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.6rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -1246,13 +1430,16 @@ body {
     width: 100%;
     max-width: 300px;
     padding: 16px 24px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.85rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     border-radius: 6px;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    transition:
+      opacity 0.2s,
+      transform 0.15s,
+      box-shadow 0.2s;
     animation: fadeIn 0.5s 0.5s ease both;
   }
 
@@ -1278,7 +1465,7 @@ body {
 
   /* Points earned on win screen */
   .win-points-earned {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.85rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -1289,7 +1476,7 @@ body {
   }
 
   .win-points-breakdown {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.72rem;
     color: rgba(var(--gold-rgb), 0.5);
@@ -1310,7 +1497,7 @@ body {
 
   .narrator-pill {
     padding: 8px 16px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 13px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1319,7 +1506,10 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.4);
     border-radius: 20px;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s, border-color 0.2s;
+    transition:
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s;
     white-space: nowrap;
   }
 
@@ -1335,7 +1525,7 @@ body {
   }
 
   .narrator-flavor {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.8rem;
     color: rgba(var(--gold-rgb), 0.6);
@@ -1359,7 +1549,7 @@ body {
     gap: 10px;
     width: 100%;
     padding: 11px 14px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     background: transparent;
     border: none;
     border-bottom: 1px solid rgba(var(--gold-rgb), 0.12);
@@ -1422,7 +1612,7 @@ body {
   }
 
   .drawer-diff-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.58rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -1444,7 +1634,9 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.2);
     border-radius: 4px;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
     letter-spacing: 0.08em;
   }
 
@@ -1467,12 +1659,14 @@ body {
     align-items: center;
     gap: 2px;
     padding: 6px 10px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     background: rgba(var(--gold-rgb), 0.05);
     border: 1px solid rgba(var(--gold-rgb), 0.2);
     border-radius: 4px;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
   }
 
   .name-preset-btn:hover {
@@ -1493,7 +1687,7 @@ body {
   }
 
   .name-preset-meaning {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.55rem;
     color: rgba(var(--gold-rgb), 0.45);
@@ -1505,7 +1699,7 @@ body {
   .name-input {
     width: 100%;
     padding: 10px 14px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.82rem;
     letter-spacing: 0.1em;
     color: #f0e4c4;
@@ -1513,7 +1707,9 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.3);
     border-radius: 6px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
     caret-color: var(--gold);
   }
 
@@ -1536,7 +1732,7 @@ body {
 
   .name-preset-btn {
     padding: 5px 12px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.6rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -1545,7 +1741,10 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.2);
     border-radius: 4px;
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    transition:
+      border-color 0.15s,
+      background 0.15s,
+      color 0.15s;
   }
 
   .name-preset-btn:hover {
@@ -1561,7 +1760,7 @@ body {
 
   /* Divine favor line on win screen */
   .divine-favor-line {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.78rem;
     color: var(--gold);
@@ -1573,7 +1772,7 @@ body {
 
   /* Anubis commentary on win screen */
   .anubis-comment {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.88rem;
     color: var(--gold);
@@ -1585,7 +1784,7 @@ body {
 
   /* Personalized win stats bar */
   .win-stats-bar {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.58rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -1607,7 +1806,10 @@ body {
     border-radius: 3px;
     padding: 2px 4px;
     line-height: 1;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    transition:
+      color 0.15s,
+      border-color 0.15s,
+      background 0.15s;
     cursor: pointer;
     flex-shrink: 0;
   }
@@ -1625,7 +1827,7 @@ body {
     left: 0;
     right: 0;
     text-align: center;
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.78rem;
     color: var(--gold);
@@ -1639,7 +1841,7 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.82rem;
     color: var(--gold);
@@ -1663,7 +1865,7 @@ body {
     gap: 12px;
     width: 100%;
     padding: 14px 20px;
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.78rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -1672,7 +1874,10 @@ body {
     border: 1px solid rgba(var(--gold-rgb), 0.22);
     border-radius: 6px;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      color 0.2s;
     text-align: left;
   }
 
@@ -1700,7 +1905,9 @@ body {
     cursor: pointer;
     overflow: hidden;
     animation: slideDown 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    transition: background 0.2s, border-color 0.2s;
+    transition:
+      background 0.2s,
+      border-color 0.2s;
   }
 
   .mission-bar:hover {
@@ -1709,7 +1916,7 @@ body {
   }
 
   .mission-bar-label {
-    font-family: 'Cinzel', serif;
+    font-family: "Cinzel", serif;
     font-size: 0.47rem;
     letter-spacing: 0.22em;
     color: var(--gold);
@@ -1725,7 +1932,7 @@ body {
   }
 
   .mission-bar-text {
-    font-family: 'Crimson Text', serif;
+    font-family: "Crimson Text", serif;
     font-style: italic;
     font-size: 0.8rem;
     color: rgba(212, 184, 150, 0.6);

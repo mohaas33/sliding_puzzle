@@ -1,5 +1,12 @@
 export type NarrationContext = "intro" | "lore" | "win" | "map" | null;
-export type Screen = "start" | "name" | "auth" | "cinematic" | "map" | "game" | "leaderboard";
+export type Screen =
+  | "start"
+  | "name"
+  | "auth"
+  | "cinematic"
+  | "map"
+  | "game"
+  | "leaderboard";
 export type Difficulty = 3 | 4 | 5;
 export type Narrator = "osiris" | "isis" | "thoth" | "off";
 export type WinPhase = "none" | "frozen" | "reveal" | "lore";

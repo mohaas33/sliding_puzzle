@@ -1,4 +1,10 @@
-import { isSolved, isSolvable, getMovableTiles, moveTile, shuffle } from "../puzzle.js";
+import {
+  isSolved,
+  isSolvable,
+  getMovableTiles,
+  moveTile,
+  shuffle,
+} from "../puzzle.js";
 
 // Convention: empty tile = n*n-1, solved = [0, 1, ..., n*n-1]
 //
@@ -50,13 +56,13 @@ describe("isSolvable", () => {
 
   it("recognises solved 4×4 as solvable", () => {
     expect(
-      isSolvable([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 4)
+      isSolvable([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 4),
     ).toBe(true);
   });
 
   it("recognises a known-unsolvable 4×4", () => {
     expect(
-      isSolvable([1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 4)
+      isSolvable([1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], 4),
     ).toBe(false);
   });
 
@@ -217,7 +223,9 @@ describe("shuffle", () => {
 
   it("contains exactly the right set of values for 3×3", () => {
     const tiles = shuffle(3);
-    expect([...tiles].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+    expect([...tiles].sort((a, b) => a - b)).toEqual([
+      0, 1, 2, 3, 4, 5, 6, 7, 8,
+    ]);
   });
 
   it("contains exactly the right set of values for 5×5", () => {

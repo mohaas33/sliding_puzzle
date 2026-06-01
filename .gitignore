@@ -20,3 +20,4 @@ Thumbs.db
 
 # Stale root-level assets
 /eye_Ra.jpg
+.claude/settings.local.json

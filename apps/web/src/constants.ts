@@ -2,7 +2,8 @@ import type { Difficulty, Narrator } from "./types";
 import type { VoiceGender } from "./utils/narration";
 export { PUZZLES, CHAPTERS } from "./data/puzzles";
 
-export const DEV_MODE = new URLSearchParams(window.location.search).get("dev") === "true";
+export const DEV_MODE =
+  new URLSearchParams(window.location.search).get("dev") === "true";
 export const BOARD_PX = 344;
 export const GAP_PX = 6;
 
@@ -45,10 +46,28 @@ export interface NarratorInfo {
 }
 
 export const NARRATORS: NarratorInfo[] = [
-  { id: "osiris", name: "Osiris", role: "God of Resurrection · Deep & Authoritative", gender: "man", rate: 0.85 },
-  { id: "isis",   name: "Isis",   role: "Goddess of Magic · Warm & Mysterious",       gender: "woman", rate: 0.85 },
-  { id: "thoth",  name: "Thoth",  role: "God of Wisdom · Calm & Neutral",             gender: "man",  rate: 0.80 },
-  { id: "off",    name: "Off",    role: "No Narration",                                gender: null,   rate: 0.85 },
+  {
+    id: "osiris",
+    name: "Osiris",
+    role: "God of Resurrection · Deep & Authoritative",
+    gender: "man",
+    rate: 0.85,
+  },
+  {
+    id: "isis",
+    name: "Isis",
+    role: "Goddess of Magic · Warm & Mysterious",
+    gender: "woman",
+    rate: 0.85,
+  },
+  {
+    id: "thoth",
+    name: "Thoth",
+    role: "God of Wisdom · Calm & Neutral",
+    gender: "man",
+    rate: 0.8,
+  },
+  { id: "off", name: "Off", role: "No Narration", gender: null, rate: 0.85 },
 ];
 
 export interface DifficultyInfo {
@@ -62,9 +81,33 @@ export interface DifficultyInfo {
 }
 
 export const DIFFICULTY_INFO: Record<3 | 4 | 5, DifficultyInfo> = {
-  3: { n: 3, label: "Apprentice Scribe", tiles: 8,  desc: "Learn the sacred arts",   multiplier: 1, par: 20,  starsSymbol: "✦"   },
-  4: { n: 4, label: "Temple Keeper",     tiles: 15, desc: "Prove your devotion",      multiplier: 2, par: 50,  starsSymbol: "✦✦"  },
-  5: { n: 5, label: "High Priest",       tiles: 24, desc: "Face the gods themselves", multiplier: 3, par: 100, starsSymbol: "✦✦✦" },
+  3: {
+    n: 3,
+    label: "Apprentice Scribe",
+    tiles: 8,
+    desc: "Learn the sacred arts",
+    multiplier: 1,
+    par: 20,
+    starsSymbol: "✦",
+  },
+  4: {
+    n: 4,
+    label: "Temple Keeper",
+    tiles: 15,
+    desc: "Prove your devotion",
+    multiplier: 2,
+    par: 50,
+    starsSymbol: "✦✦",
+  },
+  5: {
+    n: 5,
+    label: "High Priest",
+    tiles: 24,
+    desc: "Face the gods themselves",
+    multiplier: 3,
+    par: 100,
+    starsSymbol: "✦✦✦",
+  },
 };
 
 export const PARTICLES = Array.from({ length: 22 }, (_, i) => ({

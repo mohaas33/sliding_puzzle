@@ -15,8 +15,8 @@ export interface UseAudioReturn {
 // Returns null if intense music should never play for this difficulty.
 function intenseThreshold(difficulty: Difficulty): number | null {
   if (difficulty === 3) return null; // Apprentice Scribe — too short, no tension
-  if (difficulty === 4) return 90;   // Temple Keeper — 90s
-  return 60;                          // High Priest — 60s
+  if (difficulty === 4) return 90; // Temple Keeper — 90s
+  return 60; // High Priest — 60s
 }
 
 export function useAudio({
@@ -30,14 +30,18 @@ export function useAudio({
   elapsed: number;
   n: Difficulty;
 }): UseAudioReturn {
-  const [isMuted, setIsMuted] = useState(() => localStorage.getItem(MUTE_KEY) === "1");
+  const [isMuted, setIsMuted] = useState(
+    () => localStorage.getItem(MUTE_KEY) === "1",
+  );
   const isMutedRef = useRef(isMuted);
   isMutedRef.current = isMuted;
 
   const tracks = useRef<Record<TrackName, HTMLAudioElement> | null>(null);
   const activeTrack = useRef<TrackName | null>(null);
   const activeVol = useRef(0);
-  const fadeTimers = useRef<Map<HTMLAudioElement, ReturnType<typeof setInterval>>>(new Map());
+  const fadeTimers = useRef<
+    Map<HTMLAudioElement, ReturnType<typeof setInterval>>
+  >(new Map());
 
   // Bug 2 & 3: win sound timeout ref so it can be cancelled
   const winTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,7 +70,10 @@ export function useAudio({
     const from = audio.volume;
     if (duration <= 0 || Math.abs(effective - from) < 0.005) {
       audio.volume = effective;
-      if (target <= 0) { audio.pause(); audio.currentTime = 0; }
+      if (target <= 0) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
       onDone?.();
       return;
     }
@@ -75,11 +82,17 @@ export function useAudio({
     let step = 0;
     const id = setInterval(() => {
       step++;
-      audio.volume = Math.max(0, Math.min(1, from + (effective - from) * (step / steps)));
+      audio.volume = Math.max(
+        0,
+        Math.min(1, from + (effective - from) * (step / steps)),
+      );
       if (step >= steps) {
         clearInterval(id);
         fadeTimers.current.delete(audio);
-        if (target <= 0) { audio.pause(); audio.currentTime = 0; }
+        if (target <= 0) {
+          audio.pause();
+          audio.currentTime = 0;
+        }
         onDone?.();
       }
     }, iv);
@@ -88,7 +101,10 @@ export function useAudio({
 
   function stopAllExcept(except?: TrackName | null) {
     if (!tracks.current) return;
-    for (const [n, audio] of Object.entries(tracks.current) as [TrackName, HTMLAudioElement][]) {
+    for (const [n, audio] of Object.entries(tracks.current) as [
+      TrackName,
+      HTMLAudioElement,
+    ][]) {
       if (n !== except && !audio.paused) {
         fadeTo(audio, 0);
       }
@@ -116,7 +132,9 @@ export function useAudio({
 
     const audio = tracks.current[name];
     if (name === "win") audio.currentTime = 0;
-    audio.play().catch(() => { /* silenced — browser may block autoplay */ });
+    audio.play().catch(() => {
+      /* silenced — browser may block autoplay */
+    });
     fadeTo(audio, vol);
   }
 
@@ -127,18 +145,20 @@ export function useAudio({
     const url = (f: string) => `${base}sounds/${f.replace(/ /g, "%20")}`;
 
     const t: Record<TrackName, HTMLAudioElement> = {
-      menu:    new Audio(url("Menu Egyptian v312.ogg")),
+      menu: new Audio(url("Menu Egyptian v312.ogg")),
       ambient: new Audio(url("Calm_Socapex - Dark Ambiance - Mastered.ogg")),
-      map:     new Audio(url("Temple of the Mystics.ogg")),
+      map: new Audio(url("Temple of the Mystics.ogg")),
       intense: new Audio(url("intense_ancient_ruins.mp3")),
-      win:     new Audio(url("LevelUp_Convert.ogg")),
+      win: new Audio(url("LevelUp_Convert.ogg")),
     };
-    t.menu.loop    = true;
+    t.menu.loop = true;
     t.ambient.loop = true;
-    t.map.loop     = true;
+    t.map.loop = true;
     t.intense.loop = true;
-    t.win.loop     = false;
-    Object.values(t).forEach(a => { a.volume = 0; });
+    t.win.loop = false;
+    Object.values(t).forEach((a) => {
+      a.volume = 0;
+    });
     tracks.current = t;
 
     // Bug 1: start menu immediately without waiting for user interaction
@@ -149,10 +169,12 @@ export function useAudio({
 
     return () => {
       if (winTimeoutRef.current) clearTimeout(winTimeoutRef.current);
-      Object.values(t).forEach(a => { a.pause(); });
-      fadeTimers.current.forEach(id => clearInterval(id));
+      Object.values(t).forEach((a) => {
+        a.pause();
+      });
+      fadeTimers.current.forEach((id) => clearInterval(id));
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Screen routing ────────────────────────────────────────────────────────
@@ -168,7 +190,7 @@ export function useAudio({
       const useIntense = threshold !== null && elapsed >= threshold;
       playTrack(useIntense ? "intense" : "ambient", useIntense ? 0.4 : 0.3);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
   // ── Win screen + dismissal (Bugs 2 & 3) ──────────────────────────────────
@@ -202,7 +224,6 @@ export function useAudio({
         tracks.current.ambient.play().catch(() => {});
         fadeTo(tracks.current.ambient, 0.2, FADE_MS);
       }, 10000);
-
     } else if (prev === "lore" && winPhase === "none") {
       // Bug 3: player clicked Next Shard or Play Again — cancel win and start gameplay music
       if (winTimeoutRef.current) {
@@ -216,7 +237,7 @@ export function useAudio({
       // elapsed is 0 after startPuzzle, so always ambient here
       playTrack("ambient", 0.3);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [winPhase]);
 
   // ── Elapsed crossfade (Bug 4: difficulty-aware threshold) ────────────────
@@ -230,7 +251,7 @@ export function useAudio({
       // Restart — go back to ambient
       playTrack("ambient", 0.3);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [elapsed]);
 
   // ── Mute toggle ───────────────────────────────────────────────────────────
@@ -243,9 +264,11 @@ export function useAudio({
 
     if (!tracks.current) return;
     if (next) {
-      fadeTimers.current.forEach(id => clearInterval(id));
+      fadeTimers.current.forEach((id) => clearInterval(id));
       fadeTimers.current.clear();
-      Object.values(tracks.current).forEach(a => { a.volume = 0; });
+      Object.values(tracks.current).forEach((a) => {
+        a.volume = 0;
+      });
     } else {
       const name = activeTrack.current;
       if (name) {

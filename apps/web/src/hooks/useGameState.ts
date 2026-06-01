@@ -1,19 +1,53 @@
 import { useState, useEffect, useRef } from "react";
-import { shuffle, isSolved, getMovableTiles, moveTile } from "@sliding-puzzle/game-logic";
-import type { Difficulty, Screen, WinPhase, PuzzleProgress, PuzzleData, MissionPhase } from "../types";
 import {
-  INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, PROGRESS_KEY_2, HINT_GLOW_KEY, DIFFICULTY_KEY,
-  NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY,
-  RA_LIGHT_MAX, RA_LIGHT_COST, THOTH_HAND_MAX, THOTH_HAND_COST,
-  VISION_MAX, VISION_DURATION_MS,
-  PUZZLES, CHAPTERS, PLAYER_NAME_KEY, DEFAULT_PLAYER_NAME, AUTH_PROVIDER_KEY,
+  shuffle,
+  isSolved,
+  getMovableTiles,
+  moveTile,
+} from "@sliding-puzzle/game-logic";
+import type {
+  Difficulty,
+  Screen,
+  WinPhase,
+  PuzzleProgress,
+  PuzzleData,
+  MissionPhase,
+} from "../types";
+import {
+  INTRO_KEY,
+  CINEMATIC_SEEN_KEY,
+  PROGRESS_KEY,
+  PROGRESS_KEY_2,
+  HINT_GLOW_KEY,
+  DIFFICULTY_KEY,
+  NARRATION_KEY,
+  VOICE_GENDER_KEY,
+  NARRATOR_KEY,
+  RA_LIGHT_MAX,
+  RA_LIGHT_COST,
+  THOTH_HAND_MAX,
+  THOTH_HAND_COST,
+  VISION_MAX,
+  VISION_DURATION_MS,
+  PUZZLES,
+  CHAPTERS,
+  PLAYER_NAME_KEY,
+  DEFAULT_PLAYER_NAME,
+  AUTH_PROVIDER_KEY,
   DIFFICULTY_INFO,
 } from "../constants";
 import {
-  loadDifficulty, persistDifficulty, loadProgress, persistProgress,
-  loadSave, writeSave, clearSave, saveKeyFor,
+  loadDifficulty,
+  persistDifficulty,
+  loadProgress,
+  persistProgress,
+  loadSave,
+  writeSave,
+  clearSave,
+  saveKeyFor,
 } from "../utils/storage";
-import { getStars, nextSolverMove, calculatePoints, type PointsResult } from "../utils/solver";
+import { getStars, calculatePoints, type PointsResult } from "../utils/solver";
+import { getOrCreateGuestId } from "../utils/guestId";
 
 export interface ChapterProgress {
   stars: number;
@@ -65,6 +99,9 @@ export interface GameStateHook {
   startPuzzle: (idx: number, targetN?: Difficulty) => void;
   handlePointerDown: (idx: number) => void;
   handlePointerUp: (idx: number) => void;
+  raLightLoading: boolean;
+  thothLoading: boolean;
+  sessionExpired: boolean;
   handleRaLight: () => void;
   handleThothHand: () => void;
   handleVisionOfOsiris: () => void;
@@ -103,16 +140,26 @@ export function useGameState(): GameStateHook {
 
   const [n, setN] = useState<Difficulty>(initialN);
   const [puzzleIdx, setPuzzleIdx] = useState(0);
-  const [tiles, setTiles] = useState<number[]>(() => savedRef.current?.tiles ?? shuffle(initialN));
+  const [tiles, setTiles] = useState<number[]>(
+    () => savedRef.current?.tiles ?? shuffle(initialN),
+  );
   const [moves, setMoves] = useState(() => savedRef.current?.moves ?? 0);
   const [elapsed, setElapsed] = useState(() => savedRef.current?.elapsed ?? 0);
-  const [timerActive, setTimerActive] = useState(() => (savedRef.current?.moves ?? 0) > 0);
+  const [timerActive, setTimerActive] = useState(
+    () => (savedRef.current?.moves ?? 0) > 0,
+  );
   const [pressedIdx, setPressedIdx] = useState<number | null>(null);
   const [winPhase, setWinPhase] = useState<WinPhase>("none");
   const [raLightIdx, setRaLightIdx] = useState<number | null>(null);
-  const [raLightUsed, setRaLightUsed] = useState(() => savedRef.current?.raLightUsed ?? 0);
-  const [thothUsed, setThothUsed] = useState(() => savedRef.current?.thothUsed ?? 0);
-  const [visionUsed, setVisionUsed] = useState(() => savedRef.current?.visionUsed ?? 0);
+  const [raLightUsed, setRaLightUsed] = useState(
+    () => savedRef.current?.raLightUsed ?? 0,
+  );
+  const [thothUsed, setThothUsed] = useState(
+    () => savedRef.current?.thothUsed ?? 0,
+  );
+  const [visionUsed, setVisionUsed] = useState(
+    () => savedRef.current?.visionUsed ?? 0,
+  );
   const [visionActive, setVisionActive] = useState(false);
   const [penaltyKey, setPenaltyKey] = useState(0);
   const [lastPenalty, setLastPenalty] = useState(0);
@@ -126,16 +173,24 @@ export function useGameState(): GameStateHook {
   );
   const [cinematicReady, setCinematicReady] = useState(false);
   const [cinematicChapterId, setCinematicChapterId] = useState(1);
-  const [puzzleProgress, setPuzzleProgress] = useState<Record<number, PuzzleProgress>>(loadProgress);
+  const [puzzleProgress, setPuzzleProgress] =
+    useState<Record<number, PuzzleProgress>>(loadProgress);
   const [mapKey, setMapKey] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [hintGlow, setHintGlow] = useState(() => localStorage.getItem(HINT_GLOW_KEY) !== "0");
+  const [hintGlow, setHintGlow] = useState(
+    () => localStorage.getItem(HINT_GLOW_KEY) !== "0",
+  );
   const [missionPhase, setMissionPhase] = useState<MissionPhase>(null);
-  const [nameSet, setNameSet] = useState(() => localStorage.getItem(PLAYER_NAME_KEY) !== null);
+  const [nameSet, setNameSet] = useState(
+    () => localStorage.getItem(PLAYER_NAME_KEY) !== null,
+  );
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem(PLAYER_NAME_KEY) ?? DEFAULT_PLAYER_NAME,
   );
+  const [raLightLoading, setRaLightLoading] = useState(false);
+  const [thothLoading, setThothLoading] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const raLightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -146,7 +201,9 @@ export function useGameState(): GameStateHook {
 
   const currentChapterId = Math.ceil((puzzleIdx + 1) / 8);
   const currentChapterIdRef = useRef(currentChapterId);
-  useEffect(() => { currentChapterIdRef.current = currentChapterId; }, [currentChapterId]);
+  useEffect(() => {
+    currentChapterIdRef.current = currentChapterId;
+  }, [currentChapterId]);
   const empty = n * n - 1;
   const puzzle = PUZZLES[puzzleIdx] ?? PUZZLES[0]!;
   const emptyIdx = tiles.indexOf(empty);
@@ -156,16 +213,18 @@ export function useGameState(): GameStateHook {
   const frozen = winPhase !== "none";
   const stars = getStars(raLightUsed, thothUsed);
   // Computed when win screen is visible so it shows immediately without waiting for a button click
-  const lastPuzzlePoints: PointsResult = winPhase === "lore"
-    ? calculatePoints(stars, moves, elapsed, raLightUsed, thothUsed)
-    : { total: 0, breakdown: "" };
+  const lastPuzzlePoints: PointsResult =
+    winPhase === "lore"
+      ? calculatePoints(stars, moves, elapsed, raLightUsed, thothUsed)
+      : { total: 0, breakdown: "" };
 
   // Aggregate puzzle-level progress into per-chapter summaries (8 puzzles per chapter)
   const chapterProgress: Record<number, ChapterProgress> = {};
   for (const [idStr, prog] of Object.entries(puzzleProgress)) {
     const puzzleId = Number(idStr);
     const chapterId = Math.ceil(puzzleId / 8);
-    if (!chapterProgress[chapterId]) chapterProgress[chapterId] = { stars: 0, completed: 0 };
+    if (!chapterProgress[chapterId])
+      chapterProgress[chapterId] = { stars: 0, completed: 0 };
     chapterProgress[chapterId].stars += prog.stars ?? 0;
     chapterProgress[chapterId].completed += 1;
   }
@@ -212,7 +271,7 @@ export function useGameState(): GameStateHook {
   useEffect(() => {
     if (screen !== "game") return;
     setMissionPhase("full");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen, puzzleIdx]);
 
   useEffect(() => {
@@ -240,15 +299,28 @@ export function useGameState(): GameStateHook {
   useEffect(() => {
     const img = new Image();
     img.src = puzzle.imageUrl;
-    if (img.complete) { setImageLoaded(true); return; }
+    if (img.complete) {
+      setImageLoaded(true);
+      return;
+    }
     setImageLoaded(false);
-    img.onload = () => { console.log("[imageLoaded] loaded:", img.src); setImageLoaded(true); };
-    img.onerror = () => { console.warn("[imageLoaded] failed to load:", img.src); setImageLoaded(true); };
-    return () => { img.onload = null; img.onerror = null; };
+    img.onload = () => {
+      setImageLoaded(true);
+    };
+    img.onerror = () => {
+      console.warn("[imageLoaded] failed to load:", img.src);
+      setImageLoaded(true);
+    };
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
   }, [puzzle.imageUrl]);
 
   // Confirm the initial tiles are in place before win checks run.
-  useEffect(() => { setHasShuffled(true); }, []);
+  useEffect(() => {
+    setHasShuffled(true);
+  }, []);
 
   // Cinematic fallback — show Continue button after brief delay
   useEffect(() => {
@@ -256,7 +328,7 @@ export function useGameState(): GameStateHook {
     setCinematicReady(false);
     const t = setTimeout(() => setCinematicReady(true), 2200);
     return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
   // Preload next puzzle's image while win screen is showing
@@ -304,46 +376,137 @@ export function useGameState(): GameStateHook {
       setLastMovedValue(movedValue);
       setTimerActive(true);
       lockMove();
-      writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, raLightUsed, thothUsed, visionUsed });
+      writeSave(n, {
+        tiles: newTiles,
+        moves: newMoves,
+        elapsed,
+        raLightUsed,
+        thothUsed,
+        visionUsed,
+      });
     }
     setPressedIdx(null);
   }
 
   function handleRaLight() {
-    if (frozen || raLightUsed >= RA_LIGHT_MAX) return;
-    clearRaLight();
-    const best = nextSolverMove(tiles, n, lastMovedValue);
-    setRaLightIdx(best);
-    const newRaLightUsed = raLightUsed + 1;
-    const newMoves = moves + RA_LIGHT_COST;
-    setRaLightUsed(newRaLightUsed);
-    setMoves(newMoves);
-    setLastPenalty(RA_LIGHT_COST);
-    setPenaltyKey((k) => k + 1);
-    if (best !== null) {
-      raLightTimerRef.current = setTimeout(() => setRaLightIdx(null), 3000);
-    }
-    writeSave(n, { tiles, moves: newMoves, elapsed, raLightUsed: newRaLightUsed, thothUsed, visionUsed });
+    if (frozen || raLightUsed >= RA_LIGHT_MAX || raLightLoading) return;
+    setRaLightLoading(true);
+    void (async () => {
+      try {
+        const userId = getOrCreateGuestId();
+        const response = await fetch("/api/v1/hints", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": userId,
+          },
+          body: JSON.stringify({
+            tiles,
+            n,
+            lastMovedValue,
+            hintType: "ra_light",
+          }),
+        });
+        if (response.status === 401) {
+          setSessionExpired(true);
+          return;
+        }
+        if (response.status === 403) {
+          setRaLightUsed(RA_LIGHT_MAX);
+          return;
+        }
+        if (response.status === 400) {
+          setRaLightUsed(RA_LIGHT_MAX);
+          setThothUsed(THOTH_HAND_MAX);
+          return;
+        }
+        if (!response.ok) return;
+        const data = (await response.json()) as { tile: number };
+        const tile = data.tile;
+        clearRaLight();
+        setRaLightIdx(tile);
+        const newRaLightUsed = raLightUsed + 1;
+        const newMoves = moves + RA_LIGHT_COST;
+        setRaLightUsed(newRaLightUsed);
+        setMoves(newMoves);
+        setLastPenalty(RA_LIGHT_COST);
+        setPenaltyKey((k) => k + 1);
+        raLightTimerRef.current = setTimeout(() => setRaLightIdx(null), 3000);
+        writeSave(n, {
+          tiles,
+          moves: newMoves,
+          elapsed,
+          raLightUsed: newRaLightUsed,
+          thothUsed,
+          visionUsed,
+        });
+      } finally {
+        setRaLightLoading(false);
+      }
+    })();
   }
 
   function handleThothHand() {
-    if (frozen || thothUsed >= THOTH_HAND_MAX || moveLocked) return;
-    const best = nextSolverMove(tiles, n, lastMovedValue);
-    if (best === null) return;
-    clearRaLight();
-    const movedValue = tiles[best]!;
-    const newTiles = moveTile(tiles, best, emptyIdx).tiles;
-    const newMoves = moves + THOTH_HAND_COST;
-    const newThothUsed = thothUsed + 1;
-    setTiles(newTiles);
-    setMoves(newMoves);
-    setThothUsed(newThothUsed);
-    setLastMovedValue(movedValue);
-    setTimerActive(true);
-    lockMove();
-    setLastPenalty(THOTH_HAND_COST);
-    setPenaltyKey((k) => k + 1);
-    writeSave(n, { tiles: newTiles, moves: newMoves, elapsed, raLightUsed, thothUsed: newThothUsed, visionUsed });
+    if (frozen || thothUsed >= THOTH_HAND_MAX || moveLocked || thothLoading)
+      return;
+    setThothLoading(true);
+    void (async () => {
+      try {
+        const userId = getOrCreateGuestId();
+        const response = await fetch("/api/v1/hints", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": userId,
+          },
+          body: JSON.stringify({
+            tiles,
+            n,
+            lastMovedValue,
+            hintType: "thoth_hand",
+          }),
+        });
+        if (response.status === 401) {
+          setSessionExpired(true);
+          return;
+        }
+        if (response.status === 403) {
+          setThothUsed(THOTH_HAND_MAX);
+          return;
+        }
+        if (response.status === 400) {
+          setRaLightUsed(RA_LIGHT_MAX);
+          setThothUsed(THOTH_HAND_MAX);
+          return;
+        }
+        if (!response.ok) return;
+        const data = (await response.json()) as { tile: number };
+        const tile = data.tile;
+        clearRaLight();
+        const movedValue = tiles[tile]!;
+        const newTiles = moveTile(tiles, tile, emptyIdx).tiles;
+        const newMoves = moves + THOTH_HAND_COST;
+        const newThothUsed = thothUsed + 1;
+        setTiles(newTiles);
+        setMoves(newMoves);
+        setThothUsed(newThothUsed);
+        setLastMovedValue(movedValue);
+        setTimerActive(true);
+        lockMove();
+        setLastPenalty(THOTH_HAND_COST);
+        setPenaltyKey((k) => k + 1);
+        writeSave(n, {
+          tiles: newTiles,
+          moves: newMoves,
+          elapsed,
+          raLightUsed,
+          thothUsed: newThothUsed,
+          visionUsed,
+        });
+      } finally {
+        setThothLoading(false);
+      }
+    })();
   }
 
   function handleVisionOfOsiris() {
@@ -352,8 +515,18 @@ export function useGameState(): GameStateHook {
     const newVisionUsed = visionUsed + 1;
     setVisionUsed(newVisionUsed);
     setVisionActive(true);
-    visionTimerRef.current = setTimeout(() => setVisionActive(false), VISION_DURATION_MS);
-    writeSave(n, { tiles, moves, elapsed, raLightUsed, thothUsed, visionUsed: newVisionUsed });
+    visionTimerRef.current = setTimeout(
+      () => setVisionActive(false),
+      VISION_DURATION_MS,
+    );
+    writeSave(n, {
+      tiles,
+      moves,
+      elapsed,
+      raLightUsed,
+      thothUsed,
+      visionUsed: newVisionUsed,
+    });
   }
 
   function handleDevSolve() {
@@ -393,10 +566,18 @@ export function useGameState(): GameStateHook {
     startPuzzle(puzzleIdx, newN);
   }
 
-  function handlePlayAgain() { startPuzzle(puzzleIdx); }
+  function handlePlayAgain() {
+    startPuzzle(puzzleIdx);
+  }
 
   function saveWinProgress() {
-    const pts = calculatePoints(stars, moves, elapsed, raLightUsed, thothUsed).total;
+    const pts = calculatePoints(
+      stars,
+      moves,
+      elapsed,
+      raLightUsed,
+      thothUsed,
+    ).total;
     const prev = puzzleProgress[puzzle.id];
     const newPuzzleProgress: Record<number, PuzzleProgress> = {
       ...puzzleProgress,
@@ -405,7 +586,6 @@ export function useGameState(): GameStateHook {
         points: Math.max(pts, prev?.points ?? 0),
       },
     };
-    console.log('[saveWinProgress] puzzle.id:', puzzle.id, 'stars:', stars, 'newPuzzleProgress:', JSON.stringify(newPuzzleProgress));
     setPuzzleProgress(newPuzzleProgress);
     persistProgress(newPuzzleProgress);
   }
@@ -431,7 +611,9 @@ export function useGameState(): GameStateHook {
     setScreen("map");
   }
 
-  function handleNewGame() { startPuzzle(puzzleIdx); }
+  function handleNewGame() {
+    startPuzzle(puzzleIdx);
+  }
 
   function handleBeginJourney() {
     persistDifficulty(startDifficulty);
@@ -448,9 +630,10 @@ export function useGameState(): GameStateHook {
     persistDifficulty(startDifficulty);
     const completedIds = Object.keys(puzzleProgress).map(Number);
     // puzzle IDs are 1-based; highest completed ID == next puzzleIdx (0-based)
-    const nextIdx = completedIds.length > 0
-      ? Math.min(Math.max(...completedIds), PUZZLES.length - 1)
-      : 0;
+    const nextIdx =
+      completedIds.length > 0
+        ? Math.min(Math.max(...completedIds), PUZZLES.length - 1)
+        : 0;
     startPuzzle(nextIdx, startDifficulty);
     setScreen("game");
   }
@@ -495,7 +678,6 @@ export function useGameState(): GameStateHook {
 
   function handleCinematicContinue() {
     const chId = currentChapterIdRef.current;
-    console.log("handleCinematicContinue chapterId:", chId);
     const cinematicKey = `shards_cinematic_seen_ch_${chId}`;
     localStorage.setItem(cinematicKey, "1");
     localStorage.setItem(CINEMATIC_SEEN_KEY, "1"); // backwards compat
@@ -541,29 +723,103 @@ export function useGameState(): GameStateHook {
 
   function handleResetConfirm() {
     [
-      INTRO_KEY, CINEMATIC_SEEN_KEY, PROGRESS_KEY, PROGRESS_KEY_2, DIFFICULTY_KEY, HINT_GLOW_KEY,
-      NARRATION_KEY, VOICE_GENDER_KEY, NARRATOR_KEY, PLAYER_NAME_KEY, AUTH_PROVIDER_KEY,
-      'shards_cinematic_seen_ch_1', 'shards_cinematic_seen_ch_2',
-      saveKeyFor(3), saveKeyFor(4), saveKeyFor(5),
+      INTRO_KEY,
+      CINEMATIC_SEEN_KEY,
+      PROGRESS_KEY,
+      PROGRESS_KEY_2,
+      DIFFICULTY_KEY,
+      HINT_GLOW_KEY,
+      NARRATION_KEY,
+      VOICE_GENDER_KEY,
+      NARRATOR_KEY,
+      PLAYER_NAME_KEY,
+      AUTH_PROVIDER_KEY,
+      "shards_cinematic_seen_ch_1",
+      "shards_cinematic_seen_ch_2",
+      saveKeyFor(3),
+      saveKeyFor(4),
+      saveKeyFor(5),
     ].forEach((k) => localStorage.removeItem(k));
     window.location.reload();
   }
 
   return {
-    n, puzzleIdx, currentChapterId, cinematicChapterId, tiles, moves, elapsed, timerActive, pressedIdx, winPhase,
-    raLightIdx, raLightUsed, thothUsed, visionUsed, visionActive,
-    penaltyKey, lastPenalty, moveLocked, imageLoaded,
-    hasShuffled, screen, startDifficulty, cinematicReady, puzzleProgress, chapterProgress, mapKey,
-    menuOpen, showResetConfirm, hintGlow, missionPhase,
-    puzzle, emptyIdx, movable, solved, frozen, stars,
-    setScreen, setMenuOpen, setShowResetConfirm, setStartDifficulty, setPressedIdx,
-    startPuzzle, handlePointerDown, handlePointerUp,
-    handleRaLight, handleThothHand, handleVisionOfOsiris, handleDevSolve,
-    handleDifficultyChange, handlePlayAgain, handleNextShard,
-    handleViewMap, handleNewGame, handleBeginJourney, handleContinue, handleNameConfirm,
-    handleAuthComplete, handleSkipAuth, handleShowAuth, handleShowLeaderboard, handleBackFromLeaderboard, handleCinematicContinue, handleBackToStart,
-    handleShowMap, handleMapSelect, handleToggleHintGlow, handleResetRequest,
-    handleResetConfirm, handleDismissMission, handleExpandMission,
-    nameSet, playerName, handleSetPlayerName, lastPuzzlePoints,
+    n,
+    puzzleIdx,
+    currentChapterId,
+    cinematicChapterId,
+    tiles,
+    moves,
+    elapsed,
+    timerActive,
+    pressedIdx,
+    winPhase,
+    raLightIdx,
+    raLightUsed,
+    raLightLoading,
+    thothLoading,
+    sessionExpired,
+    thothUsed,
+    visionUsed,
+    visionActive,
+    penaltyKey,
+    lastPenalty,
+    moveLocked,
+    imageLoaded,
+    hasShuffled,
+    screen,
+    startDifficulty,
+    cinematicReady,
+    puzzleProgress,
+    chapterProgress,
+    mapKey,
+    menuOpen,
+    showResetConfirm,
+    hintGlow,
+    missionPhase,
+    puzzle,
+    emptyIdx,
+    movable,
+    solved,
+    frozen,
+    stars,
+    setScreen,
+    setMenuOpen,
+    setShowResetConfirm,
+    setStartDifficulty,
+    setPressedIdx,
+    startPuzzle,
+    handlePointerDown,
+    handlePointerUp,
+    handleRaLight,
+    handleThothHand,
+    handleVisionOfOsiris,
+    handleDevSolve,
+    handleDifficultyChange,
+    handlePlayAgain,
+    handleNextShard,
+    handleViewMap,
+    handleNewGame,
+    handleBeginJourney,
+    handleContinue,
+    handleNameConfirm,
+    handleAuthComplete,
+    handleSkipAuth,
+    handleShowAuth,
+    handleShowLeaderboard,
+    handleBackFromLeaderboard,
+    handleCinematicContinue,
+    handleBackToStart,
+    handleShowMap,
+    handleMapSelect,
+    handleToggleHintGlow,
+    handleResetRequest,
+    handleResetConfirm,
+    handleDismissMission,
+    handleExpandMission,
+    nameSet,
+    playerName,
+    handleSetPlayerName,
+    lastPuzzlePoints,
   };
 }

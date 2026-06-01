@@ -9,7 +9,14 @@ interface ScoreBreakdownProps {
   theme: ChapterTheme;
 }
 
-export function ScoreBreakdown({ stars, moves, elapsed, raLightUsed, thothUsed, theme }: ScoreBreakdownProps) {
+export function ScoreBreakdown({
+  stars,
+  moves,
+  elapsed,
+  raLightUsed,
+  thothUsed,
+  theme,
+}: ScoreBreakdownProps) {
   const moveCost = moves * 10;
   const base = Math.max(100, 1000 - moveCost);
   const speedBonus = elapsed < 30 ? 200 : elapsed < 60 ? 100 : 0;
@@ -18,10 +25,16 @@ export function ScoreBreakdown({ stars, moves, elapsed, raLightUsed, thothUsed, 
   const total = base + speedBonus + noFavorsBonus + starsBonus;
 
   const rows: { label: string; value: number; delay: number }[] = [
-    { label: "BASE",      value: base,          delay: 0   },
-    ...(speedBonus    > 0 ? [{ label: "SPEED",     value: speedBonus,    delay: 0.5 }] : []),
-    ...(noFavorsBonus > 0 ? [{ label: "NO FAVORS", value: noFavorsBonus, delay: 1.0 }] : []),
-    ...(starsBonus    > 0 ? [{ label: "STARS",     value: starsBonus,    delay: 1.5 }] : []),
+    { label: "BASE", value: base, delay: 0 },
+    ...(speedBonus > 0
+      ? [{ label: "SPEED", value: speedBonus, delay: 0.5 }]
+      : []),
+    ...(noFavorsBonus > 0
+      ? [{ label: "NO FAVORS", value: noFavorsBonus, delay: 1.0 }]
+      : []),
+    ...(starsBonus > 0
+      ? [{ label: "STARS", value: starsBonus, delay: 1.5 }]
+      : []),
   ];
 
   return (

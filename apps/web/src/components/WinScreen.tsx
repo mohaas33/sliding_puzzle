@@ -32,11 +32,19 @@ function starComment(stars: number, name: string, chapter: number): string {
   return `Anubis sighs. "The feather outweighs your effort."`;
 }
 
-function divineFavorLine(raLightUsed: number, thothUsed: number, visionUsed: number, chapter: number): string {
+function divineFavorLine(
+  raLightUsed: number,
+  thothUsed: number,
+  visionUsed: number,
+  chapter: number,
+): string {
   if (chapter === 2) {
-    if (thothUsed > 0) return `Athena lent her wisdom ${thothUsed} time${thothUsed === 1 ? "" : "s"}. Olympus is watching.`;
-    if (raLightUsed > 0) return `Apollo guided your hand ${raLightUsed} time${raLightUsed === 1 ? "" : "s"}. The gods noted this.`;
-    if (visionUsed > 0) return `You sought only vision, not intervention. Wise.`;
+    if (thothUsed > 0)
+      return `Athena lent her wisdom ${thothUsed} time${thothUsed === 1 ? "" : "s"}. Olympus is watching.`;
+    if (raLightUsed > 0)
+      return `Apollo guided your hand ${raLightUsed} time${raLightUsed === 1 ? "" : "s"}. The gods noted this.`;
+    if (visionUsed > 0)
+      return `You sought only vision, not intervention. Wise.`;
     return `The Olympians watched in silence.`;
   }
   if (thothUsed > 0) {
@@ -80,7 +88,7 @@ export function WinScreen({
       setTimeout(() => setRevealed(i + 1), 300 + i * 900),
     );
     return () => timers.forEach(clearTimeout);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle.id]);
 
   return (
@@ -120,7 +128,14 @@ export function WinScreen({
 
         {/* Chapter progress bar */}
         <div style={{ width: "100%", marginBottom: 6 }}>
-          <div style={{ height: 3, borderRadius: 2, background: theme.primaryBg, overflow: "hidden" }}>
+          <div
+            style={{
+              height: 3,
+              borderRadius: 2,
+              background: theme.primaryBg,
+              overflow: "hidden",
+            }}
+          >
             <div
               style={{
                 height: "100%",
@@ -134,9 +149,21 @@ export function WinScreen({
         </div>
 
         {/* Stars */}
-        <div style={{ fontSize: "1.6rem", letterSpacing: "0.2em", color: theme.primary, margin: "10px 0 6px" }}>
+        <div
+          style={{
+            fontSize: "1.6rem",
+            letterSpacing: "0.2em",
+            color: theme.primary,
+            margin: "10px 0 6px",
+          }}
+        >
           {Array.from({ length: 3 }, (_, i) => (
-            <span key={i} style={{ opacity: i < stars ? 1 : 0.18, color: theme.primary }}>★</span>
+            <span
+              key={i}
+              style={{ opacity: i < stars ? 1 : 0.18, color: theme.primary }}
+            >
+              ★
+            </span>
           ))}
         </div>
 
@@ -299,7 +326,8 @@ export function WinScreen({
             margin: 0,
           }}
         >
-          {playerName} · {chapter === 2 ? "Fragment" : "Shard"} {puzzle.id} of {PUZZLES.length} · {moves} moves · {formatTime(elapsed)}
+          {playerName} · {chapter === 2 ? "Fragment" : "Shard"} {puzzle.id} of{" "}
+          {PUZZLES.length} · {moves} moves · {formatTime(elapsed)}
         </p>
 
         {/* Points earned */}
@@ -321,11 +349,24 @@ export function WinScreen({
         )}
 
         {/* Action buttons */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center", marginTop: 20 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            justifyContent: "center",
+            marginTop: 20,
+          }}
+        >
           <button
             className="win-btn"
             onClick={handlePlayAgain}
-            style={{ color: theme.primary, border: `1px solid ${theme.primaryDim}`, minWidth: "120px", flex: "1 1 120px" }}
+            style={{
+              color: theme.primary,
+              border: `1px solid ${theme.primaryDim}`,
+              minWidth: "120px",
+              flex: "1 1 120px",
+            }}
           >
             Play Again
           </button>

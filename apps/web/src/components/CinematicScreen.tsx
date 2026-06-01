@@ -14,10 +14,16 @@ const FALLBACK_NARRATION: Record<number, string> = {
   2: "Two thousand years before your birth, a hero shattered the mirror of Athena and scattered its fragments across the Aegean. The gods fell to quarreling. Heroes lost their way. Troy burns for the wrong reasons. You are the Restorer — called now to the land of marble and myth.",
 };
 
-export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }: CinematicScreenProps) {
+export function CinematicScreen({
+  currentChapterId,
+  theme,
+  onBack,
+  onContinue,
+}: CinematicScreenProps) {
   const chId = Number(currentChapterId);
   const textColor = chId === 2 ? "#c8dff0" : "#d4b896";
-  const loreText = CHAPTERS[chId]?.introNarration ?? FALLBACK_NARRATION[chId] ?? "";
+  const loreText =
+    CHAPTERS[chId]?.introNarration ?? FALLBACK_NARRATION[chId] ?? "";
   const words = loreText.split(" ").filter(Boolean);
 
   const [revealedWords, setRevealedWords] = useState(0);
@@ -55,12 +61,18 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
       <button
         onClick={onBack}
         style={{
-          position: "absolute", top: 16, left: 20,
-          fontFamily: "'Cinzel', serif", fontSize: "0.65rem",
-          letterSpacing: "0.1em", textTransform: "uppercase",
+          position: "absolute",
+          top: 16,
+          left: 20,
+          fontFamily: "'Cinzel', serif",
+          fontSize: "0.65rem",
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
           color: theme.primaryBorderBright,
-          background: "transparent", border: "none",
-          cursor: "pointer", padding: "6px 4px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          padding: "6px 4px",
         }}
       >
         ← Back
@@ -72,16 +84,25 @@ export function CinematicScreen({ currentChapterId, theme, onBack, onContinue }:
       <div className="gold-sep" style={{ width: 120, marginBottom: 40 }} />
 
       <div className="cinematic-body">
-        <p className="cinematic-p1" style={{
-          fontStyle: "italic", textAlign: "center",
-          maxWidth: 520, animation: "none", color: textColor,
-        }}>
+        <p
+          className="cinematic-p1"
+          style={{
+            fontStyle: "italic",
+            textAlign: "center",
+            maxWidth: 520,
+            animation: "none",
+            color: textColor,
+          }}
+        >
           {words.map((word, i) => (
-            <span key={i} style={{
-              display: "inline",
-              opacity: revealedWords > i ? 1 : 0,
-              transition: "opacity 0.4s ease",
-            }}>
+            <span
+              key={i}
+              style={{
+                display: "inline",
+                opacity: revealedWords > i ? 1 : 0,
+                transition: "opacity 0.4s ease",
+              }}
+            >
               {word}{" "}
             </span>
           ))}

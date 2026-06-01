@@ -6,7 +6,31 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-vm-modules ../../node_modules/.bin/jest"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/dist/"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": [
+        "ts-jest",
+        {
+          "useESM": true,
+          "isolatedModules": true
+        }
+      ]
+    },
+    "moduleNameMapper": {
+      "^@sliding-puzzle/game-logic$": "<rootDir>/../../packages/game-logic/src/index.ts",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
   },
   "dependencies": {
     "@sliding-puzzle/game-logic": "*",
@@ -17,7 +41,11 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.14",
     "@types/node": "^20.14.5",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.11",
     "tsx": "^4.15.7",
     "typescript": "^5.4.5"
   }

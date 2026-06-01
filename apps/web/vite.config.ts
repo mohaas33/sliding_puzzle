@@ -9,7 +9,7 @@ export default defineConfig({
     alias: {
       "@sliding-puzzle/game-logic": path.resolve(
         __dirname,
-        "../../packages/game-logic/src/index.ts"
+        "../../packages/game-logic/src/index.ts",
       ),
     },
   },
